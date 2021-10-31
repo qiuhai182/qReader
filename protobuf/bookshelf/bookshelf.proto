@@ -1,0 +1,57 @@
+syntax = "proto2";
+import "common.proto";
+import "bookcity.proto";
+package bookShelfService;
+option cc_generic_services = true;
+
+
+message addShelfBookReq 
+{ // 个人书架增加书籍请求信息
+	required string userId = 1;
+	required string bookId = 2;
+};
+
+message delShelfBookReq 
+{ // 用户请求删除书架中书籍信息
+	required string userId= 1;
+	repeated string bookIds = 2;	
+}
+
+message getShelfBooksReq 
+{ // 查询某个用户的书架书籍信息，分页查询
+	required string userId = 1;				// 
+	optional int32 offset = 2;				// 偏移值
+	optional int32 count = 3;				// 
+}
+
+
+message getPageReq
+{//请求某本书对应页的pdf
+	required string userId = 1;
+	required string bookId = 2;
+	required int32 page   = 3 ;
+}
+
+message bookPageResp
+{//返回对页的请求
+	optional string userId = 1;
+	optional string bookId = 2;
+	optional int32 page   = 3 ;
+	optional  string Url = 4 ;//该页url
+	required int32 code   = 5 ;
+}
+
+
+service bookShelfService 
+{ // 书籍信息服务
+	rpc addToShelfFun(addShelfBookReq) returns(commonService.commonResp);			// 
+	rpc delFromShelfFun(delShelfBookReq) returns(commonService.commonResp);			// 
+	rpc getMyshelfFun(getShelfBooksReq) returns(bookCityService.booksRespList);		// 
+
+	rpc getOnePageFun(getPageReq) returns (bookPageResp)	;	//通过userID，bookId，page获取对应页pdf
+}
+
+
+
+
+

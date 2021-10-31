@@ -1,0 +1,99 @@
+syntax = "proto2";
+import "common.proto";
+package bookCityService;
+option cc_generic_services = true;
+
+
+message bookInfoItem 
+{ // 书籍信息结构
+	required string bookId = 1;
+	optional string bookName = 2;
+	optional string bookHeadUrl = 3;
+	optional string bookDownUrl = 4;
+	optional string bookType = 5;
+	optional string authorName = 6;
+	optional string uptimeStamp = 7;	// 入库时间
+	optional string userId = 8;
+    optional int32  hits = 9;           // 可选参数，点赞数
+}
+
+message bookMarkItem 
+{ // 读书笔记结构
+	required string bookId = 1;
+}
+
+message getAllBookInfoReq 
+{ // 获取数据库所有书籍信息请求信息
+	optional int32 offset = 1;
+	optional int32 size = 2;
+}
+
+message searchBookReq 
+{ // 多属性或单属性查找书籍，一般为单属性
+	optional string userId = 1;
+	optional string bookId = 2;
+	optional string bookName = 3;
+	optional string authorName = 4; 
+}
+
+message searchItem
+{ // 查根据书籍单条属性查找书籍，废弃
+	required string attribute = 1;		// 属性名
+	required string value = 2;			// 属性值
+}
+
+message searchItems
+{ // 多属性查找书籍，废弃
+	repeated searchItem attrlists = 1;
+	required int32 count = 2;
+}
+
+message readBookRecordResp
+{ // 获取最近阅读记录结果信息
+	repeated bookInfoItem bookLists = 1;
+	required int32 count = 2;
+}
+
+message booksRespList 
+{ // 大量书籍信息回发信息
+	optional string userId = 1;
+	repeated bookInfoItem lists = 2;
+	required int32 count = 3;
+}
+
+message getBookTypeReq 
+{ // 获取某种type类型的图书
+	optional string userId = 1;				// 
+	required string type = 2;				//
+	optional int32  offset = 3;				//
+	required int32  count = 4;				//
+	optional int32  sortMethod = 5;			// 排序算法
+}
+
+message getBookTypeResp 
+{ // 获取书籍类型结果信息
+	repeated bookInfoItem bookLists = 1;
+	required int32 count = 2;	
+}
+
+message delBookReq
+{ // 删除数据库书籍请求
+    required string userId = 1;
+    required string bookId = 2;
+    optional string delTime = 3;
+}
+
+
+
+service bookCityService 
+{
+	rpc addBookInfoFun(bookInfoItem) returns(commonService.commonResp);			// 
+	rpc searchBookInfoFun(searchBookReq) returns(booksRespList);			    // 
+	rpc setBookInfoFun(bookInfoItem) returns(commonService.commonResp);		    // 
+	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
+	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
+}
+
+
+
+

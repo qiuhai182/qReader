@@ -1,0 +1,111 @@
+syntax="proto2";
+import "common.proto";
+package collectdataService;
+option cc_generic_services = true;
+
+
+/*
+ * 坐标与时刻
+ * 
+ */
+message coordinate 
+{
+	required float x = 1;
+	required float y = 2;
+	required string timeStamp = 3;
+}
+
+
+/*
+ * 一组视线数据
+ * 
+ */
+message readBookRecored
+{
+	required string userId = 1;		// 用户id
+	required string bookId = 2;		// 书籍id
+	required int32  pageNum = 3;	// 页数
+	repeated coordinate lists = 4;	// 视线数据列表
+	required string startTime = 5;
+	required string endTime = 6;
+}
+
+/* 
+ * 请求获得当天阅读时长统计
+ * 
+ */
+message readCountReq
+{
+	required string dayTime = 1;	// 当天日期，格式：xxxx-xx-xx，精确到天
+	required string userId = 2;
+	/*required string bookId = 3;
+	optional int32 pageNum = 4;*/
+}
+
+/* 
+ * 回复当天用户某本书的阅读时长统计
+ * 从24:00到00:00分为12个区间，最多12个数据
+ * 
+ */
+
+message minute
+{
+	required int32 min = 1;
+}
+
+message thisTimeDataRep{
+
+	required int32 hour  = 1 ;
+	required int32 min   = 2 ;
+	required int32 sec   = 3 ;
+	required float focus = 4 ;
+	required int32 pages  = 5 ;
+	required int32 rows  = 6 ;
+}
+
+/* 
+ * 散点图
+ */
+
+
+//点位置
+message point
+{
+	required float x = 1 ;
+	required float y = 2 ;
+}
+
+ //每一种点信息
+ message  pointType
+ {
+	required string action = 1 ;
+	required string color = 2 ;
+	repeated point  locate = 3;
+ } 
+//折线图
+message speedPoint
+{
+	required float  point = 1;
+}
+message readCountResp
+{
+	repeated minute lists = 1;
+	optional thisTimeDataRep   thisTimeData  = 2 ;
+	required commonService.commonResp  status = 3 ;
+	repeated pointType  scatterDiagram = 4 ;
+	repeated speedPoint  speedPoints = 5;
+}
+
+
+
+
+
+
+service collectService 
+{ // 收集视线、阅读数据
+	rpc collectReadDataFun(readBookRecored) returns(commonService.commonResp);
+	rpc getReadTimeCount(readCountReq) returns(readCountResp);
+}
+
+
+
