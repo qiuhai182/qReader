@@ -900,9 +900,10 @@ namespace bookShelfService
 			return;
 		}
 
+
 		virtual void delFromShelfFun(google::protobuf::RpcController *control_base,
 									 const delShelfBookReq *request,
-									 commonService::commonResp *response,
+									 ::bookShelfService::delShelfBookRep* response,
 									 google::protobuf::Closure *done)
 		{
 			brpc::ClosureGuard done_guard(done);
@@ -915,21 +916,26 @@ namespace bookShelfService
 					  << ", 发出请求用户 : " << request->userid()
 					  << " (attached : " << control->request_attachment() << ")";
 			int size  = request->bookids_size();
-			int ret = 1;
+			int sus = 0, fail = 0;
 			for(int i = 0 ; i < size; i++){
-				 ret = del_shelf_book(request->userid(), request->bookids(i));
+				if(1 == del_shelf_book(request->userid(), request->bookids(i)))
+				 	sus++ ;
+				else{
+					response->add_failbookids(request->bookids(i).c_str());
+					
+				}
 			}
-			
-			if (ret < 1)
-			{
-				response->set_code(0);
-				response->set_errorres("delete faild");
-			}
-			else
-			{
-				response->set_code(1);
-				response->set_errorres("delete sucessful");
-			}
+			response->set_suscount(sus);
+			response->set_userid(request->userid());
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << ", 用户 : " << request->userid()
+					  << " (请求删书籍"<<to_string(size)
+					  <<"本，成功 : " +to_string(sus) + "本,失败" + to_string(size -sus) + "本"  << ")";
+			// cout<<"size is "<<size<<endl ;
+			// response->set_code(1);
+			// response->set_errorres("删除成功 " +to_string(sus) + "本,失败" + to_string(fail) + "本" );
 
 			if (FLAGS_echo_attachment)
 			{
