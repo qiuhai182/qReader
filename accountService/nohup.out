@@ -2275,3 +2275,237 @@ I1031 13:58:28.156992 314028 /home/qiuhai/qReader/accountService/server.h:1082]
 filepath  is ../../qReaderData/images/default.png
 I1031 13:58:28.157668 314028 /home/qiuhai/qReader/accountService/server.h:1064] 请求下载文件: ../../qReaderData/images/default.png 成功
 
+W1031 14:37:24.910919 314028 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=256 fd=16 addr=193.142.146.242:56384:8000} (0x7f59340f2820): Connection reset by peer
+W1031 15:06:44.827051 314031 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=257 fd=16 addr=162.142.125.194:49766:8000} (0x7f59340f2a20): Connection reset by peer
+W1031 15:06:46.361801 314031 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=8589934848 fd=16 addr=162.142.125.194:44362:8000} (0x7f59340f2820): Connection reset by peer
+
+I1031 16:29:13.758217 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4163 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 16:29:13.783180 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4163请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 16:46:13.499882 314026 /home/qiuhai/qReader/accountService/server.h:1185] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3433 应答服务器ip+port: 172.22.107.143:8000 (attached : )
+视线数据写入csv文件: ../../qReaderData/sightData/sightCsv/oxc_Analyse.csv
+2021-10-31 08:11:29
+ret = 143
+数量：0
+数量：0
+数量：0
+数量：0
+数量：26756
+数量：0
+数量：0
+数量：0
+数量：0
+数量：0
+数量：0
+数量：0
+统计区间阅读时长成功
+I1031 16:46:18.129163 314026 /home/qiuhai/qReader/accountService/server.h:1266] (客户端ip+port: 106.85.76.70:3433 应答服务器ip+port: 172.22.107.143:8000请求2021-10-31的阅读分析数据成功)
+
+I1031 16:54:02.722601 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3829 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 16:54:02.725552 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3829请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 16:54:09.441799 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3829 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 16:54:09.445317 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3829请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 16:54:11.841409 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3829 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 16:54:11.844095 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3829请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 16:54:37.934171 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3863 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 16:54:37.936880 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3863请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 16:54:39.072859 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3863 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 16:54:39.077380 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3863请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 16:54:55.654374 314026 /home/qiuhai/qReader/accountService/server.h:912] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3863 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+
+I1031 16:55:02.128513 314028 /home/qiuhai/qReader/accountService/server.h:912] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3863 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+W1031 16:57:06.648984 314028 src/brpc/input_messenger.cpp:243] Close Socket{id=8589934978 fd=28 addr=192.241.196.159:57494:8000} (0x7f5918037980) due to unknown message: \16\03\01\00\8B\01\00\00\87\03\03r\D3\B5\02zz$\06m\B4xBM\01b:\7F\82\BDvEu\DA\C3\13\C5\F4\83W\7F\C1X\00\00\1A\C0/\C0+\C0\11\C0\07\C0\13\C0\t\C0\14\C0\n\00\05...<skipping 80 bytes>
+
+I1031 17:00:29.025156 314028 /home/qiuhai/qReader/accountService/server.h:912] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4066 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+W1031 17:00:52.340149 314031 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=17179869571 fd=28 addr=106.85.76.70:4066:8000} (0x7f5918037b80): Connection reset by peer
+
+I1031 17:01:37.355934 314031 /home/qiuhai/qReader/accountService/server.h:135] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4109 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+I1031 17:01:37.357147 314031 /home/qiuhai/qReader/accountService/server.h:143] 
+106.85.76.70:4109 请求获取账号: oxc 的数据,成功
+
+
+I1031 17:02:18.776643 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4120 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:02:18.779383 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4120请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:02:20.344946 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4120 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:02:20.348345 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4120请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:02:21.672124 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4120 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:02:21.674861 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4120请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:12:19.113911 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4782 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:12:19.119885 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4782请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:13:29.231454 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4875 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:13:29.234107 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4875请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:14:19.709748 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4934 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:14:19.712440 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4934请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:15:11.345527 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4993 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:15:11.348219 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4993请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:15:13.944629 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:4993 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:15:13.947339 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:4993请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:25:37.684797 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3636 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:25:37.687493 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3636请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:25:40.006247 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3636 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:25:40.008924 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3636请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:25:44.968712 314028 /home/qiuhai/qReader/accountService/server.h:912] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3636 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+W1031 17:25:58.651130 314026 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=25769804162 fd=28 addr=106.85.76.70:3636:8000} (0x7f5918037980): Connection reset by peer
+
+I1031 17:26:10.598482 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3674 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:26:10.601253 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3674请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:26:25.096802 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3674 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:26:25.099465 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3674请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:26:32.447991 314028 /home/qiuhai/qReader/accountService/server.h:1185] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3674 应答服务器ip+port: 172.22.107.143:8000 (attached : )
+视线数据写入csv文件: ../../qReaderData/sightData/sightCsv/oxc_Analyse.csv
+2021-10-31 08:11:29
+
+I1031 17:26:35.456151 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3690 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:26:35.460416 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3690请求获取用户 oxc 书架的所有书籍成功
+
+ret = 143
+数量：0
+数量：0
+数量：0
+数量：0
+数量：26756
+数量：0
+数量：0
+数量：0
+数量：0
+数量：0
+数量：0
+数量：0
+统计区间阅读时长成功
+I1031 17:26:37.089426 314028 /home/qiuhai/qReader/accountService/server.h:1266] (客户端ip+port: 106.85.76.70:3674 应答服务器ip+port: 172.22.107.143:8000请求2021-10-31的阅读分析数据成功)
+
+I1031 17:26:38.211724 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3674 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:26:38.214416 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3674请求获取用户 oxc 书架的所有书籍成功
+
+W1031 17:26:49.895252 314026 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=34359738754 fd=29 addr=106.85.76.70:3690:8000} (0x7f5918037980): Connection reset by peer
+W1031 17:26:49.895603 314028 src/brpc/input_messenger.cpp:214] Fail to read from Socket{id=34359738755 fd=28 addr=106.85.76.70:3674:8000} (0x7f5918037b80): Connection reset by peer
+
+I1031 17:27:01.044670 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3735 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:27:01.047907 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3735请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:27:03.882564 314026 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3735 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:27:03.885443 314026 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3735请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:27:05.111502 314028 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3735 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:27:05.114182 314028 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3735请求获取用户 oxc 书架的所有书籍成功
+
+
+I1031 17:28:00.616840 314031 /home/qiuhai/qReader/accountService/server.h:949] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.70:3784 应答服务器ip+port: 172.22.107.143:8000, 发出请求用户 : oxc (attached : )
+myshelf函数：6
+I1031 17:28:00.619651 314031 /home/qiuhai/qReader/accountService/server.h:971] 
+106.85.76.70:3784请求获取用户 oxc 书架的所有书籍成功
+
