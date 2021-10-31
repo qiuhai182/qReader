@@ -2265,3 +2265,13 @@ I1028 21:51:27.301817  4379 /home/zqj/qReader_new/accountService/server.h:781]
 I1028 21:51:27.382350  4379 /home/zqj/qReader_new/accountService/server.h:808] 
 106.85.76.5:5039查询所有书籍成功，本次查到 7 本书
 
+
+   重庆师范大学-智能阅读器-服务器  开始初始化
+
+I1031 13:56:47.867224 314022 src/brpc/server.cpp:1046] Server[bookCityService::bookCityServiceImpl+collectdataService::collectDataServiceImpl+fileService::fileServiceImpl+bookShelfService::bookShelfServiceImpl+accountService::accountServiceImpl+commonService::commonServiceImpl+echoService::EchoServiceImpl] is serving on port=8000.
+I1031 13:56:47.867618 314022 src/brpc/server.cpp:1049] Check out http://Ubuntu:8000 in web browser.
+I1031 13:58:28.156992 314028 /home/qiuhai/qReader/accountService/server.h:1082] 
+收到请求[log_id=0] 客户端ip+port: 106.85.76.33:4840 应答服务器ip+port: 172.22.107.143:8000 (attached : )
+filepath  is ../../qReaderData/images/default.png
+I1031 13:58:28.157668 314028 /home/qiuhai/qReader/accountService/server.h:1064] 请求下载文件: ../../qReaderData/images/default.png 成功
+
