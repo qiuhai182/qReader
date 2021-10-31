@@ -17,6 +17,14 @@ message delShelfBookReq
 	repeated string bookIds = 2;	
 }
 
+message delShelfBookRep 
+{ // 用户删除书架中书籍返回信息
+	required string userId= 1;
+	repeated string FailBookIds = 2;	
+	required int32  susCount = 3;
+}
+
+
 message getShelfBooksReq 
 { // 查询某个用户的书架书籍信息，分页查询
 	required string userId = 1;				// 
@@ -45,7 +53,7 @@ message bookPageResp
 service bookShelfService 
 { // 书籍信息服务
 	rpc addToShelfFun(addShelfBookReq) returns(commonService.commonResp);			// 
-	rpc delFromShelfFun(delShelfBookReq) returns(commonService.commonResp);			// 
+	rpc delFromShelfFun(delShelfBookReq) returns(delShelfBookRep);			// 
 	rpc getMyshelfFun(getShelfBooksReq) returns(bookCityService.booksRespList);		// 
 
 	rpc getOnePageFun(getPageReq) returns (bookPageResp)	;	//通过userID，bookId，page获取对应页pdf

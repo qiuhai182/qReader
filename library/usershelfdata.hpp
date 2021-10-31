@@ -83,9 +83,10 @@ int del_shelf_book(const string &userId, const string &bookId)
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-	string userId_bookId = "" + userId + "_"+ bookId;
-	string cond = "userId_bookId = " + userId_bookId;
-	if (conn->delete_records<UserShelfTable>(cond))
+	string userId_bookId = userId +"_" + bookId;
+	string cond = "delete from UserShelfTable where userId_bookId = \'" + userId_bookId + "\'";
+	cout << cond << endl;
+	if(conn->execute(cond))
 		return 1;
 	else
 		return 0;

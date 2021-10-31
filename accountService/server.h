@@ -900,7 +900,6 @@ namespace bookShelfService
 			return;
 		}
 
-
 		virtual void delFromShelfFun(google::protobuf::RpcController *control_base,
 									 const delShelfBookReq *request,
 									 ::bookShelfService::delShelfBookRep* response,
@@ -922,7 +921,6 @@ namespace bookShelfService
 				 	sus++ ;
 				else{
 					response->add_failbookids(request->bookids(i).c_str());
-					
 				}
 			}
 			response->set_suscount(sus);
@@ -932,10 +930,8 @@ namespace bookShelfService
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << ", 用户 : " << request->userid()
 					  << " (请求删书籍"<<to_string(size)
-					  <<"本，成功 : " +to_string(sus) + "本,失败" + to_string(size -sus) + "本"  << ")";
-			// cout<<"size is "<<size<<endl ;
-			// response->set_code(1);
-			// response->set_errorres("删除成功 " +to_string(sus) + "本,失败" + to_string(fail) + "本" );
+					  <<"本，成功 : " +to_string(sus) + "本,失败" 
+					  <<to_string(size -sus) + "本"  << ")";
 
 			if (FLAGS_echo_attachment)
 			{
