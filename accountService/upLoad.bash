@@ -1,12 +1,14 @@
 #!/bin/bash
 
-cd ../../qReaderExecutable
+cd ../
+git pull
 git add .
-git commit -m "上传最新可执行文件"
+git commit -m "上传最新可执行文件、代码"
 git push
 
-cd ../qReader/
+cd ../qReaderExecutable
+git pull
 git add .
-git commit -m "上传最新可执行文件链接"
+git commit -m "上传最新可执行文件"
 git push
 

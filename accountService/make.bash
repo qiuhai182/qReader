@@ -3,15 +3,14 @@
 cd ../library/
 mkdir out
 cd out
+# rm *
 cmake ..
 make
 cd ../../accountService/
 mkdir out
 cd out
-rm *
-cmake ..
+# rm *
+# cmake ..
 make
-cp server ../../../qReaderExecutable/server
-cd ..
-ln -s ../../qReaderExecutable/server server
+cp server ../../../qReaderExecutable/
 
