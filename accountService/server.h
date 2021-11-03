@@ -251,7 +251,7 @@ namespace accountService
 				LOG(INFO) << endl
 						  << control->remote_side() << "  修改密码成功" << endl;
 			}else{
-				response->set_code(1);
+				response->set_code(-1);
 				LOG(INFO) << endl
 						  << control->remote_side() << "  修改密码失败" << endl;
 			}
