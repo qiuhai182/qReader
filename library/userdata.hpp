@@ -175,7 +175,9 @@ int up_user(const UserInfoTable &user)
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-	if (conn->update(user) != 1)
+	//无主键
+	del_user(user.userId);
+	if (conn->update(user, "userId") != 1)
 	{
 		cout << __FILE__ << " : " << __LINE__ << "insert error" << endl;
 		return -1;
@@ -187,6 +189,12 @@ int up_user(const UserInfoTable &user)
 
 int up_user(const string &usr_id, const string &user_nickname, const string &user_head_imgurl, const string &user_profile, const string &user_pwd, const int &user_male, const int &user_age)
 { //由server.h调用，删除原有user,重新添加		-4：密码不符要求    -3：账号不存在    -2：账户已存在    -1：连接数据库出错    0：失败    1：成功
+	
+	// UserInfoTable user ;
+	// //获取信息在确定部分覆盖
+	// int ret = get_user_by_id(user,usr_id);
+
+	
 	int int_res = del_user(usr_id);
 	if (int_res == 1)
 	{
@@ -197,4 +205,31 @@ int up_user(const string &usr_id, const string &user_nickname, const string &use
 		return int_res;
 }
 
+
+int  update_password(string usr_id,string usr_passwd)
+{
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+
+	
+	string cond = "update  UserInfoTable set userPwd = \'" 
+				+ usr_passwd + "\' where userId = \'" + usr_id  + "\'";
+	
+	int ret =  conn->execute(cond);
+	cout << "ret  is "<<ret<<" "<<cond<<endl ;
+	if(ret)
+	{
+		return ret ;	
+	}else{
+		return -1 ;
+	}
+
+}
 
