@@ -85,7 +85,6 @@ int del_shelf_book(const string &userId, const string &bookId)
 	}
 	string userId_bookId = userId +"_" + bookId;
 	string cond = "delete from UserShelfTable where userId_bookId = \'" + userId_bookId + "\'";
-	cout << cond << endl;
 	if(conn->execute(cond))
 		return 1;
 	else

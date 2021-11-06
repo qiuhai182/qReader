@@ -231,6 +231,36 @@ namespace accountService
 			}
 		}
 
+		virtual void updatePasswdFun(::google::protobuf::RpcController* control_base,
+                       const ::accountService::updateReq* request,
+                       ::commonService::commonResp* response,
+                       ::google::protobuf::Closure* done)
+		{//修改密码服务
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			
+			int ret = update_password(request->userid(),request->newpassword()) ;
+			if(ret > 0 )
+			{
+				response->set_code(1);
+				LOG(INFO) << endl
+						  << control->remote_side() << "  修改密码成功" << endl;
+			}else{
+				response->set_code(-1);
+				LOG(INFO) << endl
+						  << control->remote_side() << "  修改密码失败" << endl;
+			}
+			if (FLAGS_echo_attachment)
+			{
+				control->response_attachment().append(control->request_attachment());
+			}
+
+		}
 		virtual void getAllUserInfoFun(google::protobuf::RpcController *control_base,
 									   const getAllUserInfoReq *request,
 									   userInfoRespList *response,
@@ -324,20 +354,67 @@ namespace accountService
 					  << ", 发出请求用户 : " << request->userid()
 					  << " (attached : " << control->request_attachment() << ")";
 			if (!request->userid().empty())
-			{ // -4：密码不符要求 - 3：账号不存在 - 2：账户已存在 - 1：连接数据库出错 0：失败 1：成功
-				int int_res = up_user(request->userid(), request->nickname(), request->headimgurl(), request->userpwd(), request->profile(), request->male(), request->age());
-				if (int_res == 1)
+			{ //文件类型错误 -3: 连接数据库出错 -2： 账户不存在 - 1：失败 1：成功
+				UserInfoTable user ;
+				int ret = get_user_by_id(user, request->userid());
+				if( 1 == ret )
 				{
-					response->set_code(1);
-					LOG(INFO) << endl
-							  << control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,成功" << endl;
-				}
-				else
-				{
+					if( request->has_nickname())
+					{
+						user.userNickName = request->nickname();
+					}
+					if( request->has_profile())
+					{
+						user.userProfile = request->profile();
+					}
+					if( request->has_male())
+					{
+							user.userMale = request->male();
+					}
+					if( request->has_age())
+					{
+						user.userAge = request->age();
+					}
+					if( request->has_headimgdata())
+					{
+						string type = control->http_request().content_type() ;
+						int index = type.find_last_of('.') ;
+						cout<<index<<endl ;
+						string suffix;
+						if( 0 <= index && index < type.length() )
+						{
+							suffix = suffix.substr(index); // 获取文件后缀
+						}else{
+							response->set_code(-3);
+							response->set_errorres("文件格式错误");
+							LOG(INFO) << endl
+								<< control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,头像格式错误" << endl;
+							return;
+						}
+						string headPath = "../../qReaderData/images/"+ request->userid() + "_head." + suffix;
+						std::ofstream outFile(headPath, std::ios::binary | std::ios::trunc);
+        				outFile.write(&request->headimgdata()[0], request->headimgdata().size()); 
+						string url = "http://39.105.217.90:8000/fileService/fileDownFun/images/" + request->userid() + "_head" + suffix;
+						user.userHeadImgUrl =  url;
+					}
+					if( 1 == up_user(user) )
+					{
+						response->set_code(1);
+						response->set_errorres("修改成功");
+						LOG(INFO) << endl
+								<< control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,修改成功" << endl;
+					}else{
+						response->set_code(-2);
+						response->set_errorres("数据库错误");
+						LOG(INFO) << endl
+								<< control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息失败，数据库错误" << endl;	
+					}
+
+				}else{
 					response->set_code(-1);
-					response->set_errorres("出错了，请重试");
+					response->set_errorres("账号不存在");
 					LOG(INFO) << endl
-							  << control->remote_side() << "请求修改用户: " << request->userid() << " 个人信息,失败" << endl;
+				 			  << control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,账号不存在" << endl;
 				}
 			}
 			if (FLAGS_echo_attachment)
