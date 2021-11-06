@@ -391,7 +391,7 @@ namespace accountService
 								<< control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,头像格式错误" << endl;
 							return;
 						}
-						string headPath = "../../qReaderData/images/"+ request->userid() + "_head." + suffix;
+						string headPath = FLAGS_imagesPath+ request->userid() + "_head." + suffix;
 						std::ofstream outFile(headPath, std::ios::binary | std::ios::trunc);
         				outFile.write(&request->headimgdata()[0], request->headimgdata().size()); 
 						string url = "http://39.105.217.90:8000/fileService/fileDownFun/images/" + request->userid() + "_head" + suffix;
@@ -935,7 +935,7 @@ namespace bookShelfService
 		bool isFileExisit(string bookId, int page)
 		{
 			string filePath;
-			filePath = "../../qReaderData/books/spiltedBooks/" + bookId + "/" + bookId + "_" + std::to_string(page) + ".pdf";
+			filePath = FLAGS_pdfPath + bookId + "/" + bookId + "_" + std::to_string(page) + ".pdf";
 			if (eaccess(filePath.c_str(), F_OK) == -1)
 			{
 				return false;

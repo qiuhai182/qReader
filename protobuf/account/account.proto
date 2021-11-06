@@ -20,7 +20,7 @@ message userInfoResp
 	optional string profile = 4;		// 简介
 	optional bool male = 5;				// 性别
 	optional int32 age = 6;				// 年龄
-	optional string HeadImgUrl = 7 ;
+	optional string headImgUrl = 7 ;
 }
 
 message userInfoRespList 
