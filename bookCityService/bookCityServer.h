@@ -40,6 +40,12 @@ namespace bookCityService
 
 	class bookCityServiceImpl : public bookCityService
 	{
+	private:
+		// 记录个性化推荐批次
+		map<string, int> recommendTimes;
+		// 记录书城浏览批次
+		map<string, int> browseTimes;
+
 	public:
 		bookCityServiceImpl(){};
 		virtual ~bookCityServiceImpl(){};
@@ -266,6 +272,151 @@ namespace bookCityService
 				control->response_attachment().append(control->request_attachment());
 			}
 		}
+
+		virtual void getBookADSFun(google::protobuf::RpcController *control_base,
+									   const adsReq *request,
+									   adsRes *response,
+									   google::protobuf::Closure *done)
+		{ // 获取广告图片
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			vector<BookADSTable> ads;
+			int ret = get_all_ads(ads);
+			if (ret == -1)
+			{
+				cout << endl;
+				LOG(INFO) << "[" << __FILE__ << "]"
+						  << "[" << __LINE__ << "]" << endl;
+			}
+			int start = 0;
+			int i = start;
+			int end = std::min(start + 10, ret);
+			for (; start < ret; ++start)
+			{
+				auto book = response->add_lists();
+				book->set_bookid(ads[start].bookId);
+				book->set_adurl(ads[start].adUrl);
+			}
+			response->set_count(ret);
+			LOG(INFO) << endl
+					  << control->remote_side() << "查询广告成功" << endl;
+			if (FLAGS_echo_attachment)
+			{
+				control->response_attachment().append(control->request_attachment());
+			}
+		}
+
+		virtual void getRecommendBookFun(google::protobuf::RpcController *control_base,
+									   const recommendBookReq *request,
+									   recommendBookRes *response,
+									   google::protobuf::Closure *done)
+		{ // 获取个性化书籍推荐
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			int curIndex = 0;
+			if (recommendTimes.count(request->userid()))
+			{
+				curIndex = recommendTimes[request->userid()] + 1;
+				recommendTimes[request->userid()] = curIndex;
+			}
+			else
+			{
+				recommendTimes[request->userid()] = curIndex;
+			}
+			vector<BookInfoTable> books;
+			int ret = get_recommend_book(books, curIndex);
+			if (ret == -1)
+			{
+				cout << endl;
+				LOG(INFO) << "[" << __FILE__ << "]"
+						  << "[" << __LINE__ << "]" << endl;
+			}
+			int start = 0;
+			int i = start;
+			int end = std::min(start + 10, ret);
+			for (; start < ret; ++start)
+			{
+				auto book = response->add_lists();
+				book->set_bookid(books[start].bookId);
+				book->set_bookname(books[start].bookName);
+				book->set_bookheadurl(books[start].bookHeadUrl);
+				book->set_bookdownurl(books[start].bookDownUrl);
+				book->set_booktype(books[start].bookType);
+				book->set_authorname(books[start].authorName);
+				book->set_bookinfo("简介信息：书籍名为《" + books[start].bookName + "》");
+			}
+			response->set_count(ret);
+			LOG(INFO) << endl
+					  << control->remote_side() << "查询个性化推荐成功，本次查到 " << ret << " 本书" << endl;
+			if (FLAGS_echo_attachment)
+			{
+				control->response_attachment().append(control->request_attachment());
+			}
+		}
+		
+		virtual void getBrowseBookFun(google::protobuf::RpcController *control_base,
+									   const browseBookReq *request,
+									   browseBookRes *response,
+									   google::protobuf::Closure *done)
+		{ // 获取书城浏览推荐
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			int curIndex = 0;
+			if (browseTimes.count(request->userid()))
+			{
+				curIndex = browseTimes[request->userid()] + 1;
+				browseTimes[request->userid()] = curIndex;
+			}
+			else
+			{
+				browseTimes[request->userid()] = curIndex;
+			}
+			vector<BookInfoTable> books;
+			int ret = get_recommend_book(books, curIndex);
+			if (ret == -1)
+			{
+				cout << endl;
+				LOG(INFO) << "[" << __FILE__ << "]"
+						  << "[" << __LINE__ << "]" << endl;
+			}
+			int start = 0;
+			int i = start;
+			int end = std::min(start + 10, ret);
+			for (; start < ret; ++start)
+			{
+				auto book = response->add_lists();
+				book->set_bookid(books[start].bookId);
+				book->set_bookname(books[start].bookName);
+				book->set_bookheadurl(books[start].bookHeadUrl);
+				book->set_bookdownurl(books[start].bookDownUrl);
+				book->set_booktype(books[start].bookType);
+				book->set_authorname(books[start].authorName);
+				book->set_bookinfo("简介信息：书籍名为《" + books[start].bookName + "》");
+			}
+			response->set_count(ret);
+			LOG(INFO) << endl
+					  << control->remote_side() << "查询随机书城推荐成功，本次查到 " << ret << " 本书" << endl;
+			if (FLAGS_echo_attachment)
+			{
+				control->response_attachment().append(control->request_attachment());
+			}
+		}
+
 	};
 
 }

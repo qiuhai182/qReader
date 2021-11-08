@@ -185,4 +185,71 @@ int up_book(const string &book_id, const string &book_name, const string &book_h
 	return up_book(book);
 }
 
+int get_all_ads(vector<BookADSTable> &res)
+{ // 获取数据库所有书籍信息
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+	res = conn->query<BookADSTable>();
+	return res.size();
+}
 
+int get_recommend_book(vector<BookInfoTable> &res, int curIndex)
+{ // 获取个性化推荐书籍
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+	auto allBook = conn->query<BookInfoTable>();
+	int sizeInt = allBook.size();
+	sizeInt = sizeInt / 10;
+	sizeInt += sizeInt % 10 ? 1 : 0;
+	int start = curIndex < sizeInt ? 10 * curIndex : curIndex % sizeInt;
+	int end = start + 10;
+	for(; start < end; ++start)
+	{
+		if (start < allBook.size())
+		{
+			res.push_back(allBook[start]);
+		}
+	}
+	return res.size();
+}
+
+int get_browse_book(vector<BookInfoTable> &res, int curIndex)
+{ // 浏览书城时随机推荐书籍
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+	auto allBook = conn->query<BookInfoTable>();
+	int sizeInt = allBook.size();
+	sizeInt = sizeInt / 10;
+	sizeInt += sizeInt % 10 ? 1 : 0;
+	int start = curIndex < sizeInt ? 10 * curIndex : curIndex % sizeInt;
+	int end = start + 10;
+	for (; start < end; ++start)
+	{
+		if (start < allBook.size())
+		{
+			res.push_back(allBook[start]);
+		}
+	}
+	return res.size();
+}

@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
   /*cout << "   创建数据库表格" << endl;
   if (1 == create_tables()) { // 创建所有需要的表格
   }*/
+  v();
 
   brpc::Server server;
   bookCityService::bookCityServiceImpl

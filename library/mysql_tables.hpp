@@ -127,9 +127,12 @@ namespace ormpp
 	};
 	REFLECTION(ReadSETable, userId, bookId, pageNum, startTime, endTime, dayTime);
 
-
-
-
+	struct BookADSTable
+	{ // 广告图片对应
+		string bookId; // 广告图片对应书籍ID 
+		string adUrl; // 广告图片链接
+	};
+	REFLECTION(BookADSTable, bookId, adUrl);
 
 	std::shared_ptr<dbng<mysql>> get_conn_from_pool()
 	{ // 获取数据库连接池的一份连接
@@ -330,27 +333,48 @@ namespace ormpp
 			return 0;
 	}
 
+	int create_bookAds_table()
+	{ // 创建书籍广告
+		auto conn = get_conn_from_pool();
+		conn_guard guard(conn);
+		if (conn == NULL)
+		{
+			cout << "FILE: " << __FILE__ << " "
+				 << "conn is NULL"
+				 << " LINE  " << __LINE__ << endl;
+			return 0;
+		}
+		conn->execute("DROP TABLE IF EXISTS BookADSTable");
+		ormpp_not_null not_null{{"bookId"}};
+		if (conn->create_datatable<BookADSTable>())
+			return 1;
+		else
+			return 0;
+	}
+
 	int v()
 	{ // 创建所有需要的数据库表格
 
-		if (1 != create_user_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 UserInfoTable 失败";
-		if (1 != create_shelf_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 UserShelfTable 失败";
-		if (1 != create_readcored_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 UserReadCoredTable 失败";
-		if (1 != create_bookinfo_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 BookInfoTable 失败";
-		if (1 != create_hits_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 HitsTable 失败";
-		if (1 != create_note_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 NoteTable 失败";
-		if (1 != create_comment_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 CommentTable 失败";
-		if (1 != create_sight_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 SightTable 失败";
-		if (1 != create_startEnd_table())
-			LOG(INFO) << "初始化信息：创建数据库表格 ReadSETable 失败";
+		// if (1 != create_user_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 UserInfoTable 失败";
+		// if (1 != create_shelf_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 UserShelfTable 失败";
+		// if (1 != create_readcored_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 UserReadCoredTable 失败";
+		// if (1 != create_bookinfo_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 BookInfoTable 失败";
+		// if (1 != create_hits_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 HitsTable 失败";
+		// if (1 != create_note_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 NoteTable 失败";
+		// if (1 != create_comment_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 CommentTable 失败";
+		// if (1 != create_sight_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 SightTable 失败";
+		// if (1 != create_startEnd_table())
+		// 	LOG(INFO) << "初始化信息：创建数据库表格 ReadSETable 失败";
+		if (1 != create_bookAds_table())
+			LOG(INFO) << "初始化信息：创建数据库表格 BookADSTable 失败";
 
 		LOG(INFO) << "初始化信息：已创建所有数据库表格";
 		return 1;
