@@ -21,7 +21,7 @@ using namespace ormpp;
 using namespace std;
 const int maxLength = 1024; // 某些数据的最大长度
 
-DEFINE_string(dataRoot, "../../", "数据存储目录所在根目录");
+DEFINE_string(dataRoot, "../../../", "数据存储目录所在根目录");
 // DEFINE_string(dataRoot, "../../../", "数据存储目录所在根目录");
 DEFINE_string(dataPath, FLAGS_dataRoot + "qReaderData/", "数据存储目录");
 DEFINE_string(commentPath, FLAGS_dataPath + "commentData/", "评论数据存储目录");

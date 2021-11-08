@@ -5,6 +5,8 @@
 using namespace rapidjson;
 using namespace ormpp;
 using namespace std;
+DEFINE_string(sightAnalyseJsonPath,"../../../qReaderData/sightData/sightAnalyseJson/" , "sightAnalyseJson目录");
+DEFINE_string(sightCsvPath, "../../../qReaderData/sightData/sightCsv/", "sightCsv目录");
 
 
 
@@ -441,7 +443,7 @@ int writeSightTableCsv(string &csvPath,vector<SightTable>& rsc )
 //存储当天Csv文件,作为处理的前提
 int storageAnalyseCsv(const string &timeStamp,const string & userId)
 {
-  string CsvFilePath = "../../qReaderData/sightData/sightCsv/" + userId + "_Analyse.csv";
+  string CsvFilePath = FLAGS_sightCsvPath + userId + "_Analyse.csv";
   vector<SightTable>result ;
   int ret = get_sight_by_timeStamp(result,timeStamp,userId);
   if(ret > 0){
@@ -455,7 +457,7 @@ int storageAnalyseCsv(const string &timeStamp,const string & userId)
 //分析结果到json文件，不存在对应目录则创建usrid目录
 int storageAnalyseJson(const string & userId)
 {
-  string filePath = "../../qReaderData/sightData/sightAnalyseJson/"+userId;
+  string filePath = FLAGS_sightAnalyseJsonPath + userId;
   if (eaccess(filePath.c_str(), F_OK) == -1)
   {
     int ret = mkdir(filePath.data(), 0775);
@@ -593,7 +595,7 @@ int getAnalyseResult(map<string,string> & timeFocus,
                     vector<double> &lineChart,
                     const string &timeStamp,const string & userId)
 {
-  string jsonFilePath = "../../qReaderData/sightData/sightAnalyseJson/"+userId+"/" + userId + "_Analyse.json";
+  string jsonFilePath = FLAGS_sightAnalyseJsonPath + userId+"/" + userId + "_Analyse.json";
   rapidjson::Document document;
   
   string json_content = getJsonContent(jsonFilePath) ;
