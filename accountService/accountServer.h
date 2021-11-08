@@ -342,22 +342,22 @@ namespace accountService
 					if( request->has_headimgdata())
 					{
 						
-						string suffix  ;
-						if(request->has_headimgtype() )
-						{
-							suffix =request->headimgtype(); // 获取文件后缀
-						}else{
-							response->set_code(-3);
-							response->set_errorres("文件格式错误");
-							LOG(INFO) << endl
-								<< control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,头像格式错误" << endl;
-							return;
-						}
+						string suffix = "png" ;
+						// if(request->has_headimgtype() )
+						// {
+						// 	suffix =request->headimgtype(); // 获取文件后缀
+						// }else{
+						// 	response->set_code(-3);
+						// 	response->set_errorres("文件格式错误");
+						// 	LOG(INFO) << endl
+						// 		<< control->remote_side() << "请求修改账号: " << request->userid() << " 个人信息,头像格式错误" << endl;
+						// 	return;
+						// }
 						string headPath = FLAGS_imagesPath+ request->userid() + "_head." + suffix;
 						cout<<"headPath is"<<headPath<<endl;
 						std::ofstream outFile(headPath, std::ios::binary | std::ios::trunc);
         				outFile.write(&request->headimgdata()[0], request->headimgdata().size()); 
-						string url = "http://39.105.217.90:8000/fileService/fileDownFun/images/" + request->userid() + "_head" + suffix;
+						string url = "http://39.105.217.90:8000/fileService/fileDownFun/images/" + request->userid() + "_head." + suffix;
 						user.userHeadImgUrl =  url;
 					}
 					if( 1 == up_user(user) )
