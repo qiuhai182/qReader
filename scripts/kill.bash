@@ -51,7 +51,7 @@ case "$1" in
             kill_pro  ${serverArr[5]}  ${portArr[5]}
 			;;
         "-ac" )
-            kill_pro  ${serverArr[5]}  ${portArr[5]}
+            kill_pro  ${serverArr[6]}  ${portArr[6]}
 			;;
         "-all" )
             #全部终止

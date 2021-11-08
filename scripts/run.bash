@@ -19,7 +19,7 @@ function run(){
         cd ../../scripts
     fi
     #没有该行的sleep 0.1最后一个lsof检查不到导致运行成功却显示失败，该bug未解决
-                sleep 0.1
+    sleep 0.1
     #检测运行
     res="$(lsof -i:$2)"
     list=($res)
@@ -66,7 +66,7 @@ case "$1" in
             run  ${serverArr[5]}  ${portArr[5]}
 			;;
         "-ac" )
-            run  ${serverArr[5]}  ${portArr[5]}
+            run  ${serverArr[6]}  ${portArr[6]}
 			;;
         "-all" )
             #全部终止
