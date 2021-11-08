@@ -147,7 +147,7 @@ int del_user(const string &user_id)
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-	string cond = "where userId = \'" + user_id + "\';
+	string cond = "where userId = \'" + user_id + "\'";
 	auto res = conn->query<UserInfoTable>(cond);
 	if (res.size() == 0)
 		return -3; //账号不存在
