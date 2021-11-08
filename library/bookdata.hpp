@@ -212,10 +212,10 @@ int get_recommend_book(vector<BookInfoTable> &res, int curIndex)
 		return -1;
 	}
 	auto allBook = conn->query<BookInfoTable>();
-	int sizeInt = allBook.size();
-	sizeInt = sizeInt / 10;
-	sizeInt += sizeInt % 10 ? 1 : 0;
-	int start = curIndex < sizeInt ? 10 * curIndex : curIndex % sizeInt;
+	int sizeInt = 0;
+	sizeInt = allBook.size() / 10;
+	sizeInt += allBook.size() % 10 ? 1 : 0;
+	int start = curIndex < sizeInt ? 10 * curIndex : (curIndex % sizeInt) * 10;
 	int end = start + 10;
 	for(; start < end; ++start)
 	{
@@ -229,27 +229,5 @@ int get_recommend_book(vector<BookInfoTable> &res, int curIndex)
 
 int get_browse_book(vector<BookInfoTable> &res, int curIndex)
 { // 浏览书城时随机推荐书籍
-	auto conn = get_conn_from_pool();
-	conn_guard guard(conn);
-	if (conn == NULL)
-	{
-		cout << "FILE: " << __FILE__ << " "
-			 << "conn is NULL"
-			 << " LINE  " << __LINE__ << endl;
-		return -1;
-	}
-	auto allBook = conn->query<BookInfoTable>();
-	int sizeInt = allBook.size();
-	sizeInt = sizeInt / 10;
-	sizeInt += sizeInt % 10 ? 1 : 0;
-	int start = curIndex < sizeInt ? 10 * curIndex : curIndex % sizeInt;
-	int end = start + 10;
-	for (; start < end; ++start)
-	{
-		if (start < allBook.size())
-		{
-			res.push_back(allBook[start]);
-		}
-	}
-	return res.size();
+	return get_recommend_book(res, curIndex);
 }
