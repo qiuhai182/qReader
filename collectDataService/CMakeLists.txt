@@ -37,10 +37,10 @@ include(FindProtobuf)
 
 #查找指定目录的proto文件编译生成的源文件和头文件，分别输出到变量PROTO_SRC和PROTO_HEADER
 protobuf_generate_cpp(PROTO_SRC PROTO_HEADER 
-                      ../protobuf/account/account.proto
+                    #   ../protobuf/account/account.proto
                     #   ../protobuf/bookcity/bookcity.proto
                     #   ../protobuf/bookshelf/bookshelf.proto 
-                    #   ../protobuf/collectdata/collectdata.proto
+                      ../protobuf/collectdata/collectdata.proto
                       ../protobuf/common/common.proto
                     #   ../protobuf/echo/echo.proto
                     #   ../protobuf/fileupdown/fileupdown.proto
@@ -162,7 +162,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 #使用给定的源文件及给定目录下的源文件，为工程创建一个可执行文件server
-add_executable(server accountServer.cpp ${PROTO_HEADER} ${PROTO_SRC} ${SRC_DIRS})
+add_executable(server collectDataServer.cpp ${PROTO_HEADER} ${PROTO_SRC} ${SRC_DIRS})
 
 #添加链接库
 target_link_libraries(server ${BRPC_LIB} ${DYNAMIC_LIB} lib_iReader.a mysqlclient)
