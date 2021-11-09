@@ -236,10 +236,10 @@ namespace collectdataService
 			string userId = request->userid();
 			if (userTarget.count(userId))
 			{
-				request->set_minute(userTarget[userId]);
+				response->set_minute(userTarget[userId]);
 			}
 			else
-				request->set_minute(0);
+				response->set_minute(0);
 			LOG(INFO) << "(客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  <<"请求阅读计划分钟数)";
