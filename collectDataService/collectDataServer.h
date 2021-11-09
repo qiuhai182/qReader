@@ -42,6 +42,8 @@ namespace collectdataService
 	{
 	private :
 
+		map<string, int> userTarget;
+
 		unsigned long findLocate(const string & str ,const char & ch)
 		{
 			unsigned size = str.size() ;
@@ -216,6 +218,56 @@ namespace collectdataService
 				control->response_attachment().append(control->request_attachment());
 			}
 		}
+		
+		// 获取目标时间
+		virtual void getTargetMinuteFun(google::protobuf::RpcController *control_base,
+									  const getTargetMinuteReq *request,
+									  targetMinute *response,
+									  google::protobuf::Closure *done)
+		{
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			string userId = request->userid();
+			if (userTarget.count(userId))
+			{
+				request->set_minute(userTarget[userId]);
+			}
+			else
+				request->set_minute(0);
+			LOG(INFO) << "(客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  <<"请求阅读计划分钟数)";
+		}
+
+		// 设置目标时间
+		virtual void setTargetMinuteFun(google::protobuf::RpcController *control_base,
+										const setTargetMinuteReq *request,
+										commonService::commonResp *response,
+										google::protobuf::Closure *done)
+		{
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			string userId = request->userid();
+			userTarget[userId] = request->minute();
+			response->set_code(1);
+			response->set_errorres("成功");
+			LOG(INFO) << "(客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << "设置阅读计划分钟数)";
+		}
+
 	};
 
 }

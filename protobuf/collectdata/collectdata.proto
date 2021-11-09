@@ -96,6 +96,20 @@ message readCountResp
 	repeated speedPoint  speedPoints = 5;
 }
 
+message targetMinute
+{
+	required int32 minute = 1;
+}
+message getTargetMinuteReq
+{
+	required string userId = 1;
+}
+message setTargetMinuteReq
+{
+	required string userId = 1;
+	required int32 minute = 2;
+}
+
 
 
 
@@ -105,6 +119,8 @@ service collectService
 { // 收集视线、阅读数据
 	rpc collectReadDataFun(readBookRecored) returns(commonService.commonResp);
 	rpc getReadTimeCount(readCountReq) returns(readCountResp);
+	rpc getTargetMinuteFun(getTargetMinuteReq) returns(targetMinute);
+	rpc setTargetMinuteFun(setTargetMinuteReq) returns(commonService.commonResp);
 }
 
 
