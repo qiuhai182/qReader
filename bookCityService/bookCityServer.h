@@ -299,18 +299,20 @@ namespace bookCityService
 			int count = 0;
 			for (; start < ret; ++start)
 			{
-				response->set_adurl(ads[start].adUrl);
-				auto bookRes = response->add_lists();
+				auto adRes = response->add_lists();
 				BookInfoTable bookres;
 				ret = get_book_by_id(bookres, request->bookid());
 				if (ret != -1)
 				{
-					bookRes->set_bookid(bookres.bookId);
-					bookRes->set_bookname(bookres.bookName);
-					bookRes->set_bookheadurl(bookres.bookHeadUrl);
-					bookRes->set_bookdownurl(bookres.bookDownUrl);
-					bookRes->set_booktype(bookres.bookType);
-					bookRes->set_authorname(bookres.authorName);
+					adRes->set_adurl(ads[start].adUrl);
+					auto adBookRes = adRes->add_lists();
+					adBookRes->set_bookid(bookres.bookId);
+					adBookRes->set_bookname(bookres.bookName);
+					adBookRes->set_bookheadurl(bookres.bookHeadUrl);
+					adBookRes->set_bookdownurl(bookres.bookDownUrl);
+					adBookRes->set_booktype(bookres.bookType);
+					adBookRes->set_authorname(bookres.authorName);
+					adBookRes->set_bookinfo("简介信息：书籍名为《" + bookres.bookName + "》");
 					++count;
 				}
 			}
