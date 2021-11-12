@@ -296,13 +296,25 @@ namespace bookCityService
 			int start = 0;
 			int i = start;
 			int end = std::min(start + 10, ret);
+			int count = 0;
 			for (; start < ret; ++start)
 			{
-				auto book = response->add_lists();
-				book->set_bookid(ads[start].bookId);
-				book->set_adurl(ads[start].adUrl);
+				response->set_adurl(ads[start].adUrl);
+				auto bookRes = response->add_lists();
+				BookInfoTable bookres;
+				ret = get_book_by_id(bookres, request->bookid());
+				if (ret != -1)
+				{
+					bookRes->set_bookid(bookres.bookId);
+					bookRes->set_bookname(bookres.bookName);
+					bookRes->set_bookheadurl(bookres.bookHeadUrl);
+					bookRes->set_bookdownurl(bookres.bookDownUrl);
+					bookRes->set_booktype(bookres.bookType);
+					bookRes->set_authorname(bookres.authorName);
+					++count;
+				}
 			}
-			response->set_count(ret);
+			response->set_count(count);
 			LOG(INFO) << endl
 					  << control->remote_side() << "查询广告成功" << endl;
 			if (FLAGS_echo_attachment)
