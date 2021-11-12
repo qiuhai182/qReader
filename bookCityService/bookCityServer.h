@@ -300,11 +300,11 @@ namespace bookCityService
 			for (; start < ret; ++start)
 			{
 				auto adRes = response->add_lists();
+				adRes->set_adurl(ads[start].adUrl);
 				BookInfoTable bookres;
-				ret = get_book_by_id(bookres, request->bookid());
-				if (ret != -1)
+				int retBook = get_book_by_id(bookres, request->bookid());
+				if (retBook != -1)
 				{
-					adRes->set_adurl(ads[start].adUrl);
 					auto adBookRes = adRes->add_lists();
 					adBookRes->set_bookid(bookres.bookId);
 					adBookRes->set_bookname(bookres.bookName);
@@ -313,8 +313,8 @@ namespace bookCityService
 					adBookRes->set_booktype(bookres.bookType);
 					adBookRes->set_authorname(bookres.authorName);
 					adBookRes->set_bookinfo("简介信息：书籍名为《" + bookres.bookName + "》");
-					++count;
 				}
+				++count;
 			}
 			response->set_count(count);
 			LOG(INFO) << endl
