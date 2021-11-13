@@ -341,7 +341,7 @@ namespace accountService
 					}
 					if( request->has_headimgdata())
 					{
-						
+						//前端默认格式
 						string suffix = "png" ;
 						// if(request->has_headimgtype() )
 						// {

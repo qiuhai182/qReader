@@ -36,6 +36,12 @@ DEFINE_string(wholeBooksPath, FLAGS_booksPath + "wholeBooks/", "未分割pdf存�
 DEFINE_string(pdfPath, FLAGS_booksPath + "spiltedBooks/", "整本书重命名为书籍ID的复制pdf、分割后pdf的存储文件夹");
 DEFINE_string(sightAnalyseJson, FLAGS_dataPath + "sightAnalyseJson/", "数据分析json文件存放目录");
 
+/*url在运行时生成*/
+// DEFINE_string(runIp, "39.105.217.90", "运行时IP");
+// DEFINE_string(fileUpDownPort, "8006", "运行时文件下载服务端口");
+// DEFINE_string(url, "http://" + FLAGS_runIp + ":" + FLAGS_fileUpDownPort + ":fileService/fileDownFun/", "文件下载url前缀");
+
+
     // 封装评论信息数据库操作、json格式存取评论
 
     /*

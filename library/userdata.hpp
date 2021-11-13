@@ -175,11 +175,20 @@ int up_user(const UserInfoTable &user)
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-	//无主键
-	del_user(user.userId);
-	if (conn->update(user, "userId") != 1)
+
+	string cond = "update UserInfoTable set userNickName = \'" + user.userNickName + "\'"
+				+ " , userHeadImgUrl = \'" + user.userHeadImgUrl + + "\'" 
+				+ " , userPwd = \'" + user.userPwd + "\'"
+				+ " , userProfile = \'" + user.userProfile + "\'"
+				+ " , userMale = " + to_string(user.userMale)
+				+ " ,userAge = " + to_string(user.userAge) 
+				+ " where  userId = \'" + user.userId + "\'";
+
+	cout<<"cond is "<<cond<<endl;
+
+	if (conn->execute(cond) == INT_MIN)
 	{
-		cout << __FILE__ << " : " << __LINE__ << "insert error" << endl;
+		cout << __FILE__ << " : " << __LINE__ << "update error" << endl;
 		return -1;
 	}
 	else
@@ -223,8 +232,7 @@ int  update_password(string usr_id,string usr_passwd)
 				+ usr_passwd + "\' where userId = \'" + usr_id  + "\'";
 	
 	int ret =  conn->execute(cond);
-	cout << "ret  is "<<ret<<" "<<cond<<endl ;
-	if(ret)
+	if(ret != INT_MIN)
 	{
 		return ret ;	
 	}else{

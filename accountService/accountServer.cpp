@@ -1,11 +1,3 @@
-/*
- * @Author: your name
- * @Date: 2021-11-06 02:04:58
- * @LastEditTime: 2021-11-06 02:13:35
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /qReader/accountService/server.cpp
- */
 #include "accountServer.h"
 #include <ios>
 

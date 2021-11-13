@@ -56,8 +56,9 @@ namespace ormpp
 		string authorName;		// 作者名
 		string bookType;		// 类型
 		int	   commentId;		// 首条评论id
+		string bookIntro ; 		//简介
 	};
-	REFLECTION(BookInfoTable, bookId, bookName, bookHeadUrl, bookDownUrl, authorName, bookType, commentId);
+	REFLECTION(BookInfoTable, bookId, bookName, bookHeadUrl, bookDownUrl, authorName, bookType, commentId,bookIntro);
 
 
 	struct UserShelfTable

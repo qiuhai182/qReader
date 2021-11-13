@@ -1,11 +1,3 @@
-/*
- * @Author: zqj
- * @Date: 2021-11-06 00:22:30
- * @LastEditTime: 2021-11-07 00:15:13
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /qReader_o/bookShelfService/bookShelfServer.h
- */
 #pragma once
 
 #include <gflags/gflags.h>
