@@ -1,11 +1,3 @@
-/*
- * @Author:zqj
- * @Date: 2021-11-06 00:15:28
- * @LastEditTime: 2021-11-07 00:12:52
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /oxc/qReader_o/bookCityService/bookcity.cpp
- */
 #include "bookCityServer.h"
 #include <ios>
 
@@ -20,9 +12,9 @@ int main(int argc, char *argv[])
 
   GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
-  /*cout << "   创建数据库表格" << endl;
-  if (1 == create_tables()) { // 创建所有需要的表格
-  }*/
+  // cout << "   创建数据库表格" << endl;
+  // if (1 == create_tables()) { // 创建所有需要的表格
+  // }
 
   brpc::Server server;
   bookCityService::bookCityServiceImpl

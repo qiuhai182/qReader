@@ -1,11 +1,3 @@
-/*
- * @Author: zqj
- * @Date: 2021-11-06 00:15:15
- * @LastEditTime: 2021-11-07 00:12:31
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /oxc/qReader_o/bookCityService/bookCityServer.h
- */
 #pragma once
 
 #include <gflags/gflags.h>
@@ -45,7 +37,23 @@ namespace bookCityService
 		map<string, int> recommendTimes;
 		// 记录书城浏览批次
 		map<string, int> browseTimes;
-
+		void reduce_months(string  & monthTime)
+		{//减小月份xxxx-xx
+			//确定提取位
+			int subrCount = monthTime[5] == '0' ? 6 :5 ;
+			string month = monthTime.substr(subrCount);
+			int monthInt = atoi(month.c_str()) ;
+			if( monthInt == 1)
+			{//更改年份
+				int yearInt = atoi(monthTime.substr(0,4).c_str())  - 1;
+				monthTime = to_string(yearInt) + "-12" ;
+			}
+			else
+			{
+				string zero =  monthInt < 10 ? "0":"" ; //是否填充0
+				monthTime = monthTime.substr(0,5) + zero  + to_string(monthInt - 1) ;
+			}
+		}
 	public:
 		bookCityServiceImpl(){};
 		virtual ~bookCityServiceImpl(){};
@@ -112,6 +120,9 @@ namespace bookCityService
 					book->set_bookdownurl(bookres.bookDownUrl);
 					book->set_booktype(bookres.bookType);
 					book->set_authorname(bookres.authorName);
+					if(-1 == plus_search_times(bookres.bookId,request->daytime(),bookres.bookName) ){
+						LOG(WARNING) << "更新搜索次数失败"<<endl ;
+					}
 				}
 			}
 			if (request->has_bookname())
@@ -128,6 +139,9 @@ namespace bookCityService
 					book->set_bookdownurl(bookres[i].bookDownUrl);
 					book->set_booktype(bookres[i].bookType);
 					book->set_authorname(bookres[i].authorName);
+					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
+						LOG(WARNING) << "更新搜索次数失败"<<endl ;
+					}
 				}
 			}
 			if (request->has_authorname())
@@ -144,6 +158,9 @@ namespace bookCityService
 					book->set_bookdownurl(bookres[i].bookDownUrl);
 					book->set_booktype(bookres[i].bookType);
 					book->set_authorname(bookres[i].authorName);
+					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName )){
+						LOG(WARNING) << "更新搜索次数失败"<<endl ;
+					}
 				}
 			}
 
@@ -156,6 +173,7 @@ namespace bookCityService
 			}
 			else
 			{
+				
 				LOG(INFO) << endl
 						  << control->remote_side()
 						  << "搜索到图书" << ret << " 本。" << endl;
@@ -296,27 +314,13 @@ namespace bookCityService
 			int start = 0;
 			int i = start;
 			int end = std::min(start + 10, ret);
-			int count = 0;
 			for (; start < ret; ++start)
 			{
-				auto adRes = response->add_lists();
-				adRes->set_adurl(ads[start].adUrl);
-				BookInfoTable bookres;
-				int retBook = get_book_by_id(bookres, request->bookid());
-				if (retBook != -1)
-				{
-					auto adBookRes = adRes->add_lists();
-					adBookRes->set_bookid(bookres.bookId);
-					adBookRes->set_bookname(bookres.bookName);
-					adBookRes->set_bookheadurl(bookres.bookHeadUrl);
-					adBookRes->set_bookdownurl(bookres.bookDownUrl);
-					adBookRes->set_booktype(bookres.bookType);
-					adBookRes->set_authorname(bookres.authorName);
-					adBookRes->set_bookinfo("简介信息：书籍名为《" + bookres.bookName + "》");
-				}
-				++count;
+				auto book = response->add_lists();
+				book->set_bookid(ads[start].bookId);
+				book->set_adurl(ads[start].adUrl);
 			}
-			response->set_count(count);
+			response->set_count(ret);
 			LOG(INFO) << endl
 					  << control->remote_side() << "查询广告成功" << endl;
 			if (FLAGS_echo_attachment)
@@ -429,6 +433,119 @@ namespace bookCityService
 			{
 				control->response_attachment().append(control->request_attachment());
 			}
+		}
+		virtual void getMostlySearchFun(google::protobuf::RpcController *control_base,
+                       const ::bookCityService::universalBlankReq* request,
+                       ::bookCityService::mostlySearchRes* response,
+                       ::google::protobuf::Closure* done)
+		{//搜索书籍推荐
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+
+			vector<SearchStatisticsTable> books ;
+			string month = request->daytime().substr(0,7);
+			int searchCount = request->count()  ;//请求回发书籍
+			//桶排序查找12月热搜去重  bookid-SearchStatisticsTable
+			map<string,SearchStatisticsTable> resultBook ;
+			SearchStatisticsTable book;
+
+			for(int mon = 0;mon < 12 ; mon++){
+				if(  resultBook.size() == 10 ) break ;//查找足够提前退出
+				int ret = get_mostly_search_by_month_count(month,books,searchCount) ;
+				if(-1 == ret)
+				{
+					LOG(INFO) << control->remote_side() <<month <<"月查询热搜书籍推荐失败"<< endl;
+				}
+				else
+				{
+					for (int start = 0; start < ret; ++start){
+						auto iter = resultBook.find(books[start].bookId);
+						if(iter == resultBook.end()){
+							book.bookId = books[start].bookId;
+							book.times = books[start].times ;
+							book.bookName = books[start].bookName ;
+							resultBook.insert(pair<string,SearchStatisticsTable>(book.bookId,book));
+						}
+					}	
+					
+				}
+				//月份前移
+				reduce_months(month);
+			}
+			
+			if(resultBook.size() == searchCount){
+				//--结果发送  
+				for (auto & bookres:resultBook){
+					auto book = response->add_lists();
+					book->set_bookid(bookres.second.bookId);
+					book->set_bookname(bookres.second.bookName);
+					book->set_searchtimes(bookres.second.times);
+				}
+				response->set_count(resultBook.size());
+				LOG(INFO) << endl
+					<< control->remote_side() <<month <<"月查询热搜书籍推荐成功，，共"
+					<<resultBook.size()<<"本"<< endl;
+			}
+			else//查询不足在书城发送查找发送 包含书籍不足searchCount
+			{
+				vector<BookInfoTable>  books;
+				int ret = get_book_offset(books,2,searchCount);
+				cout<<"ret is "<<ret <<endl ;
+				for(auto & bookres : books){
+					auto book = response->add_lists();
+					book->set_bookid(bookres.bookId);
+					book->set_bookname(bookres.bookName);
+					book->set_searchtimes(1);
+				}
+				response->set_count(ret);
+				LOG(INFO) << endl
+					<< control->remote_side() <<month <<"月查询热搜书籍推荐不足，书城发送共"
+					<<ret<<"本"<< endl;
+			}
+			
+		}
+		virtual void getPopularSearchFun(google::protobuf::RpcController *control_base,
+							const ::bookCityService::universalBlankReq* request,
+							::bookCityService::booksRespList* response,
+							::google::protobuf::Closure* done)
+		{//榜单推荐
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			vector<BookInfoTable> books ;
+			int ret = get_book_offset(books,1,request->count());
+
+			if( ret == -1)
+			{
+				response->set_count(-1);
+				LOG(WARNING) << endl
+					  << control->remote_side() << "榜单查询失败" << endl;
+			}
+			else
+			{
+				for(auto & bookres:books ){
+					auto book = response->add_lists();
+					book->set_bookid(bookres.bookId);
+					book->set_bookname(bookres.bookName);
+					book->set_bookheadurl(bookres.bookHeadUrl);
+					book->set_bookdownurl(bookres.bookDownUrl);
+					book->set_booktype(bookres.bookType);
+					book->set_authorname(bookres.authorName);
+				}
+				response->set_count(ret);
+				LOG(WARNING) << endl
+					  << control->remote_side() << "榜单查询成功,共" << ret<<"本"<<endl;
+			}
+
 		}
 
 	};

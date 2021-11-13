@@ -43,7 +43,7 @@ protobuf_generate_cpp(PROTO_SRC PROTO_HEADER
                     #   ../protobuf/collectdata/collectdata.proto
                       ../protobuf/common/common.proto
                     #   ../protobuf/echo/echo.proto
-                    #   ../protobuf/fileupdown/fileupdown.proto
+                    #  ../protobuf/fileupdown/fileupdown.proto
                     )
                     
 #添加头文件包含列表，添加proto头文件

@@ -11,7 +11,7 @@ function run(){
     pid=${list[10]}
     
     if [ ! "$pid" = "" ];then
-        echo -e "\033[31m Hit:Port $2 is already occupied  \033[0m"
+        echo -e "\033[31m Hit:Port $2 is already occupied ,$1 Start-up was failed  \033[0m"
         return 
     else
         cd ../$1/out

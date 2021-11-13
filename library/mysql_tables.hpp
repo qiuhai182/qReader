@@ -134,6 +134,15 @@ namespace ormpp
 	};
 	REFLECTION(BookADSTable, bookId, adUrl);
 
+	struct SearchStatisticsTable
+	{ // 搜索书籍次数统计
+		string bookId; 			// 书籍ID
+		string dayTime;			// 数据记录日期，精确到天 
+		int times; 				// 搜索次数
+		string bookName;		// 书籍name
+	};
+	REFLECTION(SearchStatisticsTable, bookId, dayTime,times,bookName);
+
 	std::shared_ptr<dbng<mysql>> get_conn_from_pool()
 	{ // 获取数据库连接池的一份连接
 		ormpp_cfg cfg{};
@@ -239,7 +248,24 @@ namespace ormpp
 		else
 			return 0;
 	}
-
+	int create_searchStatistics_table()
+	{ //创建书籍搜索数据库表
+		auto conn = get_conn_from_pool();
+		conn_guard guard(conn);
+		if (conn == NULL)
+		{
+			cout << "FILE: " << __FILE__ << " "
+				 << "conn is NULL"
+				 << " LINE  " << __LINE__ << endl;
+			return 0;
+		}
+		conn->execute("DROP TABLE IF EXISTS SearchStatisticsTable");
+		ormpp_not_null not_null{{"bookId"}};
+		if(conn->create_datatable<SearchStatisticsTable>(not_null))
+			return 1;
+		else
+			return 0;
+	}
 	int create_hits_table()
 	{ //创建点赞信息数据库表
 		auto conn = get_conn_from_pool();
@@ -352,7 +378,7 @@ namespace ormpp
 			return 0;
 	}
 
-	int v()
+	int create_tables()
 	{ // 创建所有需要的数据库表格
 
 		if (1 != create_user_table())
@@ -375,6 +401,9 @@ namespace ormpp
 			LOG(INFO) << "初始化信息：创建数据库表格 ReadSETable 失败";
 		if (1 != create_bookAds_table())
 			LOG(INFO) << "初始化信息：创建数据库表格 BookADSTable 失败";
+		if (1 != create_searchStatistics_table())
+			LOG(INFO) << "初始化信息：创建数据库表格 SearchStatisticsTable 失败";
+		
 
 		LOG(INFO) << "初始化信息：已创建所有数据库表格";
 		return 1;
