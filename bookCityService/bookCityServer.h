@@ -69,7 +69,9 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
-			int ret = insert_book(request->bookid(), request->bookname(), request->bookheadurl(), request->bookdownurl(), request->authorname(), request->booktype());
+			int ret = insert_book(request->bookid(), request->bookname(), request->bookheadurl(),
+								request->bookdownurl(), request->authorname(), 
+								request->booktype(),request->bookintro());
 			if (ret < 1)
 			{
 				cout << endl;
@@ -120,6 +122,7 @@ namespace bookCityService
 					book->set_bookdownurl(bookres.bookDownUrl);
 					book->set_booktype(bookres.bookType);
 					book->set_authorname(bookres.authorName);
+					book->set_bookintro(bookres.bookIntro);
 					if(-1 == plus_search_times(bookres.bookId,request->daytime(),bookres.bookName) ){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -139,6 +142,7 @@ namespace bookCityService
 					book->set_bookdownurl(bookres[i].bookDownUrl);
 					book->set_booktype(bookres[i].bookType);
 					book->set_authorname(bookres[i].authorName);
+					book->set_bookintro(bookres[i].bookIntro);
 					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -158,6 +162,7 @@ namespace bookCityService
 					book->set_bookdownurl(bookres[i].bookDownUrl);
 					book->set_booktype(bookres[i].bookType);
 					book->set_authorname(bookres[i].authorName);
+					book->set_bookintro(bookres[i].bookIntro);
 					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName )){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -197,8 +202,11 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
-			int ret = up_book(request->bookid(), request->bookname(), request->bookheadurl(), request->bookdownurl(), request->booktype(), request->authorname());
-			if (ret == -1)
+			int ret = up_book(request->bookid(), request->bookname(),
+							request->bookheadurl(), request->bookdownurl(), 
+							request->booktype(), request->authorname(),
+							request->bookintro());
+			if (ret != 1)
 			{
 				cout << endl;
 				LOG(INFO) << "[" << __FILE__ << "]"
@@ -249,6 +257,7 @@ namespace bookCityService
 				book->set_bookdownurl(res[start].bookDownUrl);
 				book->set_booktype(res[start].bookType);
 				book->set_authorname(res[start].authorName);
+				book->set_bookintro(res[start].bookIntro);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -371,7 +380,7 @@ namespace bookCityService
 				book->set_bookdownurl(books[start].bookDownUrl);
 				book->set_booktype(books[start].bookType);
 				book->set_authorname(books[start].authorName);
-				book->set_bookinfo("简介信息：书籍名为《" + books[start].bookName + "》");
+				book->set_bookintro(books[start].bookIntro);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -424,7 +433,7 @@ namespace bookCityService
 				book->set_bookdownurl(books[start].bookDownUrl);
 				book->set_booktype(books[start].bookType);
 				book->set_authorname(books[start].authorName);
-				book->set_bookinfo("简介信息：书籍名为《" + books[start].bookName + "》");
+				book->set_bookintro(books[start].bookIntro);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -540,6 +549,7 @@ namespace bookCityService
 					book->set_bookdownurl(bookres.bookDownUrl);
 					book->set_booktype(bookres.bookType);
 					book->set_authorname(bookres.authorName);
+					book->set_bookintro(bookres.bookIntro);
 				}
 				response->set_count(ret);
 				LOG(WARNING) << endl

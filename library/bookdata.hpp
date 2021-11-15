@@ -126,10 +126,15 @@ int insert_book(const BookInfoTable &book)
 	}
 }
 
-int insert_book(const string &book_id, const string &book_name, const string &book_headurl, const string &book_down_url, const string &author_name, const string &book_type)
+int insert_book(const string &book_id, const string &book_name, 
+		const string &book_headurl, const string &book_down_url, 
+		const string &author_name, const string &book_type,
+		const string & book_intro)
 {
 	//需要在评论前分配一个评论根ID
-	BookInfoTable book{book_id, book_name, book_headurl, book_down_url, author_name, book_type, 0};
+	BookInfoTable book{book_id, book_name, book_headurl, 
+					book_down_url, author_name, book_type,
+					 0,book_intro};
 	return insert_book(book);
 }
 
@@ -161,7 +166,7 @@ int del_book(const string &book_id)
 }
 
 int up_book(const BookInfoTable &book)
-{ // 数据库更新图书信息
+{ // 数据库更新图书信息  暂时废弃
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)
@@ -179,10 +184,41 @@ int up_book(const BookInfoTable &book)
 	return 1;
 }
 
-int up_book(const string &book_id, const string &book_name, const string &book_headurl, const string &book_downurl, const string &book_type, const string &author_name)
+int up_book(const string &book_id, const string &book_name, 
+			const string &book_headurl, const string &book_downurl, 
+			const string &book_type, const string &author_name,
+			const string & book_intro)
 {
-	BookInfoTable book{book_id, book_name, book_headurl, book_downurl, author_name, book_type, 0};
-	return up_book(book);
+
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		LOG(WARNING) << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+	string bookNameChange= book_name 	== "" 	? "" : " bookName = \'"  	+ book_name + "\' , ";
+	string headUrlChange = book_headurl == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl + "\' , ";
+	string downUrlChange = book_downurl == "" 	? "" : " bookDownurl = \'" 	+ book_downurl + "\' , ";
+	string typeChange	 = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type + "\' , ";
+	string authorChange  = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name + "\' , ";
+	string introChange   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro + "\'  ";
+	string cond = "update BookInfoTable set " + bookNameChange 
+				+ headUrlChange + downUrlChange
+				+ typeChange    + authorChange + introChange
+				+ " where bookId = \'" + book_id + "\'";
+				cout <<"cond is "<<cond <<endl ;
+	if (conn->execute(cond) == INT_MIN)
+	{
+		LOG(WARNING) << __FILE__ << " : " << __LINE__ << "insert error" << endl;
+		return 0;
+	}
+	else{
+		return 1;
+	}
+
 }
 
 int get_all_ads(vector<BookADSTable> &res)
