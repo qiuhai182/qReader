@@ -209,8 +209,8 @@ int up_book(const string &book_id, const string &book_name,
 	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro + "\'  ";
     string cond = "update BookInfoTable set "  ;
     for(int i = 0 ;i < 6;i++){
+        cond.append(change[0]);
         if(change[i] != "" && i != 5)
-            cond.append(change[0]);
             cond.append(" ,");
     }
     cond += " where bookId = \'" + book_id + "\'";
