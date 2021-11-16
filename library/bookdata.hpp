@@ -201,11 +201,11 @@ int up_book(const string &book_id, const string &book_name,
 	}
     string change[6];
       
-    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name + "\' , ";
-	change[1]   = book_headurl == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl + "\' , ";
-	change[2]   = book_downurl == "" 	? "" : " bookDownurl = \'" 	+ book_downurl + "\' , ";
-	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type + "\' , ";
-	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name + "\' , ";
+    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name + "\'  ";
+	change[1]   = book_headurl  == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl + "\' ";
+	change[2]   = book_downurl  == "" 	? "" : " bookDownurl = \'" 	+ book_downurl + "\'  ";
+	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type + "\'  ";
+	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name + "\'  ";
 	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro + "\'  ";
     string cond = "update BookInfoTable set "  ;
     for(int i = 0 ;i < 6;i++){
