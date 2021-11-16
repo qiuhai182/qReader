@@ -211,13 +211,17 @@ namespace bookCityService
 				cout << endl;
 				LOG(INFO) << "[" << __FILE__ << "]"
 						  << "[" << __LINE__ << "]" << endl;
-				response->set_code(0);
+				response->set_code(-1);
 				response->set_errorres("add faild");
 			}
-			response->set_code(1);
-			response->set_errorres("sucessful");
-			LOG(INFO) << endl
-					  << control->remote_side() << "更新书籍信息成功" << endl;
+            else
+            {
+                response->set_code(1);
+                response->set_errorres("sucessful");
+                LOG(INFO) << endl
+                        << control->remote_side() << "更新书籍信息成功" << endl;
+            }
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
