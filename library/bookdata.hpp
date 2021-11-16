@@ -199,17 +199,22 @@ int up_book(const string &book_id, const string &book_name,
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-	string bookNameChange= book_name 	== "" 	? "" : " bookName = \'"  	+ book_name + "\' , ";
-	string headUrlChange = book_headurl == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl + "\' , ";
-	string downUrlChange = book_downurl == "" 	? "" : " bookDownurl = \'" 	+ book_downurl + "\' , ";
-	string typeChange	 = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type + "\' , ";
-	string authorChange  = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name + "\' , ";
-	string introChange   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro + "\'  ";
-	string cond = "update BookInfoTable set " + bookNameChange 
-				+ headUrlChange + downUrlChange
-				+ typeChange    + authorChange + introChange
-				+ " where bookId = \'" + book_id + "\'";
-				cout <<"cond is "<<cond <<endl ;
+    string change[6];
+      
+    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name + "\' , ";
+	change[1]   = book_headurl == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl + "\' , ";
+	change[2]   = book_downurl == "" 	? "" : " bookDownurl = \'" 	+ book_downurl + "\' , ";
+	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type + "\' , ";
+	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name + "\' , ";
+	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro + "\'  ";
+    string cond = "update BookInfoTable set "  ;
+    for(int i = 0 ;i < 6;i++){
+        if(change[i] != "" && i != 5)
+            cond.append(change[0]);
+            cond.append(" ,");
+    }
+    cond += " where bookId = \'" + book_id + "\'";
+	cout <<"cond is "<<cond <<endl ;
 	if (conn->execute(cond) == INT_MIN)
 	{
 		LOG(WARNING) << __FILE__ << " : " << __LINE__ << "insert error" << endl;
