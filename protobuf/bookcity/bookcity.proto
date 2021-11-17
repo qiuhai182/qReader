@@ -91,9 +91,15 @@ message adsReq
 	optional string adUrl = 2;
 }
 
+message adInfo
+{ // 一份广告信息
+	optional string adUrl = 1;
+	repeated bookInfoItem lists = 2;
+}
+
 message adsRes
 { // 书城广告图片回发信息
-	repeated adsReq lists = 1;
+	repeated adInfo lists = 1;
 	required int32 count = 2;
 }
 

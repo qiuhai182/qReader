@@ -331,13 +331,27 @@ namespace bookCityService
 			int start = 0;
 			int i = start;
 			int end = std::min(start + 10, ret);
+			int count = 0;
 			for (; start < ret; ++start)
 			{
-				auto book = response->add_lists();
-				book->set_bookid(ads[start].bookId);
-				book->set_adurl(ads[start].adUrl);
+				auto adRes = response->add_lists();
+				adRes->set_adurl(ads[start].adUrl);
+				BookInfoTable bookres;
+				int retBook = get_book_by_id(bookres, request->bookid());
+				if (retBook != -1)
+				{
+					auto adBookRes = adRes->add_lists();
+					adBookRes->set_bookid(bookres.bookId);
+					adBookRes->set_bookname(bookres.bookName);
+					adBookRes->set_bookheadurl(bookres.bookHeadUrl);
+					adBookRes->set_bookdownurl(bookres.bookDownUrl);
+					adBookRes->set_booktype(bookres.bookType);
+					adBookRes->set_authorname(bookres.authorName);
+					adBookRes->set_bookinfo("简介信息：书籍名为《" + bookres.bookName + "》");
+				}
+				++count;
 			}
-			response->set_count(ret);
+			response->set_count(count);
 			LOG(INFO) << endl
 					  << control->remote_side() << "查询广告成功" << endl;
 			if (FLAGS_echo_attachment)
