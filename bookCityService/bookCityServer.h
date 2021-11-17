@@ -337,7 +337,7 @@ namespace bookCityService
 				auto adRes = response->add_lists();
 				adRes->set_adurl(ads[start].adUrl);
 				BookInfoTable bookres;
-				int retBook = get_book_by_id(bookres, request->bookid());
+				int retBook = get_book_by_id(bookres, ads[start].bookId);
 				if (retBook != -1)
 				{
 					auto adBookRes = adRes->add_lists();
