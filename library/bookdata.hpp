@@ -210,9 +210,10 @@ int up_book(const string &book_id, const string &book_name,
     string cond = "update BookInfoTable set "  ;
     for(int i = 0 ;i < 6;i++){
         cond.append(change[i]);
-        if( change[i] != ""  && i < 5)
+        if( change[i] != "" )
             cond.append(" ,");
     }
+    cond.replace(cond.refind(","), 1, "");
     cond += " where bookId = \'" + book_id + "\'";
 	cout <<"cond is "<<cond <<endl ;
 	if (conn->execute(cond) == INT_MIN)
