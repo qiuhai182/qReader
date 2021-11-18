@@ -213,7 +213,7 @@ int up_book(const string &book_id, const string &book_name,
         if( change[i] != "" )
             cond.append(" ,");
     }
-    cond.replace(cond.refind(","), 1, "");
+    cond.replace(cond.rfind(","), 1, "");
     cond += " where bookId = \'" + book_id + "\'";
 	cout <<"cond is "<<cond <<endl ;
 	if (conn->execute(cond) == INT_MIN)
