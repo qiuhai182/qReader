@@ -347,7 +347,7 @@ namespace bookCityService
 					adBookRes->set_bookdownurl(bookres.bookDownUrl);
 					adBookRes->set_booktype(bookres.bookType);
 					adBookRes->set_authorname(bookres.authorName);
-					adBookRes->set_bookinfo("简介信息：书籍名为《" + bookres.bookName + "》");
+					book->set_bookintro(bookres.bookIntro);
 				}
 				++count;
 			}
