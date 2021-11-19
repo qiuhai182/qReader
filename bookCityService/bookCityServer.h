@@ -535,7 +535,7 @@ namespace bookCityService
 				}
 				response->set_count(resultBook.size());
 				LOG(INFO) << endl
-					<< control->remote_side() <<month <<"月查询热搜书籍推荐成功，，共"
+					<< control->remote_side() <<month <<"月查询热搜书籍推荐成功,共"
 					<<resultBook.size()<<"本"<< endl;
 			}
 			else//查询不足在书城发送查找发送 包含书籍不足searchCount
