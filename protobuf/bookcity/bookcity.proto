@@ -12,7 +12,7 @@ message bookInfoItem
 	optional string bookDownUrl = 4;
 	optional string bookType = 5;
 	optional string authorName = 6;
-	optional string uptimeStamp = 7;	// 入库时间
+	optional string publishTime = 7;	// 入库时间
 	optional string userId = 8;
     optional int32  hits = 9;           // 可选参数，点赞数
 	optional string bookIntro = 10; // 书籍简介
