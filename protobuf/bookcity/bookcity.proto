@@ -12,7 +12,7 @@ message bookInfoItem
 	optional string bookDownUrl = 4;
 	optional string bookType = 5;
 	optional string authorName = 6;
-	optional string uptimeStamp = 7;	// 入库时间
+	optional string publishTime = 7;	// 入库时间
 	optional string userId = 8;
     optional int32  hits = 9;           // 可选参数，点赞数
 	optional string bookIntro = 10; // 书籍简介
@@ -91,9 +91,15 @@ message adsReq
 	optional string adUrl = 2;
 }
 
+message adInfo
+{ // 一份广告信息
+	optional string adUrl = 1;
+	repeated bookInfoItem lists = 2;
+}
+
 message adsRes
 { // 书城广告图片回发信息
-	repeated adsReq lists = 1;
+	repeated adInfo lists = 1;
 	required int32 count = 2;
 }
 

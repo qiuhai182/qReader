@@ -69,9 +69,10 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
-			int ret = insert_book(request->bookid(), request->bookname(), request->bookheadurl(),
-								request->bookdownurl(), request->authorname(), 
-								request->booktype(),request->bookintro());
+			int ret = insert_book(request->bookid(), request->bookname(),
+								request->bookheadurl(),request->bookdownurl(),
+								request->authorname(),request->booktype(),
+								request->bookintro(),request->publishtime());
 			if (ret < 1)
 			{
 				cout << endl;
@@ -123,6 +124,7 @@ namespace bookCityService
 					book->set_booktype(bookres.bookType);
 					book->set_authorname(bookres.authorName);
 					book->set_bookintro(bookres.bookIntro);
+					book->set_publishtime(bookres.publishTime);
 					if(-1 == plus_search_times(bookres.bookId,request->daytime(),bookres.bookName) ){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -143,6 +145,7 @@ namespace bookCityService
 					book->set_booktype(bookres[i].bookType);
 					book->set_authorname(bookres[i].authorName);
 					book->set_bookintro(bookres[i].bookIntro);
+					book->set_publishtime(bookres[i].publishTime);
 					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -163,6 +166,7 @@ namespace bookCityService
 					book->set_booktype(bookres[i].bookType);
 					book->set_authorname(bookres[i].authorName);
 					book->set_bookintro(bookres[i].bookIntro);
+					book->set_publishtime(bookres[i].publishTime);
 					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName )){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -205,19 +209,23 @@ namespace bookCityService
 			int ret = up_book(request->bookid(), request->bookname(),
 							request->bookheadurl(), request->bookdownurl(), 
 							request->booktype(), request->authorname(),
-							request->bookintro());
+							request->bookintro(),request->publishtime());
 			if (ret != 1)
 			{
 				cout << endl;
 				LOG(INFO) << "[" << __FILE__ << "]"
 						  << "[" << __LINE__ << "]" << endl;
-				response->set_code(0);
-				response->set_errorres("add faild");
+				response->set_code(-1);
+				response->set_errorres("update faild");
 			}
-			response->set_code(1);
-			response->set_errorres("sucessful");
-			LOG(INFO) << endl
-					  << control->remote_side() << "更新书籍信息成功" << endl;
+            else
+            {
+                response->set_code(1);
+                response->set_errorres("sucessful");
+                LOG(INFO) << endl
+                        << control->remote_side() << "更新书籍信息成功" << endl;
+            }
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -258,6 +266,7 @@ namespace bookCityService
 				book->set_booktype(res[start].bookType);
 				book->set_authorname(res[start].authorName);
 				book->set_bookintro(res[start].bookIntro);
+				book->set_publishtime(res[start].publishTime);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -290,10 +299,14 @@ namespace bookCityService
 				response->set_code(0);
 				response->set_errorres("del faild");
 			}
-			response->set_code(1);
-			response->set_errorres("sucessful");
-			LOG(INFO) << endl
-					  << control->remote_side() << "删除书籍成功" << endl;
+            else
+            {
+                response->set_code(1);
+                response->set_errorres("sucessful");
+                LOG(INFO) << endl
+                        << control->remote_side() << "删除书籍成功" << endl;
+            }
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -323,13 +336,27 @@ namespace bookCityService
 			int start = 0;
 			int i = start;
 			int end = std::min(start + 10, ret);
+			int count = 0;
 			for (; start < ret; ++start)
 			{
-				auto book = response->add_lists();
-				book->set_bookid(ads[start].bookId);
-				book->set_adurl(ads[start].adUrl);
+				auto adRes = response->add_lists();
+				adRes->set_adurl(ads[start].adUrl);
+				BookInfoTable bookres;
+				int retBook = get_book_by_id(bookres, ads[start].bookId);
+				if (retBook != -1)
+				{
+					auto adBookRes = adRes->add_lists();
+					adBookRes->set_bookid(bookres.bookId);
+					adBookRes->set_bookname(bookres.bookName);
+					adBookRes->set_bookheadurl(bookres.bookHeadUrl);
+					adBookRes->set_bookdownurl(bookres.bookDownUrl);
+					adBookRes->set_booktype(bookres.bookType);
+					adBookRes->set_authorname(bookres.authorName);
+					adBookRes->set_bookintro(bookres.bookIntro);
+				}
+				++count;
 			}
-			response->set_count(ret);
+			response->set_count(count);
 			LOG(INFO) << endl
 					  << control->remote_side() << "查询广告成功" << endl;
 			if (FLAGS_echo_attachment)
@@ -381,6 +408,7 @@ namespace bookCityService
 				book->set_booktype(books[start].bookType);
 				book->set_authorname(books[start].authorName);
 				book->set_bookintro(books[start].bookIntro);
+				book->set_publishtime(books[start].publishTime);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -454,8 +482,17 @@ namespace bookCityService
 			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
+					  << " (attached : " << "请求热搜书籍 "
+					  << result->count() " 本 "
+					  <<control->request_attachment() << ")";
 
+			if(!request->has_daytime()){
+				response->set_count(-2);
+				LOG(INFO) << endl
+					<< control->remote_side() <<"查询热搜书籍推荐失败，daytime 字段缺失 "
+					<< endl;
+				return ;
+			}
 			vector<SearchStatisticsTable> books ;
 			string month = request->daytime().substr(0,7);
 			int searchCount = request->count()  ;//请求回发书籍
@@ -469,6 +506,7 @@ namespace bookCityService
 				if(-1 == ret)
 				{
 					LOG(INFO) << control->remote_side() <<month <<"月查询热搜书籍推荐失败"<< endl;
+					return ;
 				}
 				else
 				{
@@ -550,6 +588,7 @@ namespace bookCityService
 					book->set_booktype(bookres.bookType);
 					book->set_authorname(bookres.authorName);
 					book->set_bookintro(bookres.bookIntro);
+					book->set_publishtime(bookres.publishTime);
 				}
 				response->set_count(ret);
 				LOG(WARNING) << endl
