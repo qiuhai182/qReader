@@ -129,12 +129,12 @@ int insert_book(const BookInfoTable &book)
 int insert_book(const string &book_id, const string &book_name, 
 		const string &book_headurl, const string &book_down_url, 
 		const string &author_name, const string &book_type,
-		const string & book_intro)
+		const string & book_intro,const string &book_pubtime)
 {
 	//需要在评论前分配一个评论根ID
 	BookInfoTable book{book_id, book_name, book_headurl, 
 					book_down_url, author_name, book_type,
-					 0,book_intro};
+					 0,book_intro,book_pubtime};
 	return insert_book(book);
 }
 
@@ -187,7 +187,7 @@ int up_book(const BookInfoTable &book)
 int up_book(const string &book_id, const string &book_name, 
 			const string &book_headurl, const string &book_downurl, 
 			const string &book_type, const string &author_name,
-			const string & book_intro)
+			const string & book_intro,const string &book_pubtime)
 {
 
 	auto conn = get_conn_from_pool();
@@ -199,24 +199,26 @@ int up_book(const string &book_id, const string &book_name,
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-    string change[6];
+    string change[7];
       
-    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name + "\'  ";
-	change[1]   = book_headurl  == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl + "\' ";
-	change[2]   = book_downurl  == "" 	? "" : " bookDownurl = \'" 	+ book_downurl + "\'  ";
-	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type + "\'  ";
-	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name + "\'  ";
-	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro + "\'  ";
+    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name      + "\'  ";
+	change[1]   = book_headurl  == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl   + "\' ";
+	change[2]   = book_downurl  == "" 	? "" : " bookDownurl = \'" 	+ book_downurl   + "\' ";  
+	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type      + "\'  ";
+	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name    + "\'  ";
+	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro     + "\'  ";
+	change[6]   = book_pubtime 	== "" 	? "" : " publishTime = \'"  + book_pubtime   + "\'  ";
     string cond = "update BookInfoTable set "  ;
-    for(int i = 0 ;i < 6;i++){
+    for(int i = 0 ;i < 7;i++){
         cond.append(change[i]);
         if( change[i] != "" )
             cond.append(" ,");
     }
     cond.replace(cond.rfind(","), 1, "");
     cond += " where bookId = \'" + book_id + "\'";
-	cout <<"cond is "<<cond <<endl ;
-	if (conn->execute(cond) == INT_MIN)
+	int ret = conn->execute(cond); 
+	cout <<"cond is "<<cond << " ret is " << ret<<endl ;
+	if (ret == INT_MIN)
 	{
 		LOG(WARNING) << __FILE__ << " : " << __LINE__ << "insert error" << endl;
 		return 0;

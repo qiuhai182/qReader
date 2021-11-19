@@ -483,7 +483,7 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << "请求热搜书籍 "
-					  << result->count() " 本 "
+					  << request->count() <<" 本 "
 					  <<control->request_attachment() << ")";
 
 			if(!request->has_daytime()){
@@ -505,8 +505,7 @@ namespace bookCityService
 				int ret = get_mostly_search_by_month_count(month,books,searchCount) ;
 				if(-1 == ret)
 				{
-					LOG(INFO) << control->remote_side() <<month <<"月查询热搜书籍推荐失败"<< endl;
-					return ;
+					LOG(INFO) <<"查询 "<<month<<" 月热搜书籍推荐失败"<< endl;
 				}
 				else
 				{
@@ -551,7 +550,8 @@ namespace bookCityService
 				}
 				response->set_count(ret);
 				LOG(INFO) << endl
-					<< control->remote_side() <<month <<"月查询热搜书籍推荐不足，书城发送共"
+					<< control->remote_side() << "  "
+					<<month <<"月查询热搜书籍推荐不足，书城发送共"
 					<<ret<<"本"<< endl;
 			}
 			
