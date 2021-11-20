@@ -597,6 +597,56 @@ namespace bookCityService
 
 		}
 
+		
+	 	virtual void FuzzySearchBooksFun(::google::protobuf::RpcController* control_base,
+										const ::bookCityService::fuzzySearchRequest* request,
+										::bookCityService::booksRespList* response,
+										::google::protobuf::Closure* done)
+		{//模糊匹配书籍
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+			cout << endl;
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ") "
+					  <<"请求模糊匹配书籍";
+
+			vector<BookInfoTable> books;
+			int ret = get_books_by_fuzzy(request->words(),books);
+			for (int i = 0; i < ret; ++i)
+			{
+				response->set_count(ret);
+				auto book = response->add_lists();
+				book->set_bookid(books[i].bookId);
+				book->set_bookname(books[i].bookName);
+				book->set_bookheadurl(books[i].bookHeadUrl);
+				book->set_bookdownurl(books[i].bookDownUrl);
+				book->set_booktype(books[i].bookType);
+				book->set_authorname(books[i].authorName);
+				book->set_bookintro(books[i].bookIntro);
+				book->set_publishtime(books[i].publishTime);
+				if(-1 == plus_search_times(books[i].bookId,request->daytime(),books[i].bookName) ){
+					LOG(WARNING) << "更新搜索次数失败"<<endl ;
+				}
+			}
+			if (ret == -1)
+			{
+				response->set_count(-1);
+				LOG(INFO) << endl
+						  << control->remote_side()
+						  << "未搜索到图书" << endl;
+			}
+			else
+			{
+				
+				LOG(INFO) << endl
+						  << control->remote_side()
+						  << "搜索到图书" << ret << " 本。" << endl;
+			}
+
+		}
 	};
 
 }

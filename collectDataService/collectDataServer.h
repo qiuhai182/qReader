@@ -1,7 +1,7 @@
 /*
  * @Author: zqj
  * @Date: 2021-11-06 00:28:23
- * @LastEditTime: 2021-11-07 00:30:08
+ * @LastEditTime: 2021-11-20 00:17:14
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: qReader/collectDataService/collectDataServer.h
@@ -268,6 +268,7 @@ namespace collectdataService
 					  << "设置阅读计划分钟数)";
 		}
 
+		
 	};
 
 }

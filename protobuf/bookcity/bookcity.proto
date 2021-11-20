@@ -38,17 +38,6 @@ message searchBookReq
 	required string dayTime = 5;
 }
 
-message searchItem
-{ // 查根据书籍单条属性查找书籍，废弃
-	required string attribute = 1;		// 属性名
-	required string value = 2;			// 属性值
-}
-
-message searchItems
-{ // 多属性查找书籍，废弃
-	repeated searchItem attrlists = 1;
-	required int32 count = 2;
-}
 
 message readBookRecordResp
 { // 获取最近阅读记录结果信息
@@ -143,6 +132,11 @@ message mostlySearchRes
 	required int32 count = 2;
 }
 
+message fuzzySearchRequest
+{
+	required string  words = 1 ;
+	required string  dayTime = 2 ;
+}
 service bookCityService 
 {
 	rpc addBookInfoFun(bookInfoItem) returns(commonService.commonResp);			// 
@@ -150,13 +144,25 @@ service bookCityService
 	rpc setBookInfoFun(bookInfoItem) returns(commonService.commonResp);		    // 
 	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
 	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
-	rpc getBookADSFun(adsReq) returns(adsRes); // 书城广告图片
+	rpc getBookADSFun(adsReq) returns(adsRes); 									// 书城广告图片
 	rpc getRecommendBookFun(recommendBookReq) returns(recommendBookRes); 		// 个性化书籍
 	rpc getBrowseBookFun(browseBookReq) returns(browseBookRes); 				// 翻阅书城书籍
 	rpc getMostlySearchFun(universalBlankReq) returns(mostlySearchRes); 		// 获取搜索最多的书籍
-	rpc getPopularSearchFun(universalBlankReq) returns(booksRespList); 		// 获取榜单书籍
+	rpc getPopularSearchFun(universalBlankReq) returns(booksRespList); 			// 获取榜单书籍
+	rpc FuzzySearchBooksFun(fuzzySearchRequest) returns(booksRespList);			// 模糊匹配书籍
 }
 
 
 
+// message searchItem
+// { // 查根据书籍单条属性查找书籍，废弃
+// 	required string attribute = 1;		// 属性名
+// 	required string value = 2;			// 属性值
+// }
+
+// message searchItems
+// { // 多属性查找书籍，废弃
+// 	repeated searchItem attrlists = 1;
+// 	required int32 count = 2;
+// }
 

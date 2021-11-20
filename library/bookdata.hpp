@@ -201,18 +201,16 @@ int up_book(const string &book_id, const string &book_name,
 	}
     string change[7];
       
-    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name      + "\'  ";
-	change[1]   = book_headurl  == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl   + "\' ";
-	change[2]   = book_downurl  == "" 	? "" : " bookDownurl = \'" 	+ book_downurl   + "\' ";  
-	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type      + "\'  ";
-	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name    + "\'  ";
-	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro     + "\'  ";
-	change[6]   = book_pubtime 	== "" 	? "" : " publishTime = \'"  + book_pubtime   + "\'  ";
+    change[0]   = book_name 	== "" 	? "" : " bookName = \'"  	+ book_name      + "\'  ,";
+	change[1]   = book_headurl  == "" 	? "" : " bookHeadurl = \'" 	+ book_headurl   + "\'  ,";
+	change[2]   = book_downurl  == "" 	? "" : " bookDownurl = \'" 	+ book_downurl   + "\'  ,";  
+	change[3]   = book_type 	== "" 	? "" : " bookType = \'" 	+ book_type      + "\'  ,";
+	change[4]   = author_name 	== "" 	? "" : " authorName = \'" 	+ author_name    + "\'  ,";
+	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro     + "\'  ,";
+	change[6]   = book_pubtime 	== "" 	? "" : " publishTime = \'"  + book_pubtime   + "\'  ,";
     string cond = "update BookInfoTable set "  ;
     for(int i = 0 ;i < 7;i++){
         cond.append(change[i]);
-        if( change[i] != "" )
-            cond.append(" ,");
     }
     cond.replace(cond.rfind(","), 1, "");
     cond += " where bookId = \'" + book_id + "\'";
@@ -269,6 +267,41 @@ int get_recommend_book(vector<BookInfoTable> &res, int curIndex)
 		}
 	}
 	return res.size();
+}
+
+int get_books_by_fuzzy(const string & words,vector<BookInfoTable> & book_list)
+{//正则表达式匹配书籍
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+	string regexpInput = "\'[" ; 
+	for(const char & ch:words){
+		if(ch != ' ')
+			regexpInput += (ch + ",");
+	}
+	regexpInput += "]\'";
+	string cond = "select *  from BookInfoTable " 
+	"where bookId IN " 
+		" (select bookId from "
+			" (select bookId,CONCAT(bookName,bookName,bookType) as description " 
+				" from BookInfoTable "
+			" ) as concatTable "
+				" where  concatTable.description REGEXP " + regexpInput
+		+ " ) " ;
+
+	auto books = conn->query<BookInfoTable>(cond);
+	cout<<" cond is "<<cond <<" size is "<<books.size()<<endl;
+	if(books.size() > 0){
+		book_list = std::move(books);
+		return book_list.size();
+	}
+	return -1 ;
 }
 
 int get_browse_book(vector<BookInfoTable> &res, int curIndex)
