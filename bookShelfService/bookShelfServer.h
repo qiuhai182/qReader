@@ -67,11 +67,13 @@ namespace bookShelfService
 			int ret = insert_shelf(request->userid(), request->bookid());
 			if (ret < 1)
 			{
-				response->set_code(0);
-				response->set_errorres("insert faild");
-			}
-			response->set_code(1);
-			response->set_errorres("insert sucessful");
+				response->set_code(-1);
+				response->set_errorres("insert failed");
+			}else{
+                response->set_code(1);
+			    response->set_errorres("insert sucessful");
+            }
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
