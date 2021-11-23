@@ -14,9 +14,9 @@ function run(){
         echo -e "\033[31m Hit:Port $2 is already occupied ,$1 Start-up was failed  \033[0m"
         return 
     else
-        cd ../$1/out
+        cd ../service/$1/out
         nohup ./server > $1.log  2>&1 &
-        cd ../../scripts
+        cd ../../../scripts
     fi
     #没有该行的sleep 0.1最后一个lsof检查不到导致运行成功却显示失败，该bug未解决
     sleep 0.1

@@ -1,11 +1,4 @@
-/*
- * @Author: zqj
- * @Date: 2021-11-06 00:34:56
- * @LastEditTime: 2021-11-07 00:58:15
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /qReader/commonService/commonServer.h
- */
+
 #pragma once
 
 #include <gflags/gflags.h>

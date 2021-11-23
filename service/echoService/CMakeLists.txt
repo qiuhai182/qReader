@@ -3,20 +3,20 @@ cmake_minimum_required(VERSION 3.0)
 project(accountService C CXX)
 
 #将给定的路径添加到编译器搜索包含文件（.h文件）的路径列表中，程序中可以直接include该目录下的文件
-include_directories(../library)
+include_directories(../../library)
 
 #搜集所有在指定路径下的源文件的文件名，输出到变量SRC_DIRS
-aux_source_directory(../library SRC_DIRS)
+aux_source_directory(../../library SRC_DIRS)
 
 #指定连接器搜索库文件时的路径
-link_directories(../library/out)
+link_directories(../../library/out)
 
 #定义编译可选项
 option(LINK_SO "是否属于动态链接" OFF)
 
 #调用shell命令或脚本，设置输出管道OUT_PATH
 execute_process(
-    COMMAND bash -c "find ${PROJECT_SOURCE_DIR}/../.. -type d -regex \".*output/include$\" | head -n1 | xargs dirname | tr -d '\n'"
+    COMMAND bash -c "find ${PROJECT_SOURCE_DIR}/../../.. -type d -regex \".*output/include$\" | head -n1 | xargs dirname | tr -d '\n'"
     OUTPUT_VARIABLE OUTPUT_PATH
 )
 
@@ -40,9 +40,9 @@ protobuf_generate_cpp(PROTO_SRC PROTO_HEADER
                     #   ../protobuf/account/account.proto
                     #   ../protobuf/bookcity/bookcity.proto
                     #   ../protobuf/bookshelf/bookshelf.proto 
-                      ../protobuf/collectdata/collectdata.proto
-                      ../protobuf/common/common.proto
-                    #   ../protobuf/echo/echo.proto
+                    #   ../protobuf/collectdata/collectdata.proto
+                    #   ../protobuf/common/common.proto
+                      ../../protobuf/echo/echo.proto
                     #   ../protobuf/fileupdown/fileupdown.proto
                     )
                     
@@ -162,7 +162,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 endif()
 
 #使用给定的源文件及给定目录下的源文件，为工程创建一个可执行文件server
-add_executable(server collectDataServer.cpp ${PROTO_HEADER} ${PROTO_SRC} ${SRC_DIRS})
+add_executable(server echoServer.cpp ${PROTO_HEADER} ${PROTO_SRC} ${SRC_DIRS})
 
 #添加链接库
 target_link_libraries(server ${BRPC_LIB} ${DYNAMIC_LIB} lib_iReader.a mysqlclient)

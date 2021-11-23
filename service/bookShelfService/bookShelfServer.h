@@ -64,6 +64,25 @@ namespace bookShelfService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
+			
+			//非法信息处理
+			if(request->userid() == "" || request->bookid() == ""){
+				LOG(INFO) << "字段缺失，userId : " << request->userid()
+						<<" bookId  :  "<<request->bookid()<<endl;
+				response->set_code(-9);
+				response->set_errorres("参数缺失");
+				return ;
+			}else{
+				BookInfoTable book;
+				int ret = get_book_by_id(book,request->bookid());
+				if(book.bookName == ""){
+					response->set_code(-2);
+					response->set_errorres("书籍不存在");
+					LOG(INFO) << "bookId不存在 : "<<request->bookid()<<endl;
+					return ;
+				}
+			}
+			
 			int ret = insert_shelf(request->userid(), request->bookid());
 			if (ret < 1)
 			{
@@ -95,6 +114,16 @@ namespace bookShelfService
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << ", 发出请求用户 : " << request->userid()
 					  << " (attached : " << control->request_attachment() << ")";
+			
+			//非法信息处理
+			if(request->userid() == "" || request->bookids().size() == 0){
+				LOG(INFO) << "字段缺失，userId : " << request->userid()
+						<<" bookIds.size  :  "<<request->bookids().size()<<endl;
+				response->set_userid(request->userid());
+				response->set_suscount(-9);
+				return ;
+			}
+
 			int size  = request->bookids_size();
 			int sus = 0, fail = 0;
 			for(int i = 0 ; i < size; i++){
@@ -134,11 +163,18 @@ namespace bookShelfService
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << ", 发出请求用户 : " << request->userid()
 					  << " (attached : " << control->request_attachment() << ")";
+			
+			//非法信息处理
+			if(request->userid() == ""){
+				LOG(INFO) << "字段缺失，userId : " << request->userid()<<endl;
+				response->set_count(-9);
+				return ;
+			}
+			
 			vector<BookInfoTable> bookres;
-
 			int ret = get_book_by_userid(bookres, request->userid());
 			response->set_count(ret);
-			cout << "myshelf函数：" << ret << endl;
+
 			if (-1 != ret)
 			{
 				for (int i = 0; i < ret; ++i)

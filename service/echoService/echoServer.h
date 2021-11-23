@@ -1,11 +1,3 @@
-/*
- * @Author: zqj
- * @Date: 2021-11-06 00:07:42
- * @LastEditTime: 2021-11-07 01:02:29
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /oxc/qReader_o/echoService/echoServer.h
- */
 #pragma once
 
 #include <gflags/gflags.h>

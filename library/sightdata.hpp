@@ -5,8 +5,8 @@
 using namespace rapidjson;
 using namespace ormpp;
 using namespace std;
-DEFINE_string(sightAnalyseJsonPath,"../../../qReaderData/sightData/sightAnalyseJson/" , "sightAnalyseJson目录");
-DEFINE_string(sightCsvPath, "../../../qReaderData/sightData/sightCsv/", "sightCsv目录");
+DEFINE_string(sightAnalyseJsonPath,"../../../../qReaderData/sightData/sightAnalyseJson/" , "sightAnalyseJson目录");
+DEFINE_string(sightCsvPath, "../../../../qReaderData/sightData/sightCsv/", "sightCsv目录");
 
 
 
