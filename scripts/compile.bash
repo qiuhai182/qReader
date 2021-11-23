@@ -22,29 +22,29 @@ function link_lib(){
 
 #编译服务 $1为服务目录
 function com_service(){
-    if [ ! -d "../$1/out" ]; then
-        mkdir ../$1/out
+    if [ ! -d "../service/$1/out" ]; then
+        mkdir ../service/$1/out
     else
         #全部删除
-        rm -r ../$1/out/*
+        rm -r ../service/$1/out/*
     fi
-    if [ ! -d "../$1/out" ]; then
+    if [ ! -d "../service/$1/out" ]; then
         #创建失败
         echo -e "\033[31m Hit: can't create directory qReader/$1/out \033[0m"
         return 
     else
-        cd ../$1/out
+        cd ../service/$1/out
         cmake .. && make 
     fi
     if [ ! -x "server" ]; then
-        echo -e "\033[31m Hit: can't create file qReader/$1/out/server \033[0m"
+        echo -e "\033[31m Hit: can't create file qReader/service/$1/out/server \033[0m"
         return 
     else
     #删除无用文件
         rm *pb* *ake* -r
-        echo -e "\033[32m Hit: create file qReader/$1/out/server successful \033[0m"
+        echo -e "\033[32m Hit: create file qReader/service/$1/out/server successful \033[0m"
     fi
-    cd ../../scripts
+    cd ../../../scripts
 }
 
 #创建lib_iReader.a 
