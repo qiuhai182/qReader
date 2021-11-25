@@ -15,6 +15,7 @@
 #include "contenttype.hpp"
 #include "bookcity.pb.h"
 #include "common.pb.h"
+#include "membooks.hpp"
 
 using namespace std;
 
@@ -33,10 +34,10 @@ namespace bookCityService
 	class bookCityServiceImpl : public bookCityService
 	{
 	private:
-		// 记录个性化推荐批次
-		map<string, int> recommendTimes;
-		// 记录书城浏览批次
-		map<string, int> browseTimes;
+		MemBooks m_memBookList ;				// 实例化书籍，配合模糊匹配
+		map<string, int> recommendTimes;	// 记录个性化推荐批次
+		map<string, int> browseTimes;		// 记录书城浏览批次
+	private:
 		void reduce_months(string  & monthTime)
 		{//减小月份xxxx-xx
 			//确定提取位
@@ -55,7 +56,18 @@ namespace bookCityService
 			}
 		}
 	public:
-		bookCityServiceImpl(){};
+		bookCityServiceImpl(){
+			vector<BookInfoTable> bookres; 
+			if( 1 != get_all_book(bookres) ){
+				if(bookres.size() != 0){
+					m_memBookList.setBooks(std::move(bookres) );
+				}else{	
+					std::cerr << "初始化实例书籍时查询数据库结果为空";
+				}
+			}else{
+				std::cerr << "初始化实例书籍时查询数据库失败";
+			}
+		};
 		virtual ~bookCityServiceImpl(){};
 		virtual void addBookInfoFun(google::protobuf::RpcController *control_base,
 									const bookInfoItem *request,
@@ -613,11 +625,24 @@ namespace bookCityService
 					  << " (attached : " << control->request_attachment() << ") "
 					  <<"请求模糊匹配书籍";
 
+			//非法信息处理
+			if(request->daytime() == "" || request->words() == "" ||
+					request->count() <= 0 || request->offset() < 0){
+				LOG(INFO) << "字段缺失，或数据非法 daytime : " << request->daytime()
+						<<" word  :  "<<request->words()<<" coutn :" << request->count()
+						<<" offset : " << request->offset()<<endl;
+				response->set_count(-9);
+				return ;
+			}
+
 			vector<BookInfoTable> books;
-			int ret = get_books_by_fuzzy(request->words(),books);
-			for (int i = 0; i < ret; ++i)
+			//从实例读出书籍
+			m_memBookList.fuzzySearch(books,request->words(),request->offset(),request->count()) ;
+			cout<<"list size is "<<m_memBookList.size()<<endl ;
+			int size = books.size();
+			for (int i = 0; i < size ; ++i)
 			{
-				response->set_count(ret);
+				response->set_count(size);
 				auto book = response->add_lists();
 				book->set_bookid(books[i].bookId);
 				book->set_bookname(books[i].bookName);
@@ -628,25 +653,25 @@ namespace bookCityService
 				book->set_bookintro(books[i].bookIntro);
 				book->set_publishtime(books[i].publishTime);
 				if(-1 == plus_search_times(books[i].bookId,request->daytime(),books[i].bookName) ){
-					LOG(WARNING) << "更新搜索次数失败"<<endl ;
+					LOG(WARNING) << " : 更新搜索次数失败"<<endl ;
 				}
 			}
-			if (ret == -1)
+			if (size == 0)
 			{
 				response->set_count(-1);
 				LOG(INFO) << endl
 						  << control->remote_side()
-						  << "未搜索到图书" << endl;
+						  << " :未搜索到图书" << endl;
 			}
 			else
 			{
 				
 				LOG(INFO) << endl
 						  << control->remote_side()
-						  << "搜索到图书" << ret << " 本。" << endl;
+						  << "搜索到图书" << size << " 本。" << endl;
 			}
 
 		}
-	};
+	}; 
 
 }
