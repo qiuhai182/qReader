@@ -21,7 +21,7 @@ int get_all_book(vector<BookInfoTable> &res)
 			 << " LINE  " << __LINE__ << endl;
 		return -1;
 	}
-	res = conn->query<BookInfoTable>();
+	res = std::move(conn->query<BookInfoTable>());
 	return res.size();
 }
 

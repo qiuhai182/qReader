@@ -136,6 +136,8 @@ message fuzzySearchRequest
 {
 	required string  words = 1 ;
 	required string  dayTime = 2 ;
+	required int32 count = 3 ;
+	required int32 offset = 4 ;
 }
 service bookCityService 
 {
