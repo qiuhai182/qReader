@@ -4,11 +4,12 @@
 import os
 import numpy as np
 import pandas as pd
+from sklearn.cluster import KMeans, DBSCAN
 import matplotlib.pyplot as plt
+from dateutil.parser import parse
 import sys
 import math
 import json
-from dateutil.parser import parse
 import seaborn as sns
 import datetime
 import copy
