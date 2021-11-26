@@ -2,7 +2,6 @@
 # shell内核调用方式： python server.py "userId"
 
 import os
-from sklearn.cluster import KMeans, DBSCAN
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
