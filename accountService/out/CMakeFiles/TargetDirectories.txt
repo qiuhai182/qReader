@@ -1,3 +1,0 @@
-/home/ubuntu/qReader/accountService/out/CMakeFiles/rebuild_cache.dir
-/home/ubuntu/qReader/accountService/out/CMakeFiles/edit_cache.dir
-/home/ubuntu/qReader/accountService/out/CMakeFiles/server.dir
