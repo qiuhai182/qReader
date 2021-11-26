@@ -11,53 +11,89 @@ import math
 import json
 from dateutil.parser import parse
 import seaborn as sns
-
-sns.set()
-
-# 计算两时间差的总秒数
+import datetime
+import copy
 
 
-# 计算两时间差秒数
+def isContinus(t1, t2):
+    '''判断两点是否是相邻点，只有连续点才有分析意义'''
+    t1 = parse(t1)
+    t2 = parse(t2)
+    deltaT = abs(t2.second - t1.second)
+    if (1 >= deltaT):
+        return True
+    else:
+        return False
+
+
 def getDeltaTime(t1, t2):
+    '''计算两时间差秒数'''
     t1 = parse(t1)
     t2 = parse(t2)
     return (t2 - t1).total_seconds()
 
-# 计算两点距离
-
 
 def getDeltaDistance(x1, y1, x2, y2):
+    '''计算两点距离'''
     return np.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
 
-# 计算两点连线相对x轴逆时针方向角度
+
+def getAngle(pA, pB=(0, 0), pC=(1, 0)):
+    """
+    传入三点坐标，第一、三点分别于中间点连成射线，
+    以中间点为两射线交点，返回三点确定两射线夹角，三点不可重复
+    传入一点坐标，从原点出发连成射线，返回相对X轴正方向夹角
+    """
+    if pA == pB or pA == pC:
+        return 0
+    a = math.sqrt((pB[0]-pC[0])**2+(pB[1]-pC[1])**2)
+    b = math.sqrt((pA[0]-pC[0])**2+(pA[1]-pC[1])**2)
+    c = math.sqrt((pA[0]-pB[0])**2+(pA[1]-pB[1])**2)
+    # abc = (a*a-b*b-c*c)/(-2*b*c)
+    # if -1 > abc:
+    #     abc = -1
+    # elif 1 < abc:
+    #     abc = 1
+    bca = (b*b-a*a-c*c)/(-2*a*c)
+    if -1 > bca:
+        bca = -1
+    elif 1 < bca:
+        bca = 1
+    # cba = (c*c-a*a-b*b)/(-2*a*b)
+    # if -1 > cba:
+        # cba = -1
+    # elif 1 < cba:
+        # cba = 1
+    # A=math.degrees(math.acos(abc))
+    # C=math.degrees(math.acos(cba))
+    B = math.degrees(math.acos(bca))
+    if pB[1] == pC[1]:
+        # 求相对x轴正方向角度时有正负值，代表逆时针/顺时针方向
+        if pA[1] >= pB[1]:
+            return B
+        else:
+            return -B
+    else:
+        return B
 
 
-def getAngle(x1, y1, x2, y2):
-    angle = 0.0
-    deltaX = x2 - x1
-    deltaY = y2 - y1
-    if x2 == x1:
-        if y2 == y1:
-            angle = 0.0
-        elif y2 < y1:
-            angle = 3.0 * math.pi / 2.0
-        elif y2 > y1:
-            angle = math.pi / 2.0
-    elif x2 > x1 and y2 > y1:
-        angle = math.atan(deltaX / deltaY)
-    elif x2 > x1 and y2 < y1:
-        angle = math.pi / 2 + math.atan(-deltaY / deltaX)
-    elif x2 < x1 and y2 > y1:
-        angle = 3.0 * math.pi / 2.0 + math.atan(deltaY / -deltaX)
-    elif x2 < x1 and y2 < y1:
-        angle = math.pi + math.atan(deltaX / deltaY)
-    return 180 * angle / math.pi
-
-# 计算两点角度变化值
+def getDeltaAngle(pA, pB):
+    '''
+    传入两个点，以第一个点为原点建立二维xy坐标系，
+    选取该坐标系原点x轴正向一点作为第三点，计算原点对应夹角
+    '''
+    return getAngle(pB, pA, (pA[0] + 1, pA[1]))
 
 
-def getDeltaAngle(x1, y1, x2, y2):
-    return getAngle(0, 0, x2, y2) - getAngle(0, 0, x1, y1)
+def countIndexValue(value, index):
+    '''
+    传入两个一维数组，分别表示值数组和索引数组
+    返回索引指向值之和
+    '''
+    result = 0.0
+    for i in range(len(index)):
+        result += value[index[i]]
+    return round(result, 2)
 
 
 class read:
@@ -130,7 +166,7 @@ class read:
             self.deltaDistance = np.append(self.deltaDistance, np.array(
                 getDeltaDistance(x1, y1, x2, y2), float))
             self.deltaAngle = np.append(self.deltaAngle, np.array(
-                getDeltaAngle(x1, y1, x2, y2), float))
+                getDeltaAngle((x1, y1), (x2, y2)), float))
 
         # 阅读散点图
         xy = list(zip(self.deltaX, self.deltaY))
