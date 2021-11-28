@@ -33,6 +33,27 @@ namespace bookShelfService
 	class bookShelfServiceImpl : public bookShelfService
 	{ // 个人书架书籍管理服务
 	private:
+	//暂时用原表结果其他位填充
+		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const BookInfoTable & bookres )
+		{
+			auto book = add_lists;
+
+			book->set_bookid(bookres.bookId);
+			book->mutable_baseinfo()->set_bookname(bookres.bookName);
+			book->mutable_baseinfo()->set_booktype(1000);
+			book->mutable_baseinfo()->set_authorname(bookres.authorName);
+			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
+			book->mutable_baseinfo()->set_publishhouse("机械工业出版社");
+			book->mutable_baseinfo()->set_bookintro(bookres.bookIntro);
+			book->mutable_baseinfo()->set_bookpage(200);
+			book->mutable_baseinfo()->set_languagetype(2);
+			book->mutable_downinfo()->set_filesize(20.3);
+			book->mutable_downinfo()->set_bookheadurl(bookres.bookHeadUrl);
+			book->mutable_downinfo()->set_bookdownurl(bookres.bookDownUrl);
+			book->mutable_gradeinfo()->set_remarkcount(100);
+			book->mutable_gradeinfo()->set_averagescore(200.4);
+
+		}
 		//判断对应文件是否存在
 		bool isFileExisit(string bookId, int page)
 		{
@@ -69,7 +90,7 @@ namespace bookShelfService
 			if(request->userid() == "" || request->bookid() == ""){
 				LOG(INFO) << "字段缺失，userId : " << request->userid()
 						<<" bookId  :  "<<request->bookid()<<endl;
-				response->set_code(-9);
+				response->set_code(-1);
 				response->set_errorres("参数缺失");
 				return ;
 			}else{
@@ -120,7 +141,7 @@ namespace bookShelfService
 				LOG(INFO) << "字段缺失，userId : " << request->userid()
 						<<" bookIds.size  :  "<<request->bookids().size()<<endl;
 				response->set_userid(request->userid());
-				response->set_suscount(-9);
+				response->set_suscount(-1);
 				return ;
 			}
 
@@ -167,7 +188,7 @@ namespace bookShelfService
 			//非法信息处理
 			if(request->userid() == ""){
 				LOG(INFO) << "字段缺失，userId : " << request->userid()<<endl;
-				response->set_count(-9);
+				response->set_count(-1);
 				return ;
 			}
 			
@@ -180,12 +201,7 @@ namespace bookShelfService
 				for (int i = 0; i < ret; ++i)
 				{
 					auto book = response->add_lists();
-					book->set_bookid(bookres[i].bookId);
-					book->set_bookname(bookres[i].bookName);
-					book->set_bookheadurl(bookres[i].bookHeadUrl);
-					book->set_bookdownurl(bookres[i].bookDownUrl);
-					book->set_booktype(bookres[i].bookType);
-					book->set_authorname(bookres[i].authorName);
+					fillBook(book,bookres[i]);
 				}
 				LOG(INFO) << endl
 						  << control->remote_side() << "请求获取用户 " << request->userid() << " 书架的所有书籍成功" << endl;

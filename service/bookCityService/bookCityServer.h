@@ -30,6 +30,7 @@ DEFINE_int32(logoff_ms, 2000, "Maximum duration of server's LOGOFF state ");
 
 namespace bookCityService
 {
+			
 
 	class bookCityServiceImpl : public bookCityService
 	{
@@ -38,8 +39,30 @@ namespace bookCityService
 		map<string, int> recommendTimes;	// 记录个性化推荐批次
 		map<string, int> browseTimes;		// 记录书城浏览批次
 	private:
+		//暂时用原表结果其他位填充
+		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const BookInfoTable & bookres )
+		{
+			auto book = add_lists;
+
+			book->set_bookid(bookres.bookId);
+			book->mutable_baseinfo()->set_bookname(bookres.bookName);
+			book->mutable_baseinfo()->set_booktype(1000);
+			book->mutable_baseinfo()->set_authorname(bookres.authorName);
+			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
+			book->mutable_baseinfo()->set_publishhouse("机械工业出版社");
+			book->mutable_baseinfo()->set_bookintro(bookres.bookIntro);
+			book->mutable_baseinfo()->set_bookpage(200);
+			book->mutable_baseinfo()->set_languagetype(2);
+			book->mutable_downinfo()->set_filesize(20.3);
+			book->mutable_downinfo()->set_bookheadurl(bookres.bookHeadUrl);
+			book->mutable_downinfo()->set_bookdownurl(bookres.bookDownUrl);
+			book->mutable_gradeinfo()->set_remarkcount(100);
+			book->mutable_gradeinfo()->set_averagescore(200.4);
+
+		}
 		void reduce_months(string  & monthTime)
 		{//减小月份xxxx-xx
+
 			//确定提取位
 			int subrCount = monthTime[5] == '0' ? 6 :5 ;
 			string month = monthTime.substr(subrCount);
@@ -129,14 +152,7 @@ namespace bookCityService
 				{
 					response->set_count(ret);
 					auto book = response->add_lists();
-					book->set_bookid(bookres.bookId);
-					book->set_bookname(bookres.bookName);
-					book->set_bookheadurl(bookres.bookHeadUrl);
-					book->set_bookdownurl(bookres.bookDownUrl);
-					book->set_booktype(bookres.bookType);
-					book->set_authorname(bookres.authorName);
-					book->set_bookintro(bookres.bookIntro);
-					book->set_publishtime(bookres.publishTime);
+					fillBook(book,bookres);
 					if(-1 == plus_search_times(bookres.bookId,request->daytime(),bookres.bookName) ){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -150,14 +166,7 @@ namespace bookCityService
 				{
 					response->set_count(ret);
 					auto book = response->add_lists();
-					book->set_bookid(bookres[i].bookId);
-					book->set_bookname(bookres[i].bookName);
-					book->set_bookheadurl(bookres[i].bookHeadUrl);
-					book->set_bookdownurl(bookres[i].bookDownUrl);
-					book->set_booktype(bookres[i].bookType);
-					book->set_authorname(bookres[i].authorName);
-					book->set_bookintro(bookres[i].bookIntro);
-					book->set_publishtime(bookres[i].publishTime);
+					fillBook(book,bookres[i]);
 					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -171,14 +180,7 @@ namespace bookCityService
 				{
 					response->set_count(ret);
 					auto book = response->add_lists();
-					book->set_bookid(bookres[i].bookId);
-					book->set_bookname(bookres[i].bookName);
-					book->set_bookheadurl(bookres[i].bookHeadUrl);
-					book->set_bookdownurl(bookres[i].bookDownUrl);
-					book->set_booktype(bookres[i].bookType);
-					book->set_authorname(bookres[i].authorName);
-					book->set_bookintro(bookres[i].bookIntro);
-					book->set_publishtime(bookres[i].publishTime);
+					fillBook(book,bookres[i]);
 					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName )){
 						LOG(WARNING) << "更新搜索次数失败"<<endl ;
 					}
@@ -217,18 +219,41 @@ namespace bookCityService
 			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<"请求修改书籍信息";
+
+			//非法信息处理
+			if(!request->has_authorname() && !request->has_bookdownurl()
+				&& !request->has_bookheadurl() && !request->has_bookname() 
+				&& !request->has_booktype() && !request->has_hits())
+			{
+				response->set_code(-1);
+				response->set_errorres("Fields are missing");
+				LOG(INFO) << endl
+                        << control->remote_side() << "   缺少字段" << endl;
+				return ;
+			}
+
 			int ret = up_book(request->bookid(), request->bookname(),
 							request->bookheadurl(), request->bookdownurl(), 
 							request->booktype(), request->authorname(),
 							request->bookintro(),request->publishtime());
-			if (ret != 1)
+			if (ret == 0)
 			{
 				cout << endl;
 				LOG(INFO) << "[" << __FILE__ << "]"
 						  << "[" << __LINE__ << "]" << endl;
 				response->set_code(-1);
 				response->set_errorres("update faild");
+				LOG(INFO) << endl
+                        << control->remote_side() << "  更新书籍信息失败" << endl;
+			}
+			else if (ret == -1)//空串
+			{
+				response->set_code(-1);
+                response->set_errorres("block Fields");
+                LOG(INFO) << endl
+                        << control->remote_side() << "  填入了空的字段" << endl;
 			}
             else
             {
@@ -256,8 +281,8 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
-			vector<BookInfoTable> res;
-			int ret = get_all_book(res); // 获取所有书籍信息
+			vector<BookInfoTable> bookres;
+			int ret = get_all_book(bookres); // 获取所有书籍信息
 			if (ret == -1)
 			{
 				cout << endl;
@@ -271,14 +296,7 @@ namespace bookCityService
 			for (; start < ret; ++start)
 			{
 				auto book = response->add_lists();
-				book->set_bookid(res[start].bookId);
-				book->set_bookname(res[start].bookName);
-				book->set_bookheadurl(res[start].bookHeadUrl);
-				book->set_bookdownurl(res[start].bookDownUrl);
-				book->set_booktype(res[start].bookType);
-				book->set_authorname(res[start].authorName);
-				book->set_bookintro(res[start].bookIntro);
-				book->set_publishtime(res[start].publishTime);
+				fillBook(book,bookres[start]);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -309,12 +327,12 @@ namespace bookCityService
 				LOG(INFO) << "[" << __FILE__ << "]"
 						  << "[" << __LINE__ << "]" << endl;
 				response->set_code(0);
-				response->set_errorres("del faild");
+				response->set_errorres("delete faild");
 			}
             else
             {
                 response->set_code(1);
-                response->set_errorres("sucessful");
+                response->set_errorres("delete sucessful");
                 LOG(INFO) << endl
                         << control->remote_side() << "删除书籍成功" << endl;
             }
@@ -358,13 +376,7 @@ namespace bookCityService
 				if (retBook != -1)
 				{
 					auto adBookRes = adRes->add_lists();
-					adBookRes->set_bookid(bookres.bookId);
-					adBookRes->set_bookname(bookres.bookName);
-					adBookRes->set_bookheadurl(bookres.bookHeadUrl);
-					adBookRes->set_bookdownurl(bookres.bookDownUrl);
-					adBookRes->set_booktype(bookres.bookType);
-					adBookRes->set_authorname(bookres.authorName);
-					adBookRes->set_bookintro(bookres.bookIntro);
+					fillBook(adBookRes,bookres);
 				}
 				++count;
 			}
@@ -413,14 +425,7 @@ namespace bookCityService
 			for (; start < ret; ++start)
 			{
 				auto book = response->add_lists();
-				book->set_bookid(books[start].bookId);
-				book->set_bookname(books[start].bookName);
-				book->set_bookheadurl(books[start].bookHeadUrl);
-				book->set_bookdownurl(books[start].bookDownUrl);
-				book->set_booktype(books[start].bookType);
-				book->set_authorname(books[start].authorName);
-				book->set_bookintro(books[start].bookIntro);
-				book->set_publishtime(books[start].publishTime);
+				fillBook(book,books[start]);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -467,13 +472,7 @@ namespace bookCityService
 			for (; start < ret; ++start)
 			{
 				auto book = response->add_lists();
-				book->set_bookid(books[start].bookId);
-				book->set_bookname(books[start].bookName);
-				book->set_bookheadurl(books[start].bookHeadUrl);
-				book->set_bookdownurl(books[start].bookDownUrl);
-				book->set_booktype(books[start].bookType);
-				book->set_authorname(books[start].authorName);
-				book->set_bookintro(books[start].bookIntro);
+				fillBook(book,books[start]);
 			}
 			response->set_count(ret);
 			LOG(INFO) << endl
@@ -580,6 +579,15 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
+			//非法数据处理
+			if(request->count() <= 0)
+			{
+				response->set_count(-1);
+				LOG(WARNING) << endl
+					  << control->remote_side() << "榜单查询失败,qong" << endl;
+			}
+
+
 			vector<BookInfoTable> books ;
 			int ret = get_book_offset(books,1,request->count());
 
@@ -593,14 +601,7 @@ namespace bookCityService
 			{
 				for(auto & bookres:books ){
 					auto book = response->add_lists();
-					book->set_bookid(bookres.bookId);
-					book->set_bookname(bookres.bookName);
-					book->set_bookheadurl(bookres.bookHeadUrl);
-					book->set_bookdownurl(bookres.bookDownUrl);
-					book->set_booktype(bookres.bookType);
-					book->set_authorname(bookres.authorName);
-					book->set_bookintro(bookres.bookIntro);
-					book->set_publishtime(bookres.publishTime);
+					fillBook(book,bookres);
 				}
 				response->set_count(ret);
 				LOG(WARNING) << endl
@@ -631,7 +632,7 @@ namespace bookCityService
 				LOG(INFO) << "字段缺失，或数据非法 daytime : " << request->daytime()
 						<<" word  :  "<<request->words()<<" coutn :" << request->count()
 						<<" offset : " << request->offset()<<endl;
-				response->set_count(-9);
+				response->set_count(-1);
 				return ;
 			}
 
@@ -640,18 +641,11 @@ namespace bookCityService
 			m_memBookList.fuzzySearch(books,request->words(),request->offset(),request->count()) ;
 			cout<<"list size is "<<m_memBookList.size()<<endl ;
 			int size = books.size();
+			response->set_count(size);
 			for (int i = 0; i < size ; ++i)
 			{
-				response->set_count(size);
 				auto book = response->add_lists();
-				book->set_bookid(books[i].bookId);
-				book->set_bookname(books[i].bookName);
-				book->set_bookheadurl(books[i].bookHeadUrl);
-				book->set_bookdownurl(books[i].bookDownUrl);
-				book->set_booktype(books[i].bookType);
-				book->set_authorname(books[i].authorName);
-				book->set_bookintro(books[i].bookIntro);
-				book->set_publishtime(books[i].publishTime);
+				fillBook(book,books[i]);
 				if(-1 == plus_search_times(books[i].bookId,request->daytime(),books[i].bookName) ){
 					LOG(WARNING) << " : 更新搜索次数失败"<<endl ;
 				}
