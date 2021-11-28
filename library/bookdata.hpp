@@ -209,13 +209,20 @@ int up_book(const string &book_id, const string &book_name,
 	change[5]   = book_intro 	== "" 	? "" : " bookIntro = \'" 	+ book_intro     + "\'  ,";
 	change[6]   = book_pubtime 	== "" 	? "" : " publishTime = \'"  + book_pubtime   + "\'  ,";
     string cond = "update BookInfoTable set "  ;
-    for(int i = 0 ;i < 7;i++){
+    int before = cond.size() ;
+	for(int i = 0 ;i < 7;i++){
         cond.append(change[i]);
     }
+	//空字段
+	if( before ==  cond.size() ){
+		return -1;
+	}
+
     cond.replace(cond.rfind(","), 1, "");
     cond += " where bookId = \'" + book_id + "\'";
 	int ret = conn->execute(cond); 
 	cout <<"cond is "<<cond << " ret is " << ret<<endl ;
+	cout<<" ret  is "<< ret << endl ;
 	if (ret == INT_MIN)
 	{
 		LOG(WARNING) << __FILE__ << " : " << __LINE__ << "insert error" << endl;
