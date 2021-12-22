@@ -22,6 +22,7 @@ DEFINE_string(ip, "39.105.217.90", "用于文件下载的ip外网地址");
 DEFINE_int32(accountPort, 8007, "服务端口");
 DEFINE_string(stringPort, "8007", "服务端口");
 DEFINE_string(iPort, FLAGS_ip + ":" + FLAGS_stringPort, "服务ip:port");
+DEFINE_string(imageIPort, FLAGS_ip + ":8006" , "下载图片ip:port");
 DEFINE_int32(idle_timeout_s, -1, "超时没有读写操作断开连接");
 DEFINE_int32(logoff_ms, 2000, "Maximum duration of server's LOGOFF state ");
 #define IOBuf_MAX_SIZE 253952 // IOBuf的单次读取大小
@@ -147,7 +148,7 @@ namespace accountService
 			UserInfoTable newUser = {
 				request->userid(),
 				"书友 " + request->userid(),
-				"http://" + FLAGS_iPort + "/fileService/fileDownFun/images/default.png",
+				"http://" + FLAGS_imageIPort + "/fileService/fileDownFun/images/default.png",
 				request->userpwd(),
 				"你好 这个人很懒~",
 				1,
