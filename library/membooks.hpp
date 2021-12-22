@@ -49,12 +49,14 @@ public:
         if(book.bookName == "")  book.bookName = "  ";
         if(book.bookType == "")  book.bookType = "  ";
 
+
         m_combineInfo = book.authorName + "\t" + book.bookIntro + "\t"
                         +book.bookName + "\t" + book.bookType ;
         m_bookHeadUrl = std::move(book.bookHeadUrl);
         m_bookDownUrl = std::move(book.bookDownUrl);
         m_commentId   = std::move(book.commentId);
         m_publishTime = std::move(book.publishTime);
+
     };
     void getTranslateBook(BookInfoTable & book)
     {//转换回正常的书籍信息
@@ -64,9 +66,10 @@ public:
         book.commentId = m_commentId   ;
         book.publishTime = m_publishTime ;
         int lastPos = 0 ,currentPos = -1  ;
+
         //切割
         currentPos =  m_combineInfo.find("\t",currentPos + 1) ;
-        book.authorName = std::move(m_combineInfo.substr(lastPos + 1,currentPos - lastPos -1 ) );
+        book.authorName = std::move(m_combineInfo.substr(lastPos ,currentPos - lastPos  ) );
         lastPos = currentPos ;
 
         currentPos =  m_combineInfo.find("\t",currentPos + 1);
@@ -78,6 +81,8 @@ public:
         lastPos = currentPos ;
 
         book.bookType = std::move(m_combineInfo.substr(currentPos+ 1,m_combineInfo.size() - currentPos ) );
+
+        cout<<" transform  is "<<book.authorName<<"  "<<book.bookIntro <<"    "<<book.bookName<<"   "<<book.bookType <<endl;
     };
     //返回组合信息
     string getCombineInfo(){return m_combineInfo;};
