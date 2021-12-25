@@ -639,7 +639,7 @@ namespace bookCityService
 			vector<BookInfoTable> books;
 			//从实例读出书籍
 			m_memBookList.fuzzySearch(books,request->words(),request->offset(),request->count()) ;
-			cout<<"list size is "<<m_memBookList.size()<<endl ;
+			cout<<"list size is "<<books.size()<<endl ;
 			int size = books.size();
 			response->set_count(size);
 			for (int i = 0; i < size ; ++i)
