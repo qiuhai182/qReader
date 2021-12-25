@@ -190,32 +190,32 @@ public:
         end = m_books.end();
 
 
-        map<int,infoCombineBook>::iterator bufBgein,bufEnd ;
+        map<int,infoCombineBook>::reverse_iterator rBufBgein ;
 
         int score ;
         cout<<"  internal size is "<<m_books.size()<<endl;
         for(;it != end;it++){
             score = (int)(10 * rapidfuzz::fuzz::ratio(it->getCombineInfo(),words) );
             cout<<"  ratio  score "<<score<<endl;
-            if(score >= 30)
+            if(score >= 160)
                 buffer.insert(pair<int,infoCombineBook>(score,*it));
         }
         
         //根据偏移量获取起始点
-        bufBgein = buffer.begin();
+        rBufBgein = buffer.rbegin();
         for(int index = 0 ; index < offset ;index++){
-            if(bufBgein == buffer.end()){
+            if(rBufBgein == buffer.rend()){
                 m_locker.unlock();
                 return 1;
             }
-            bufBgein++;
+            rBufBgein++;
         }
-        cout<<" buf  size " <<buffer.size()<<"   count " <<count<<" is "<< (bufBgein == buffer.end())<<endl;
+        cout<<" buf  size " <<buffer.size()<<"   count " <<count<<" is "<< (rBufBgein == buffer.rend())<<endl;
         //偏移后添加
         BookInfoTable book ;
-        for(int index = 0 ;index < count && bufBgein != buffer.end() ;index++,bufBgein++ ){
-            
-            bufBgein->second.getTranslateBook(book);
+        for(int index = 0 ;index < count && rBufBgein != buffer.rend() ;index++,rBufBgein++ ){
+            cout<<" score  is "<<rBufBgein->first<<endl ;
+            rBufBgein->second.getTranslateBook(book);
             books.push_back(book);
         }
         m_locker.unlock();
