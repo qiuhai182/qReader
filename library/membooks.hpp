@@ -45,18 +45,16 @@ public:
         m_bookId = std::move(book.bookId );
         //数据块空信息处理
         if(book.authorName == "")  book.authorName = "  ";
-        if(book.bookIntro == "")  book.bookIntro = "  ";
         if(book.bookName == "")  book.bookName = "  ";
-        if(book.bookType == "")  book.bookType = "  ";
 
 
-        m_combineInfo = book.authorName + "\t" + book.bookIntro + "\t"
-                        +book.bookName + "\t" + book.bookType ;
+        m_combineInfo = book.authorName + "\t" + book.bookName  ;
         m_bookHeadUrl = std::move(book.bookHeadUrl);
         m_bookDownUrl = std::move(book.bookDownUrl);
         m_commentId   = std::move(book.commentId);
         m_publishTime = std::move(book.publishTime);
-
+        m_bookIntro   = std::move(book.bookIntro);
+        m_bookType    = std::move(book.bookType);
     };
     void getTranslateBook(BookInfoTable & book)
     {//转换回正常的书籍信息
@@ -65,6 +63,9 @@ public:
         book.bookDownUrl = m_bookDownUrl;
         book.commentId = m_commentId   ;
         book.publishTime = m_publishTime ;
+        book.bookIntro   = m_bookIntro;
+        book.bookType    = m_bookType;
+
         int lastPos = 0 ,currentPos = -1  ;
 
         //切割
@@ -72,17 +73,8 @@ public:
         book.authorName = std::move(m_combineInfo.substr(lastPos ,currentPos - lastPos  ) );
         lastPos = currentPos ;
 
-        currentPos =  m_combineInfo.find("\t",currentPos + 1);
-        book.bookIntro = std::move(m_combineInfo.substr(lastPos+ 1,currentPos - lastPos -1 ) );
-        lastPos = currentPos ;
-
-        currentPos =  m_combineInfo.find("\t",currentPos + 1);
         book.bookName = std::move(m_combineInfo.substr(lastPos+ 1,currentPos - lastPos -1 ) );
-        lastPos = currentPos ;
 
-        book.bookType = std::move(m_combineInfo.substr(currentPos+ 1,m_combineInfo.size() - currentPos ) );
-
-        cout<<" transform  is "<<book.authorName<<"  "<<book.bookIntro <<"    "<<book.bookName<<"   "<<book.bookType <<endl;
     };
     //返回组合信息
     string getCombineInfo(){return m_combineInfo;};
@@ -95,6 +87,8 @@ private:
     string m_bookDownUrl;		// 下载地址
     int	   m_commentId;		// 首条评论id
     string m_publishTime;     // 出版时间
+    string m_bookIntro;     //简介
+    string m_bookType ;     //分类
 };
 
 class locker
@@ -187,31 +181,39 @@ public:
         if(words == "" || offset < 0 || count <= 0){
             return -1;
         }
-        cout<<" 进入 "<<endl ;
+
+
         m_locker.lock();
         map<int,infoCombineBook> buffer ;//匹配结果
         list<infoCombineBook>::iterator it ,end ;
         it = m_books.begin();
         end = m_books.end();
+
+
+        map<int,infoCombineBook>::iterator bufBgein,bufEnd ;
+
         int score ;
         cout<<"  internal size is "<<m_books.size()<<endl;
         for(;it != end;it++){
-            score = (int)(10000 * rapidfuzz::fuzz::ratio(it->getCombineInfo(),words) );
-            cout<<"  info   and  score "<<it->getCombineInfo()<<" "<<score<<endl;
-            if(score != 0)
+            score = (int)(10 * rapidfuzz::fuzz::ratio(it->getCombineInfo(),words) );
+            cout<<"  ratio  score "<<score<<endl;
+            if(score >= 30)
                 buffer.insert(pair<int,infoCombineBook>(score,*it));
         }
-        map<int,infoCombineBook>::iterator bufBgein,bufEnd ;
+        
+        //根据偏移量获取起始点
         bufBgein = buffer.begin();
-        bufEnd = buffer.end();
-        int number = 0 ;
-        do{
-            bufBgein++ ;
-            number++ ;
-        }while(number == offset );
-        //移动后添加
+        for(int index = 0 ; index < offset ;index++){
+            if(bufBgein == buffer.end()){
+                m_locker.unlock();
+                return 1;
+            }
+            bufBgein++;
+        }
+        cout<<" buf  size " <<buffer.size()<<"   count " <<count<<" is "<< (bufBgein == buffer.end())<<endl;
+        //偏移后添加
         BookInfoTable book ;
-        for(int index = 0 ;index < count && bufBgein != bufEnd ;index++,bufBgein++ ){
+        for(int index = 0 ;index < count && bufBgein != buffer.end() ;index++,bufBgein++ ){
             
             bufBgein->second.getTranslateBook(book);
             books.push_back(book);
