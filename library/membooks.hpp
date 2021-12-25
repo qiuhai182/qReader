@@ -21,6 +21,21 @@ using std::list ;
 using std::string ;
 using std::pair;
 
+//转大写
+
+string to_upper(const string & str)
+{
+    string buffer = str;
+    int len = buffer.length();
+    for(int index = 0; index < len; index++){
+        if( 'a' <= buffer[index] && buffer[index]<= 'z'){
+            buffer[index] = buffer[index] + 'A' -'a';
+        }
+    }
+    return buffer;
+}
+
+
 //将书籍的作者、简介、书名、类型合并
 //其中以\t分割
 class  infoCombineBook
@@ -184,21 +199,22 @@ public:
 
 
         m_locker.lock();
-        map<int,infoCombineBook> buffer ;//匹配结果
+        map<int,vector<infoCombineBook> > buffer ;//匹配结果
         list<infoCombineBook>::iterator it ,end ;
         it = m_books.begin();
         end = m_books.end();
 
 
-        map<int,infoCombineBook>::reverse_iterator rBufBgein ;
+        map<int,vector<infoCombineBook>>::reverse_iterator rBufBgein ;
 
         int score ;
         cout<<"  internal size is "<<m_books.size()<<endl;
         for(;it != end;it++){
-            score = (int)(10 * rapidfuzz::fuzz::ratio(it->getCombineInfo(),words) );
+            score = (int)(10 * rapidfuzz::fuzz::partial_ratio(to_upper(it->getCombineInfo()),to_upper(words) ) );
             cout<<"  ratio  score "<<score<<endl;
-            if(score >= 160)
-                buffer.insert(pair<int,infoCombineBook>(score,*it));
+            if(score >= 400){
+                buffer[score].push_back(*it);
+            }
         }
         
         //根据偏移量获取起始点
@@ -215,8 +231,11 @@ public:
         BookInfoTable book ;
         for(int index = 0 ;index < count && rBufBgein != buffer.rend() ;index++,rBufBgein++ ){
             cout<<" score  is "<<rBufBgein->first<<endl ;
-            rBufBgein->second.getTranslateBook(book);
-            books.push_back(book);
+
+            for(auto & item :rBufBgein->second){
+                item.getTranslateBook(book);
+                books.push_back(book);
+            }
         }
         m_locker.unlock();
         return 1;
