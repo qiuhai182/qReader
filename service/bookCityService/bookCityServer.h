@@ -51,7 +51,7 @@ namespace bookCityService
 			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
 			book->mutable_baseinfo()->set_publishhouse("机械工业出版社");
 			book->mutable_baseinfo()->set_bookintro(bookres.bookIntro);
-			book->mutable_baseinfo()->set_bookpage(200);
+			book->mutable_baseinfo()->set_bookpage(3.5);
 			book->mutable_baseinfo()->set_languagetype(2);
 			book->mutable_downinfo()->set_filesize(20.3);
 			book->mutable_downinfo()->set_bookheadurl(bookres.bookHeadUrl);
