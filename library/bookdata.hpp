@@ -91,6 +91,30 @@ int get_book_by_authorname(vector<BookInfoTable> &books, const string &author_na
 	return res.size();
 }
 
+int get_book_by_bookType(vector<BookInfoTable> &books, const string &book_type)
+{ // 通过书籍分类获取书籍信息
+	auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return -1;
+	}
+	string cond = "where bookType LIKE \"\%" + book_type + "\%\"";
+	
+	auto res = conn->query<BookInfoTable>(cond);
+	if (res.size() == 0)
+		return -1;
+
+	for (auto &i : res)
+	{
+		books.push_back(i);
+	}
+	return res.size();
+}
+
 /*
  *	bookId为Key，bookId为一本书的md5值
  *	如果md5值不同，则表示唯一

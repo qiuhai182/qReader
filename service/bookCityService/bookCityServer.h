@@ -16,6 +16,7 @@
 #include "bookcity.pb.h"
 #include "common.pb.h"
 #include "membooks.hpp"
+#include "bookType.hpp"
 
 using namespace std;
 
@@ -46,7 +47,7 @@ namespace bookCityService
 
 			book->set_bookid(bookres.bookId);
 			book->mutable_baseinfo()->set_bookname(bookres.bookName);
-			book->mutable_baseinfo()->set_booktype(1000);
+			book->mutable_baseinfo()->set_booktype(1);
 			book->mutable_baseinfo()->set_authorname(bookres.authorName);
 			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
 			book->mutable_baseinfo()->set_publishhouse("机械工业出版社");
@@ -186,6 +187,34 @@ namespace bookCityService
 					}
 				}
 			}
+
+			if (request->has_booktype())
+			{
+				if(  false == bookType::isPrimaryClass(request->booktype())){
+					response->set_count(-1);
+					LOG(INFO) << endl
+							<< control->remote_side()
+							<< "搜索错误类型图书" << endl;
+					return;
+				}
+				
+				//变为枚举
+				bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
+				string stringType =  "编程书籍";// bookType::primary_enum_to_string(typeEnum) ;
+				cout<<"   -  "<<stringType<<endl;
+				vector<BookInfoTable> bookres;
+				ret = get_book_by_bookType(bookres, stringType);
+				for (int i = 0; i < ret; ++i)
+				{
+					response->set_count(ret);
+					auto book = response->add_lists();
+					fillBook(book,bookres[i]);
+					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
+						LOG(WARNING) << "更新搜索次数失败"<<endl ;
+					}
+				}
+			}
+
 
 			if (ret == -1)
 			{

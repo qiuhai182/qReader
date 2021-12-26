@@ -68,7 +68,8 @@ message searchBookReq
 	optional string bookId = 2;
 	optional string bookName = 3;
 	optional string authorName = 4; 
-	required string dayTime = 5;
+	optional int32  bookType = 5;
+	required string dayTime = 6;
 }
 
 
