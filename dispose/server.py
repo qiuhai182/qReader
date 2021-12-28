@@ -10,54 +10,98 @@ import sys
 import math
 import json
 from dateutil.parser import parse
-import seaborn as sns
-
-sns.set()
-
-# 计算两时间差的总秒数
+import seaborn as sns; sns.set()
 
 
-# 计算两时间差秒数
+
+def isContinus(t1, t2):
+    '''判断两点是否在时间上是连续数据'''
+    t1 = parse(t1)
+    t2 = parse(t2)
+    deltaT = abs(t2.second - t1.second)
+    if (1 >= deltaT):
+        return True
+    else:
+        return False
+
+
 def getDeltaTime(t1, t2):
+    '''计算两时间差秒数'''
     t1 = parse(t1)
     t2 = parse(t2)
     return (t2 - t1).total_seconds()
 
-# 计算两点距离
-
 
 def getDeltaDistance(x1, y1, x2, y2):
+    '''计算两点距离'''
     return np.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1))
 
-# 计算两点连线相对x轴逆时针方向角度
+
+def getAngle(pA, pB=(0, 0), pC=(1, 0)):
+    """
+    传入三点坐标，第一、三点分别与中间点连成射线，以中间点为两射线共同出发点，返回两射线夹角，三点两两之间不可重复
+    传入一点坐标，从原点出发连成射线，返回相对X轴正方向夹角
+    """
+    if pA == pB or pA == pC:
+        return 0
+    a = math.sqrt((pB[0]-pC[0])**2+(pB[1]-pC[1])**2)
+    b = math.sqrt((pA[0]-pC[0])**2+(pA[1]-pC[1])**2)
+    c = math.sqrt((pA[0]-pB[0])**2+(pA[1]-pB[1])**2)
+    # abc = (a*a-b*b-c*c)/(-2*b*c)
+    # if -1 > abc:
+    #     abc = -1
+    # elif 1 < abc:
+    #     abc = 1
+    bca = (b*b-a*a-c*c)/(-2*a*c)
+    if -1 > bca:
+        bca = -1
+    elif 1 < bca:
+        bca = 1
+    # cba = (c*c-a*a-b*b)/(-2*a*b)
+    # if -1 > cba:
+        # cba = -1
+    # elif 1 < cba:
+        # cba = 1
+    # A=math.degrees(math.acos(abc))
+    # C=math.degrees(math.acos(cba))
+    B = math.degrees(math.acos(bca))
+    if pB[1] == pC[1]:
+        # 求相对x轴正方向角度时有正负值，代表逆时针/顺时针方向
+        if pA[1] >= pB[1]:
+            return B
+        else:
+            return -B
+    else:
+        return B
 
 
-def getAngle(x1, y1, x2, y2):
-    angle = 0.0
-    deltaX = x2 - x1
-    deltaY = y2 - y1
-    if x2 == x1:
-        if y2 == y1:
-            angle = 0.0
-        elif y2 < y1:
-            angle = 3.0 * math.pi / 2.0
-        elif y2 > y1:
-            angle = math.pi / 2.0
-    elif x2 > x1 and y2 > y1:
-        angle = math.atan(deltaX / deltaY)
-    elif x2 > x1 and y2 < y1:
-        angle = math.pi / 2 + math.atan(-deltaY / deltaX)
-    elif x2 < x1 and y2 > y1:
-        angle = 3.0 * math.pi / 2.0 + math.atan(deltaY / -deltaX)
-    elif x2 < x1 and y2 < y1:
-        angle = math.pi + math.atan(deltaX / deltaY)
-    return 180 * angle / math.pi
-
-# 计算两点角度变化值
+def getDeltaAngle(pA, pB):
+    '''
+    传入两个点，以第一个点为原点建立二维xy坐标系，
+    选取该坐标系原点x轴正向一点作为第三点，计算原点对应夹角
+    '''
+    return getAngle(pB, pA, (pA[0] + 1, pA[1]))
 
 
-def getDeltaAngle(x1, y1, x2, y2):
-    return getAngle(0, 0, x2, y2) - getAngle(0, 0, x1, y1)
+def countIndexValue(value, index):
+    '''
+    传入两个一维数组，分别表示值数组和索引数组
+    返回索引指向值之和
+    '''
+    result = 0.0
+    for i in range(len(index)):
+        result += value[index[i]]
+    return result
+
+
+def isContinue(d1, d2):
+    '''
+    判断传入的两个值是否同正负，认为0与任何数同正负
+    '''
+    if 0 <= d1 * d2:
+        return True
+    else:
+        return False
 
 
 class read:
@@ -130,7 +174,7 @@ class read:
             self.deltaDistance = np.append(self.deltaDistance, np.array(
                 getDeltaDistance(x1, y1, x2, y2), float))
             self.deltaAngle = np.append(self.deltaAngle, np.array(
-                getDeltaAngle(x1, y1, x2, y2), float))
+                getDeltaAngle((x1, y1), (x2, y2)), float))
 
         # 阅读散点图
         xy = list(zip(self.deltaX, self.deltaY))
@@ -141,7 +185,7 @@ class read:
         self.point1 = XY[label_pred == 1]  # 不知，可以标为绿色
         self.point2 = XY[label_pred == 2]  # 不知，可以标为蓝色
 
-        # 阅读热力图Δx
+        # 阅读速度
         self.readPhotoDeltaX = self.deltaX
         self.readPhotoDeltaX /= 1024
         # 计算11点
@@ -156,28 +200,17 @@ class read:
                 tempSpeed /= self.speedPerPoints  # 求平均值
                 self.speedPoints[i] = tempSpeed
         else:
-            self.speedPoints = -1  # 若数据不足，返回-1
-        # 查看书本id和页数
-        self.BookIdPageNum = np.empty(shape=(len(self.X), 2), dtype=str)
-        # 读取书本id（0位）和页数（1位)
+            self.speedPoints = np.empty((11, 1))  # 若数据不足
+
+
+        # 阅读热力图
+        self.readPoint = np.zeros((128, 171))
         for i in range(len(self.X)):
-            self.BookIdPageNum[i][0] = self.BookId[i]
-            self.BookIdPageNum[i][1] = self.PageNum[i]
-        # 删除重复元素
-        self.BookIdPageNum = np.unique(self.BookIdPageNum, axis=0)
-        # 生成图片
-        # for i in range(len(self.BookIdPageNum)):
-        #     tempPicData = np.zeros((128, 171))  # 热力图数组
-        #     for j in range(len(self.X)):
-        #         # 判断该点属于哪本书哪一页
-        #         if (self.BookId[j] == self.BookIdPageNum[i][0] and self.PageNum[j] == self.BookIdPageNum[i][1]):
-        #             # 确定每个点属于的方格
-        #             tempPicData[math.floor(self.X[j] / 8)
-        #                         ][math.floor(self.Y[j] / 8)] += 1
-        #     ax = plt.subplots(figsize=(128, 171))
-        #     ax = sns.heatmap(tempPicData, cmap="RdPu", cbar=False)  # 热力图绘制
-        #     plt.savefig("../../qReaderData/sightData/" + sys.argv[1] + "ReadPhoto/" + sys.argv[1] +
-        #         str(self.BookIdPageNum[i][0]) + str(self.BookIdPageNum[i][1]) + '.jpg',bbox_inches = 'tight')
+            self.readPoint[math.floor(self.X[i] / 8)][math.floor(self.Y[i] / 8)] += 1
+        ax = plt.subplots(figsize=(128, 171))
+        plt.axis('off')
+        ax = sns.heatmap(self.readPoint, cmap="RdPu", cbar=False)  # 热力图绘制
+        plt.savefig("../../qReaderData/sightData/sightAnalyseJson/" + sys.argv[1] + '/' + sys.argv[1] + '_Analyse.png', bbox_inches = 'tight')
 
 
 def main():
