@@ -2,7 +2,7 @@
 #ifndef  _MEMBOOKS_H_
 #define _MEMBOOKS_H_
 
-#include "bookdata.hpp"
+#include "database/bookSql.hpp"
 #include "rapidfuzz/fuzz.hpp"
 #include "rapidfuzz/utils.hpp"
 #include <string>
@@ -22,7 +22,6 @@ using std::string ;
 using std::pair;
 
 //转大写
-
 string to_upper(const string & str)
 {
     string buffer = str;
@@ -36,74 +35,59 @@ string to_upper(const string & str)
 }
 
 
-//将书籍的作者、简介、书名、类型合并
+//将书籍的作者、书名合并
 //其中以\t分割
 class  infoCombineBook
 {
 public:
     infoCombineBook(){}
     ~infoCombineBook(){}
-    infoCombineBook(const string & bookId, const string & combineInfo,
-                    const string & bookHeadUrl,const string & bookDownUrl,
-                    const int commentId ,const string & publishTime) 
+    infoCombineBook(const string & book_id,const int & auto_book_id,const string & combine_info ) 
     {
-        m_bookId = bookId;
-        m_combineInfo = combineInfo;
-        m_bookHeadUrl = bookHeadUrl;
-        m_bookDownUrl = bookDownUrl;
-        m_commentId   = commentId;
-        m_publishTime = publishTime;
+        __bookId = book_id;
+        __combineInfo = combine_info;
+        __autoBookId = auto_book_id;
     };
-    //combineInfo 格式一定是作者\t简介\t书名\t类型
-    infoCombineBook(BookInfoTable && book) 
+    //combineInfo 格式一定是作者\t书名
+    infoCombineBook(BookBaseInfoTable && book) 
     {
-        m_bookId = std::move(book.bookId );
+        __bookId = std::move(book.bookId );
+        __autoBookId = std::move(book.autoBookId);
+
         //数据块空信息处理
         if(book.authorName == "")  book.authorName = "  ";
         if(book.bookName == "")  book.bookName = "  ";
 
 
-        m_combineInfo = book.authorName + "\t" + book.bookName  ;
-        m_bookHeadUrl = std::move(book.bookHeadUrl);
-        m_bookDownUrl = std::move(book.bookDownUrl);
-        m_commentId   = std::move(book.commentId);
-        m_publishTime = std::move(book.publishTime);
-        m_bookIntro   = std::move(book.bookIntro);
-        m_bookType    = std::move(book.bookType);
+        __combineInfo = book.authorName + "\t" + book.bookName  ;
+
     };
-    void getTranslateBook(BookInfoTable & book)
+    void getTranslateBook(BookBaseInfoTable & book)
     {//转换回正常的书籍信息
-        book.bookId = m_bookId ;
-        book.bookHeadUrl = m_bookHeadUrl;
-        book.bookDownUrl = m_bookDownUrl;
-        book.commentId = m_commentId   ;
-        book.publishTime = m_publishTime ;
-        book.bookIntro   = m_bookIntro;
-        book.bookType    = m_bookType;
+        book.bookId = __bookId ;
+
 
         int lastPos = 0 ,currentPos = -1  ;
 
         //切割
-        currentPos =  m_combineInfo.find("\t",currentPos + 1) ;
-        book.authorName = std::move(m_combineInfo.substr(lastPos ,currentPos - lastPos  ) );
+        currentPos =  __combineInfo.find("\t",currentPos + 1) ;
+        book.authorName = std::move(__combineInfo.substr(lastPos ,currentPos - lastPos  ) );
         lastPos = currentPos ;
 
-        book.bookName = std::move(m_combineInfo.substr(lastPos+ 1,currentPos - lastPos -1 ) );
+        book.bookName = std::move(__combineInfo.substr(lastPos+ 1,currentPos - lastPos -1 ) );
 
     };
+    int getautoBookId()
+    {
+        return __autoBookId;
+    }
     //返回组合信息
-    string getCombineInfo(){return m_combineInfo;};
-    string getBookId(){return m_bookId;};
+    string getCombineInfo(){return __combineInfo;};
+    string getBookId(){return __bookId;};
 private:
-    string m_bookId;
-    string m_combineInfo;   //用于搜索的信息
-    // 其他信息
-    string m_bookHeadUrl;		// 封面url
-    string m_bookDownUrl;		// 下载地址
-    int	   m_commentId;		// 首条评论id
-    string m_publishTime;     // 出版时间
-    string m_bookIntro;     //简介
-    string m_bookType ;     //分类
+    int __autoBookId;         // 主键
+    string __bookId;
+    string __combineInfo;   //用于搜索的信息
 };
 
 class locker
@@ -111,30 +95,30 @@ class locker
 public:
     locker()
     {
-        if (pthread_mutex_init(&m_mutex, NULL) != 0)
+        if (pthread_mutex_init(&__mutex, NULL) != 0)
         {
             throw std::exception();
         }
     }
     ~locker()
     {
-        pthread_mutex_destroy(&m_mutex);
+        pthread_mutex_destroy(&__mutex);
     }
     bool lock()
     {
-        return pthread_mutex_lock(&m_mutex) == 0;
+        return pthread_mutex_lock(&__mutex) == 0;
     }
     bool unlock()
     {
-        return pthread_mutex_unlock(&m_mutex) == 0;
+        return pthread_mutex_unlock(&__mutex) == 0;
     }
     pthread_mutex_t *get()
     {
-        return &m_mutex;
+        return &__mutex;
     }
 
 private:
-    pthread_mutex_t m_mutex;
+    pthread_mutex_t __mutex;
 };
 
 class MemBooks
@@ -142,54 +126,55 @@ class MemBooks
 public:
     MemBooks(){};
     ~MemBooks(){};
-    void setBooks(vector<BookInfoTable> && books){
+    void setBooks(vector<CombineBook> && books){
+        
         for(auto & book : books){
-            m_books.push_back(std::move(infoCombineBook(std::move(book)) ) );
+            __books.push_back(std::move(infoCombineBook(std::move(get<0>(book) ))) );
         }
     }
-    int insertBook(BookInfoTable && book)
+    int insertBook(BookBaseInfoTable && book)
     {
-        m_locker.lock();
+        __locker.lock();
         list<infoCombineBook>::iterator it ,end ;
-        it = m_books.begin();
-        end = m_books.end();
+        it = __books.begin();
+        end = __books.end();
         int result = 1 ;//默认插入成功
         for(;it != end;it++){
             if(it->getBookId() == book.bookId){
                 result = -1 ;//已经有该书籍
-                m_locker.unlock();
+                __locker.unlock();
                 return result;
             }
         }
         //实例更新
-        m_books.push_back(std::move(infoCombineBook(std::move(book) ) ));
-        m_locker.unlock();
+        __books.push_back(std::move(infoCombineBook(std::move(book) ) ));
+        __locker.unlock();
         return result; //成功
     };
     int deleteBook(const string & bookId)
     {
-        m_locker.lock();
+        __locker.lock();
         list<infoCombineBook>::iterator it ,end ;
-        it = m_books.begin();
-        end = m_books.end();
+        it = __books.begin();
+        end = __books.end();
         int result = 1 ;//默认删除成功
         for(;it != end;it++){
             if(it->getBookId() == bookId){
-                m_books.erase(it);
-                m_locker.unlock();
+                __books.erase(it);
+                __locker.unlock();
                 return result;
             }
         }
-        m_locker.unlock();
+        __locker.unlock();
         result = -1 ;
         return result ;//查找不到返回
     };
-    int updateBook(const BookInfoTable & book)
+    int updateBook(const BookBaseInfoTable & book)
     {
         return 0 ;
     }
     //模糊匹配对应本数,对应起点的书籍
-    int  fuzzySearch(vector<BookInfoTable> & books ,const string & words ,
+    int  fuzzySearch(vector<int> & auto_book_id ,const string & words ,
             const int & offset,const int & count)
     {
         //参数检查
@@ -197,18 +182,16 @@ public:
             return -1;
         }
 
-
-        m_locker.lock();
+        __locker.lock();
         map<int,vector<infoCombineBook> > buffer ;//匹配结果
         list<infoCombineBook>::iterator it ,end ;
-        it = m_books.begin();
-        end = m_books.end();
-
+        it = __books.begin();
+        end = __books.end();
 
         map<int,vector<infoCombineBook>>::reverse_iterator rBufBgein ;
 
         int score ;
-        cout<<"  internal size is "<<m_books.size()<<endl;
+        cout<<"  internal size is "<<__books.size()<<endl;
         for(;it != end;it++){
             score = (int)(10 * rapidfuzz::fuzz::partial_ratio(to_upper(it->getCombineInfo()),to_upper(words) ) );
             cout<<"  ratio  score "<<score<<endl;
@@ -221,31 +204,30 @@ public:
         rBufBgein = buffer.rbegin();
         for(int index = 0 ; index < offset ;index++){
             if(rBufBgein == buffer.rend()){
-                m_locker.unlock();
+                __locker.unlock();
                 return 1;
             }
             rBufBgein++;
         }
         cout<<" buf  size " <<buffer.size()<<"   count " <<count<<" is "<< (rBufBgein == buffer.rend())<<endl;
         //偏移后添加
-        BookInfoTable book ;
+        BookBaseInfoTable book ;
         for(int index = 0 ;index < count && rBufBgein != buffer.rend() ;index++,rBufBgein++ ){
             cout<<" score  is "<<rBufBgein->first<<endl ;
 
             for(auto & item :rBufBgein->second){
-                item.getTranslateBook(book);
-                books.push_back(book);
+                auto_book_id.push_back(item.getautoBookId());
             }
         }
-        m_locker.unlock();
+        __locker.unlock();
         return 1;
     };
     int  size(){
-        return (int)m_books.size();
+        return (int)__books.size();
     }
 private:
-    locker m_locker; //加锁对于实例化书籍进行保护
-    list<infoCombineBook>m_books;
+    locker __locker; //加锁对于实例化书籍进行保护
+    list<infoCombineBook>__books;
 };
 
 

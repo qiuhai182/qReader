@@ -22,7 +22,7 @@ message coordinate
  */
 message readBookRecored
 {
-	required string userId = 1;		// 用户id
+	required int32 userId = 1;		// 用户id
 	required string bookId = 2;		// 书籍id
 	required int32  pageNum = 3;	// 页数
 	repeated coordinate lists = 4;	// 视线数据列表
@@ -37,7 +37,7 @@ message readBookRecored
 message readCountReq
 {
 	required string dayTime = 1;	// 当天日期，格式：xxxx-xx-xx，精确到天
-	required string userId = 2;
+	required int32 userId = 2;
 	/*required string bookId = 3;
 	optional int32 pageNum = 4;*/
 }
@@ -102,11 +102,11 @@ message targetMinute
 }
 message getTargetMinuteReq
 {
-	required string userId = 1;
+	required int32 userId = 1;
 }
 message setTargetMinuteReq
 {
-	required string userId = 1;
+	required int32 userId = 1;
 	required int32 minute = 2;
 }
 
