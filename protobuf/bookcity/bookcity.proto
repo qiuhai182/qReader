@@ -27,11 +27,25 @@ message bookBaseInfo
 	required string bookIntro 	= 6; 	// 书籍简介
 	required int32  bookPage 	= 7;	// 页数
 	required int32  languageType= 8; 	// 语言类型
+	optional string bookId	 	= 9;	//该项仅在增添时启用
+}
+
+message updateBookBaseInfo
+{
+	optional string bookName 	= 1;
+	optional string authorName 	= 2;
+	optional int32  bookType 	= 3;
+	optional string publishTime = 4;	// 入库时间
+	optional string publishHouse= 5;	// 出版社
+	optional string bookIntro 	= 6; 	// 书籍简介
+	optional int32  bookPage 	= 7;	// 页数
+	optional int32  languageType= 8; 	// 语言类型
+	required string bookId	 	= 9;	
 }
 
 message bookDownInfo
 {// 书籍下载相关信息
-	required float   fileSize	= 1;
+	required int32   fileSize	= 1;
 	required string bookHeadUrl = 2;
 	required string bookDownUrl = 3;
 
@@ -69,7 +83,8 @@ message searchBookReq
 	optional string bookName = 3;
 	optional string authorName = 4; 
 	optional int32  bookType = 5;
-	required string dayTime = 6;
+	optional string publishHouse = 6;
+	required string dayTime = 7;
 }
 
 
@@ -128,7 +143,7 @@ message adsRes
 
 message recommendBookReq
 { // 个性化书籍推荐请求
-	required string userId = 1;
+	required int32 userId = 1;
 }
 
 message recommendBookRes
@@ -139,7 +154,7 @@ message recommendBookRes
 
 message browseBookReq
 { // 翻阅书城书籍请求
-	required string userId = 1;
+	required int32 userId = 1;
 }
 
 message browseBookRes
@@ -175,9 +190,9 @@ message fuzzySearchRequest
 }
 service bookCityService 
 {
-	rpc addBookInfoFun(bookInfoItem) returns(commonService.commonResp);			// 
+	rpc addBookInfoFun(bookBaseInfo) returns(commonService.commonResp);			// 
 	rpc searchBookInfoFun(searchBookReq) returns(booksRespList);			    // 
-	rpc setBookInfoFun(bookInfoItem) returns(commonService.commonResp);		    // 
+	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);		    // 
 	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
 	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
 	rpc getBookADSFun(adsReq) returns(adsRes); 									// 书城广告图片

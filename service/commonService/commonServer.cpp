@@ -1,12 +1,3 @@
-/*
- * @Author: zqj
- * @Date: 2021-11-06 00:35:09
- * @LastEditTime: 2021-11-07 00:58:00
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /qReader/commonService/commonServer.cpp
- */
-
 #include "commonServer.h"
 #include <ios>
 
@@ -17,7 +8,6 @@ int main(int argc, char *argv[])
        << "   重庆师范大学-智能阅读器-评论服务  开始初始化" << endl
        << endl;
 
-  initDataPath(); // 初始化函数
 
   GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
