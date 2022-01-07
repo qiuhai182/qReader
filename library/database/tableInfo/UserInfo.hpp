@@ -369,6 +369,7 @@ SQL_STATUS UserInfo::update_password(const int &  user_id,const string &  user_p
     return execute_sql(conn,"delete",state);
 }
 
+<<<<<<< HEAD
 
 
 
@@ -376,4 +377,6 @@ SQL_STATUS UserInfo::update_password(const int &  user_id,const string &  user_p
 
 
 
+=======
+>>>>>>> 84cb4a9ac24993c73b405e5d0b59dbcc63c02141
 #endif

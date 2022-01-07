@@ -257,7 +257,6 @@ SQL_STATUS BookGradeInfo::create_table()
         return SQL_STATUS::Pool_err;
     }
 
-
     conn->execute("DROP TABLE IF EXISTS BookGradeInfoTable");
     string state = 
     "CREATE TABLE BookGradeInfoTable( "
