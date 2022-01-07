@@ -268,7 +268,6 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_book_id(BookBaseInfoTable &book, c
 		return SQL_STATUS::Pool_err;
 	}
 	string cond = "where bookId = \'" + book_id + "\'";
-	string cond = "where bookId = \"" + book_id + "\"";
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;

@@ -243,10 +243,7 @@ SQL_STATUS BookInfoImpl::insert_book_info(const int & auto_book_id,const string 
                                         const string &publishHouse,const string & bookIntro,
                                         const int & book_page,const int & languageType)
 {
-<<<<<<< HEAD
     cout<<" t  h"<<publishTime<<" "<<publishHouse<<endl;
-=======
->>>>>>> 84cb4a9ac24993c73b405e5d0b59dbcc63c02141
     return __base->insert_book_baseInfo(auto_book_id,book_id,book_name,author_name,bookType,publishTime, 
                                             publishHouse, bookIntro,book_page,languageType);
 }
