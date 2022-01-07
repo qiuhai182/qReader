@@ -42,6 +42,7 @@ DEFINE_string(filePort, FLAGS_service_ip + ":" + "8006", "下载服务服务ip:p
 DEFINE_string(bookHeadUrlPre, "http://" + FLAGS_filePort + "/fileService/fileDownFun/books/bookCover/", "书籍封面下载url前缀");
 DEFINE_string(bookBodyUrlPre, "http://" + FLAGS_filePort + "/fileService/fileDownFun/books/hashRenameBooks/", "整本书籍下载url前缀");
 DEFINE_string(bookBodyPathPre, "http://" + FLAGS_filePort + "/fileService/fileDownFun/books/hashRenameBooks/", "整本书籍路径前缀");
+DEFINE_string(headUrlPre, "http://" + FLAGS_filePort + "/fileService/fileDownFun/images/", "头像url前缀");
 
 #endif
 

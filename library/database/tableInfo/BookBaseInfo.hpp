@@ -36,9 +36,10 @@ namespace ormpp
 		string bookIntro ; 		// 简介
         int    bookPage;        // 页数
         int    languageType;    // 语言类型
+        int    isDelete;       // 是否删除
     };
     REFLECTION(BookBaseInfoTable, autoBookId, bookId, bookName, authorName, bookType,
-                publishTime, publishHouse,bookIntro,bookPage,languageType);
+                publishTime, publishHouse,bookIntro,bookPage,languageType,isDelete);
 
     class BookBaseInfo{
     public: 
@@ -68,13 +69,17 @@ namespace ormpp
         SQL_STATUS get_book_baseInfo_by_offset(vector<BookBaseInfoTable> & books , 
                                                 const int & offset,const int & count);
     private:
+        //是否删除  -1:不存在 0:未删除 1:删除
+        SQL_STATUS repeat_add_book(const int & auto_book_id);
+        int isDelete(const string & book_id);
         SQL_STATUS create_table();
         SQL_STATUS create_autoBookId_index();
         SQL_STATUS create_indexs();
         bool __isCreate;
     };
 
-}
+
+
 
 /****************************************************************************
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@书籍基本信息@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -109,6 +114,7 @@ SQL_STATUS BookBaseInfo::create_table()
         " bookIntro text NOT NULL, "
         " bookPage INTEGER NOT NULL, " 
         " languageType INTEGER NOT NULL, "
+        " isDelete INTEGER  DEFAULT 0 ,"
         " PRIMARY KEY (autoBookId) "
     " ) ENGINE = InnoDB AUTO_INCREMENT = 10000000 DEFAULT CHARSET = UTF8MB4 " ;
 
@@ -157,7 +163,7 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_autoBookId(BookBaseInfoTable & boo
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string cond = " where autoBookId = " + to_string(auto_book_id) + "";
+	string cond = " where autoBookId = " + to_string(auto_book_id) + " isDelete =  0";
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
@@ -165,6 +171,47 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_autoBookId(BookBaseInfoTable & boo
 		book = std::move(res[0]);
 	return SQL_STATUS::EXE_sus;
 
+}
+
+SQL_STATUS BookBaseInfo::repeat_add_book(const int & auto_book_id)
+{//添加已经设置删除的书籍
+    
+    auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__
+			 << " conn is NULL "
+			 << " LINE  " << __LINE__ << endl;
+		return SQL_STATUS::Pool_err;
+	}
+    string state = "update BookBaseInfoTable "
+                    "  set isDelete = 0 " 
+                    " where autoBookId = " + to_string(auto_book_id );
+
+	return execute_sql(conn,"repeat add book base ",state);
+
+}
+
+int BookBaseInfo::isDelete(const string & book_id)
+{//是否删除  -2: 连接池错误-1:不存在 0:未删除 1:删除
+    auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__
+			 << " conn is NULL "
+			 << " LINE  " << __LINE__ << endl;
+		return -2;
+	}
+    string state = " where bookId = \'" + book_id + "\'";
+	auto res = conn->query<BookBaseInfoTable>(state);
+	if (res.size() == 0)
+		return -1;
+	else if(res[0].isDelete == 0)
+		return 0;
+    else    
+        return 1 ;
 }
 
 SQL_STATUS BookBaseInfo::get_autoBookId_by_bookId(const string & book_id,int & auto_book_id)
@@ -179,7 +226,7 @@ SQL_STATUS BookBaseInfo::get_autoBookId_by_bookId(const string & book_id,int & a
         return SQL_STATUS::Pool_err;
     }
 
-    string state = "where bookId = \'" + book_id + "\'" ;
+    string state = "where bookId = \'" + book_id + "\'  isDelete = 0" ;
 	auto res = conn->query<BookBaseInfoTable>(state);
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;
@@ -220,7 +267,7 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_book_id(BookBaseInfoTable &book, c
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string cond = "where bookId = \"" + book_id + "\"";
+	string cond = "where bookId = \'" + book_id + "\'";
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
@@ -252,7 +299,7 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option(vector<BookBaseInfoTable> 
     if( !isOption(optionName))
         return SQL_STATUS::Illegal_info ;
     
-	string cond = " where " + optionName + " LIKE \'\%" + optionValue + "\%\'";
+	string cond = " where " + optionName + " LIKE \'\%" + optionValue + "\%\'  and isDelete = 0";
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
@@ -278,14 +325,19 @@ SQL_STATUS BookBaseInfo::insert_book_baseInfo(const BookBaseInfoTable &book)
 
 	string bookid = book.bookId;
 	BookBaseInfoTable bufBook;
-	if (SQL_STATUS::EXE_sus == get_book_baseInfo_by_book_id(bufBook, bookid))
-		return SQL_STATUS::Illegal_info; // 已存在该书籍
-	else
+
+    int ret = isDelete(book.bookId);
+    cout<<"    ee  "<<ret<<endl;
+	if( 1 == ret )
+    {
+        return repeat_add_book(book.autoBookId);
+    }
+    else if(-1 == ret)
 	{
         cout<<" autoBookId "<<book.autoBookId<<" bookName "<<book.bookName
             <<" bookType "<<book.bookType<<" bookla "<<book.languageType
             <<" bookPage "<<book.bookPage<<" bookputi "<<book.publishTime
-            <<" bookhouse  "<<book.publishHouse<<endl;
+            <<" bookhouse  "<<book.publishHouse<< "  isde"<<book.isDelete <<endl;
 		if (conn->insert(book) != 1)
 		{
 			cout << __FILE__ << " : " << __LINE__ 
@@ -295,6 +347,10 @@ SQL_STATUS BookBaseInfo::insert_book_baseInfo(const BookBaseInfoTable &book)
 		else
 			return SQL_STATUS::EXE_sus;
 	}
+    else
+    {
+        return SQL_STATUS::EXE_err;
+    }
 }
 
 SQL_STATUS BookBaseInfo::insert_book_baseInfo(const int & auto_book_id,const string &book_id, 
@@ -307,7 +363,8 @@ SQL_STATUS BookBaseInfo::insert_book_baseInfo(const int & auto_book_id,const str
                             book_name,author_name, 
                             bookType,publishTime, 
                             publishHouse,bookIntro,
-                            book_page,languageType};
+                            book_page,languageType,
+                            0};
 	return insert_book_baseInfo(book);
 }
 
@@ -322,17 +379,16 @@ SQL_STATUS BookBaseInfo::del_book_baseInfo(const string &book_id)
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string cond = "where bookId = \"" + book_id +"\"";
-	auto res = conn->query<BookBaseInfoTable>(cond);
-	if (res.size() == 0)
-		return SQL_STATUS::EXE_err; //书籍不存在 
+
+	string state = "update BookBaseInfoTable "
+                    "  set isDelete = 1 " 
+                    " where bookId = \'" +  book_id + "\' ";
+	auto res = conn->query<BookBaseInfoTable>(state);
+	if ( 0 != isDelete(res[0].bookId))
+		return SQL_STATUS::EXE_err; //书籍不存在  已经删除
 	else
 	{
-		string cond = "bookId = \'" + book_id + "\'";
-		if (conn->delete_records<BookBaseInfoTable>(cond)) 
-			return SQL_STATUS::EXE_sus;
-		else
-			return SQL_STATUS::EXE_err;
+		return execute_sql(conn,"delete book base ",state);
 	}
 
 }
@@ -393,7 +449,7 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_offset(vector<BookBaseInfoTable> &
 	}
 	string cond 
 		//=  "limit " +  to_string(count) +   " OFFSET " + to_string(offset) ; ;
-        =  " limit " +  to_string(offset) +   " , " + to_string(count) ; 
+        =  " where isDelete = 0  limit " +  to_string(offset) +   " , " + to_string(count) ; 
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 	{
@@ -407,6 +463,10 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_offset(vector<BookBaseInfoTable> &
 		books = std::move(res);
 		return SQL_STATUS::EXE_sus;
 	}
+}
+
+
+
 }
 
 #endif

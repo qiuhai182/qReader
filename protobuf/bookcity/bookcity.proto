@@ -3,20 +3,7 @@ import "common.proto";
 package bookCityService;
 option cc_generic_services = true;
 
-// 该消息接口应当被废弃 暂时留存等待新表建立
-message bookInfoItem 
-{ // 书籍信息结构
-	required string bookId = 1;
-	optional string bookName = 2;
-	optional string bookHeadUrl = 3;
-	optional string bookDownUrl = 4;
-	optional string bookType = 5;
-	optional string authorName = 6;
-	optional string publishTime = 7;	// 入库时间
-	optional string userId = 8;
-    optional int32  hits = 9;           // 可选参数，点赞数
-	optional string bookIntro = 10; // 书籍简介
-}
+
 message bookBaseInfo
 {// 书本基础信息
 	required string bookName 	= 1;
@@ -88,11 +75,7 @@ message searchBookReq
 }
 
 
-message readBookRecordResp
-{ // 获取最近阅读记录结果信息
-	repeated bookInfoItem bookLists = 1;
-	required int32 count = 2;
-}
+
 
 message booksRespList 
 { // 大量书籍信息回发信息
@@ -110,11 +93,7 @@ message getBookTypeReq
 	optional int32  sortMethod = 5;			// 排序算法
 }
 
-message getBookTypeResp 
-{ // 获取书籍类型结果信息
-	repeated bookInfoItem bookLists = 1;
-	required int32 count = 2;	
-}
+
 
 message delBookReq
 { // 删除数据库书籍请求
@@ -217,3 +196,30 @@ service bookCityService
 // 	required int32 count = 2;
 // }
 
+
+// 该消息接口应当被废弃 暂时留存等待新表建立
+// message bookInfoItem 
+// { // 书籍信息结构
+// 	required string bookId = 1;
+// 	optional string bookName = 2;
+// 	optional string bookHeadUrl = 3;
+// 	optional string bookDownUrl = 4;
+// 	optional string bookType = 5;
+// 	optional string authorName = 6;
+// 	optional string publishTime = 7;	// 入库时间
+// 	optional string userId = 8;
+//     optional int32  hits = 9;           // 可选参数，点赞数
+// 	optional string bookIntro = 10; // 书籍简介
+// }
+
+// message getBookTypeResp 
+// { // 获取书籍类型结果信息
+// 	repeated bookInfoItem bookLists = 1;
+// 	required int32 count = 2;	
+// }
+
+// message readBookRecordResp
+// { // 获取最近阅读记录结果信息
+// 	repeated bookInfoItem bookLists = 1;
+// 	required int32 count = 2;
+// }

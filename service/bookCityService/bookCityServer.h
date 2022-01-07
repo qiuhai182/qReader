@@ -77,7 +77,7 @@ namespace bookCityService
 			book->mutable_downinfo()->set_bookheadurl(bookHeadUrl);
 			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
 			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
-			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore);
+			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
 
 		}
 		void reduce_months(string  & monthTime)
@@ -119,11 +119,12 @@ namespace bookCityService
 		{ // 添加书籍信息
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<endl;
 			/*信息验证*/
 			if( request->has_bookid() == false)
 			{
@@ -136,8 +137,8 @@ namespace bookCityService
 			//插入
 			SQL_STATUS ret = __bookCitySql.insert_book_info(0,request->bookid(),
 														request->bookname(),request->authorname(),
-														bookType,request->publishhouse(),
-														request->publishtime(),request->bookintro(),
+														bookType,request->publishtime(),
+														request->publishhouse(),request->bookintro(),
 														request->bookpage(),request->languagetype()
 													);
 			//实例书籍添加 缺省

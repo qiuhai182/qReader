@@ -12,6 +12,8 @@
 #include "database/tableInfo/BookShelfInfo.hpp"
 #include "database/tableInfo/SightInfo.hpp"
 #include "database/tableInfo/ReadIntervalInfo.hpp"
+#include "database/tableInfo/BookCommentHitInfo.hpp"
+#include "database/tableInfo/BookCommentHitCountInfo.hpp"
 
 
 using namespace std;
@@ -44,13 +46,27 @@ namespace Init
     //     cout<<"Error: "<<error<<endl;
     // }
 
-    // try{
-    //     BookGradeInfo gradeBook(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        BookGradeInfo gradeBook(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
     
+    try{
+        BookCommentHitInfo gradeBook(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
+
+    try{
+        BookCommentHitCountInfo hitCount(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
+
     // try{
     //     BookSearchInfo searchInfo(false);
     //     usleep(1000);
@@ -58,19 +74,19 @@ namespace Init
     //     cout<<"Error: "<<error<<endl;
     // }
 
-    try{
-        SightInfo searchInfo(false);
-        usleep(1000);
-    }catch(const char *error){
-        cout<<"Error: "<<error<<endl;
-    }
+    // try{
+    //     SightInfo searchInfo(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
 
-    try{
-        ReadIntervalInfo intervalInfo(false);
-        usleep(1000);
-    }catch(const char *error){
-        cout<<"Error: "<<error<<endl;
-    }
+    // try{
+    //     ReadIntervalInfo intervalInfo(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
 
   }
 }

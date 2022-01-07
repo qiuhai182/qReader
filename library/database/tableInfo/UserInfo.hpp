@@ -69,7 +69,6 @@ namespace ormpp
     
     };
 
-}
 
 
 /******
@@ -369,5 +368,12 @@ SQL_STATUS UserInfo::update_password(const int &  user_id,const string &  user_p
 
     return execute_sql(conn,"delete",state);
 }
+
+
+
+
+}
+
+
 
 #endif

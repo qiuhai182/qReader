@@ -71,7 +71,7 @@ namespace bookShelfService
 			book->mutable_downinfo()->set_bookheadurl(bookHeadUrl);
 			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
 			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
-			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore);
+			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
 
 		}
 		//判断对应文件是否存在

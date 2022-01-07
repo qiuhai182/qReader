@@ -223,7 +223,7 @@ int SightAnalyze::storage_analyse_json(const int & userId)
         }
     }
 
-    int ret = system(string("python server.py " + userId).c_str());
+    int ret = system(string("python server.py " + to_string(userId)).c_str());
         
     return ret ;
 }
@@ -234,7 +234,7 @@ string SightAnalyze::get_json_content(const string & filePath)
     if(!in.is_open()){   
         LOG(INFO)<<"文件"<<filePath<<"打开失败"<<endl ;
     }  
-    std::string json_content((std::istreambuf_iterator<char>(in)), \
+    std::string json_content((std::istreambuf_iterator<char>(in)), 
                     std::istreambuf_iterator<char>());
     //将文件的数据流转换位std::string类型
     in.close();  // 关闭文件

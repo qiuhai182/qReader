@@ -12,7 +12,6 @@
 #include "ormpp/connection_pool.hpp"
 #include "ormpp/ormpp_cfg.hpp"
 #include "ormpp/entity.hpp"
-#include "sql_pool.hpp"
 #include "../bookType.hpp"
 #include "tableInfo/BookBaseInfo.hpp"
 #include "tableInfo/BookGradeInfo.hpp"
@@ -244,6 +243,7 @@ SQL_STATUS BookInfoImpl::insert_book_info(const int & auto_book_id,const string 
                                         const string &publishHouse,const string & bookIntro,
                                         const int & book_page,const int & languageType)
 {
+    cout<<" t  h"<<publishTime<<" "<<publishHouse<<endl;
     return __base->insert_book_baseInfo(auto_book_id,book_id,book_name,author_name,bookType,publishTime, 
                                             publishHouse, bookIntro,book_page,languageType);
 }

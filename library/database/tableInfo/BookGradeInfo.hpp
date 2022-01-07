@@ -28,11 +28,14 @@ namespace ormpp
     {
         int autoBookId ;        // 外键
         string bookId ;         // bookId
-        int bookScore;          // 书籍评分
         int userId;             // 评论ID 主键之一
+        int bookScore;          // 书籍评分
+        string title;           // 标题
+        string content;         // 内容
         string remarkTime;      // 评分时间
     };
-    REFLECTION(BookGradeInfoTable, autoBookId,bookId, bookScore, userId, remarkTime);
+    REFLECTION(BookGradeInfoTable, autoBookId,bookId,userId, bookScore,
+                        title,content,remarkTime);
     
     /**
      * 单本书籍评分统计
@@ -58,10 +61,13 @@ namespace ormpp
         SQL_STATUS get_grade_by_double_id(const int & auto_book_id,
                                         const int& user_id,BookGradeInfoTable & grade);
         SQL_STATUS update_score(const BookGradeInfoTable & score);
+        SQL_STATUS delete_score_by_bookId_userId(const string &book_id ,const int &user_id);
         SQL_STATUS insert_score(const BookGradeInfoTable & score);
         SQL_STATUS insert_score(const int & auto_book_id,
-                                        const string &book_id ,const int &book_score,
-                                        const int &user_id,const string & remark_time );
+                                        const string &book_id ,const int &user_id,
+                                        const int &book_score,const string & title,
+                                        const string &content,const string & remark_time );
+        int isRemark(const string &book_id ,const int &user_id);
         /*占位 将实现*/
         // virtual SQL_STATUS del_book();
         // virtual SQL_STATUS up_book();
@@ -73,10 +79,6 @@ namespace ormpp
         SQL_STATUS create_indexs();
         bool __isCreate;
     };
-
-}
-
-
 
 /****************************************************************************
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@书籍评分信息@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -134,14 +136,17 @@ SQL_STATUS BookGradeInfo::insert_score(const BookGradeInfoTable & score)
 }
 
 SQL_STATUS BookGradeInfo::insert_score(const int & auto_book_id,
-                                        const string &book_id ,const int &book_score,
-                                        const int &user_id,const string & remark_time )
+                                        const string &book_id ,const int &user_id,
+                                        const int &book_score,const string & title,
+                                        const string &content,const string & remark_time )
 {
     BookGradeInfoTable score;
     score.autoBookId = auto_book_id;
     score.bookId = book_id;
     score.bookScore = book_score;
     score.userId = user_id;
+    score.title = title;
+    score.content = content;
     score.remarkTime = remark_time;
     return insert_score(score);
 }
@@ -193,6 +198,26 @@ SQL_STATUS BookGradeInfo::get_remark_count(int & count,const int & auto_book_id)
 	return SQL_STATUS::EXE_sus;
 }
 
+SQL_STATUS BookGradeInfo::delete_score_by_bookId_userId(const string &book_id ,const int &user_id)
+{
+    auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return SQL_STATUS::Pool_err;
+	}
+    
+    string cond = " bookId = \'" + book_id + "\'  and userId = " + to_string(user_id);
+    bool ret = conn->delete_records<BookGradeInfoTable>(cond);
+    if(ret)
+        return SQL_STATUS::EXE_sus;
+    else
+        return SQL_STATUS::EXE_err;
+    
+}
 
 SQL_STATUS BookGradeInfo::get_grade_by_double_id(const int & auto_book_id,const int & user_id,BookGradeInfoTable & grade)
 {
@@ -232,13 +257,16 @@ SQL_STATUS BookGradeInfo::create_table()
         return SQL_STATUS::Pool_err;
     }
 
+
     conn->execute("DROP TABLE IF EXISTS BookGradeInfoTable");
     string state = 
     "CREATE TABLE BookGradeInfoTable( "
         " autoBookId INTEGER NOT NULL, "
         " bookId TEXT NOT NULL, "
-        " bookScore INTEGER NOT NULL DEFAULT 0 , "
         " userId INTEGER NOT NULL , "
+        " bookScore INTEGER NOT NULL DEFAULT 0 , "
+        " title TEXT NOT NULL ,"
+        " content TEXT NOT NULL ,"
         " remarkTime TEXT NOT NULL, "  
         " PRIMARY KEY (autoBookId,userId) ,"
         " CONSTRAINT grade_book_id FOREIGN KEY (autoBookId) REFERENCES  BookBaseInfoTable(autoBookId) "
@@ -273,5 +301,32 @@ SQL_STATUS BookGradeInfo::create_indexs()
 {
     return create_double_index();
 }
+
+int BookGradeInfo::isRemark(const string &book_id ,const int &user_id)
+{// -1:池错误  0:在 1:在
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ << " "
+            << "conn is NULL"
+            << " LINE  " << __LINE__ << endl;
+        return -1;
+    }
+    string cond = " where bookId = \'" + book_id + "\' and userId =  " +to_string(user_id) ;
+    auto res = conn->query<BookGradeInfoTable>(cond);
+
+    if(res.size() == 0)
+        return 0;
+    else
+        return 1;
+}
+
+
+
+}
+
+
+
 
 #endif
