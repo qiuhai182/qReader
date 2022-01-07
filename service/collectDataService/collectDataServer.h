@@ -6,17 +6,13 @@
 #include <unordered_map>
 #include <butil/logging.h>
 #include <sys/io.h>
-#include "userdata.hpp"
-#include "bookdata.hpp"
-#include "usershelfdata.hpp"
-#include "commentdata.hpp"
-#include "bitmap.hpp"
-#include "sightdata.hpp"
+#include "SightAnalyze.hpp"
 #include "contenttype.hpp"
 #include "collectdata.pb.h"
 #include "common.pb.h"
 
 using namespace std;
+using namespace Analyze;
 
 DEFINE_bool(echo_attachment, true, "Echo测试");
 DEFINE_string(ip, "39.105.217.90", "用于文件下载的ip外网地址");
@@ -33,8 +29,8 @@ namespace collectdataService
 	class collectDataServiceImpl : public collectService
 	{
 	private :
-
-		map<string, int> userTarget;
+		SightAnalyze   __sightAnalyze;
+		map<int, int> userTarget;
 
 		unsigned long findLocate(const string & str ,const char & ch)
 		{
@@ -59,13 +55,15 @@ namespace collectdataService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<endl;
 			string bookId = request->bookid();
-			string userId = request->userid();
+			int userId = request->userid();
 			string startTime = request->starttime();
 			string endTime = request->endtime();
 			int pageNum = request->pagenum();
@@ -80,8 +78,8 @@ namespace collectdataService
 				lists.push_back(buffer);
 			}
 			pageSight bufSight{userId, bookId, pageNum, lists, startTime, endTime};
-			int ret = insertSightData(bufSight);
-			if (ret)
+			SQL_STATUS ret = __sightAnalyze.insert_sight_data(bufSight);
+			if (ret == SQL_STATUS::EXE_sus)
 			{
 				response->set_code(1);
 				response->set_errorres("succeed");
@@ -110,33 +108,35 @@ namespace collectdataService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
 
 			//一天的专注度统计
 			//数据库读取写入csv
-			int csvRet = storageAnalyseCsv(request->daytime(),request->userid());
+			int csvRet = __sightAnalyze.storage_analyse_csv(request->daytime(),request->userid());
 			//当天没有数据
 			if( csvRet == -1){
 				response->mutable_status()->set_code(-1);
 				response->mutable_status()->set_errorres("今日未读书");
-				LOG(INFO)  << "(客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  <<"请求" << request->daytime() << "的阅读分析数据失败)";
+				LOG(INFO)<<endl
+						<< "(客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<<"请求" << request->daytime() << "的阅读分析数据失败)";
 				return;
 			}
 			//当天有数据
-			storageAnalyseJson(request->userid());
+			__sightAnalyze.storage_analyse_json(request->userid());
 			//结果从json获取
 			map<string,string>time_focus ;
 			//散点 <action+color,points>
 			vector<map<string,vector<map<double,double>>>>scatterDiagram;
 			//line Chart
 			vector<double>lineChart ;
-			int ret = getAnalyseResult(time_focus,scatterDiagram,lineChart,request->daytime(),request->userid());
+			int ret = __sightAnalyze.get_analyse_result(time_focus,scatterDiagram,lineChart,request->daytime(),request->userid());
 
 			//获取散点  折线图
 			cout<<"ret = "<<ret<<endl;
@@ -178,31 +178,33 @@ namespace collectdataService
 			if(ret == 143)
 			{
 				//12时段
-				string userId = request->userid();
+				int userId = request->userid();
 				string dayTime = request->daytime();
 				float intervals[12] = {0};
 				for (int i = 0; i < size(intervals); ++i)
 				{
 					intervals[i] = 0;
 				}
-				getIntervalCount(userId, dayTime, intervals);
+				__sightAnalyze.get_interval_count(userId, dayTime, intervals);
 				for (int i = 0; i < size(intervals); ++i)
 				{
 					auto minute = response->add_lists();
 					minute->set_min((int)intervals[i]);
 				}
 				response->mutable_status()->set_code(1);
-				LOG(INFO)  << "(客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  <<"请求" << request->daytime() << "的阅读分析数据成功)";
+				LOG(INFO) <<endl
+						<< "(客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<<"请求" << request->daytime() << "的阅读分析数据成功)";
 			}
 			else
 			{
 				response->mutable_status()->set_code(-1);
 				response->mutable_status()->set_errorres("今日未读书");
-				LOG(INFO)  << "(客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  <<"请求" << request->daytime() << "的阅读分析数据失败)";
+				LOG(INFO) <<endl
+						<< "(客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<<"请求" << request->daytime() << "的阅读分析数据失败)";
 			}
 
 			if (FLAGS_echo_attachment)
@@ -220,21 +222,22 @@ namespace collectdataService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
-					  << "] 客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
-			string userId = request->userid();
+			LOG(INFO) 	<<endl
+						<< "\n收到请求[log_id=" << control->log_id()
+						<< "] 客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<< " (attached : " << control->request_attachment() << ")";
+			int userId = request->userid();
 			if (userTarget.count(userId))
 			{
 				response->set_minute(userTarget[userId]);
 			}
 			else
 				response->set_minute(0);
-			LOG(INFO) << "(客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  <<"请求阅读计划分钟数)";
+			LOG(INFO) 	<<endl
+						<< "(客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<<"请求阅读计划分钟数)";
 		}
 
 		// 设置目标时间
@@ -251,13 +254,14 @@ namespace collectdataService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
-			string userId = request->userid();
+			int userId = request->userid();
 			userTarget[userId] = request->minute();
 			response->set_code(1);
 			response->set_errorres("成功");
-			LOG(INFO) << "(客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  << "设置阅读计划分钟数)";
+			LOG(INFO) 	<<endl
+						<< "(客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<< "设置阅读计划分钟数)";
 		}
 
 		

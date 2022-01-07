@@ -1,32 +1,37 @@
 #pragma once
 
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <gflags/gflags.h>
 #include <arpa/inet.h>
 #include <brpc/server.h>
 #include <unordered_map>
 #include <butil/logging.h>
 #include <sys/io.h>
-#include "userdata.hpp"
-#include "bookdata.hpp"
-#include "usershelfdata.hpp"
-#include "commentdata.hpp"
+#include <tuple>
+#include "database/bookSql.hpp"
+#include "public/service.hpp"
+#include "public/location.hpp"
 #include "bitmap.hpp"
-#include "sightdata.hpp"
 #include "contenttype.hpp"
 #include "bookcity.pb.h"
 #include "common.pb.h"
 #include "membooks.hpp"
 #include "bookType.hpp"
 
+
 using namespace std;
+using namespace ormpp;
+using namespace service;
 
 DEFINE_bool(echo_attachment, true, "Echo测试");
 DEFINE_string(ip, "39.105.217.90", "用于文件下载的ip外网地址");
 DEFINE_int32(bookCityport, 8002, "服务端口");
 DEFINE_string(stringPort, "8002", "服务端口");
-DEFINE_string(iPort, FLAGS_ip + ":" + FLAGS_stringPort, "服务ip:port");
+DEFINE_string(ipPort, FLAGS_ip + ":" + FLAGS_stringPort, "服务ip:port");
 DEFINE_int32(idle_timeout_s, -1, "超时没有读写操作断开连接");
 DEFINE_int32(logoff_ms, 2000, "Maximum duration of server's LOGOFF state ");
+
 #define IOBuf_MAX_SIZE 253952 // IOBuf的单次读取大小
 
 namespace bookCityService
@@ -36,29 +41,43 @@ namespace bookCityService
 	class bookCityServiceImpl : public bookCityService
 	{
 	private:
-		MemBooks m_memBookList ;				// 实例化书籍，配合模糊匹配
-		map<string, int> recommendTimes;	// 记录个性化推荐批次
-		map<string, int> browseTimes;		// 记录书城浏览批次
+		BookInfoImpl __bookCitySql;
+		MemBooks __memBookList ;				// 实例化书籍，配合模糊匹配
+		map<int, int> recommendTimes;		// 记录个性化推荐批次
+		map<int, int> browseTimes;		// 记录书城浏览批次
 	private:
-		//暂时用原表结果其他位填充
-		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const BookInfoTable & bookres )
+		//填充回发消息
+		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const CombineBook & bookres )
 		{
 			auto book = add_lists;
+			/**
+			 * 部分信息需要动态生成
+			 */
+			//返回数字类型
+			int ret_type = bookType::primary_string_to_int(get<0>(bookres).bookType);
+			//下载信息
+			string bookHeadUrl = FLAGS_bookHeadUrlPre + get<0>(bookres).bookId + ".jpg";
+			string bookBodyUrl = FLAGS_bookBodyUrlPre + get<0>(bookres).bookId + ".pdf";
+			string filepath = FLAGS_renameBooksPath + get<0>(bookres).bookId + ".pdf";
+			struct stat info;
+			stat(filepath.c_str(), &info);
+			int bookSize = info.st_size;
 
-			book->set_bookid(bookres.bookId);
-			book->mutable_baseinfo()->set_bookname(bookres.bookName);
-			book->mutable_baseinfo()->set_booktype(1);
-			book->mutable_baseinfo()->set_authorname(bookres.authorName);
-			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
-			book->mutable_baseinfo()->set_publishhouse("机械工业出版社");
-			book->mutable_baseinfo()->set_bookintro(bookres.bookIntro);
-			book->mutable_baseinfo()->set_bookpage(3.5);
-			book->mutable_baseinfo()->set_languagetype(2);
-			book->mutable_downinfo()->set_filesize(20.3);
-			book->mutable_downinfo()->set_bookheadurl(bookres.bookHeadUrl);
-			book->mutable_downinfo()->set_bookdownurl(bookres.bookDownUrl);
-			book->mutable_gradeinfo()->set_remarkcount(100);
-			book->mutable_gradeinfo()->set_averagescore(200.4);
+			//返回填充
+			book->set_bookid(get<0>(bookres).bookId);
+			book->mutable_baseinfo()->set_bookname(get<0>(bookres).bookName);
+			book->mutable_baseinfo()->set_booktype(ret_type);
+			book->mutable_baseinfo()->set_authorname(get<0>(bookres).authorName);
+			book->mutable_baseinfo()->set_publishtime(get<0>(bookres).publishTime);
+			book->mutable_baseinfo()->set_publishhouse(get<0>(bookres).publishHouse);
+			book->mutable_baseinfo()->set_bookintro(get<0>(bookres).bookIntro);
+			book->mutable_baseinfo()->set_bookpage(get<0>(bookres).bookPage );
+			book->mutable_baseinfo()->set_languagetype(get<0>(bookres).languageType );
+			book->mutable_downinfo()->set_filesize(bookSize);
+			book->mutable_downinfo()->set_bookheadurl(bookHeadUrl);
+			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
+			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
+			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
 
 		}
 		void reduce_months(string  & monthTime)
@@ -81,10 +100,10 @@ namespace bookCityService
 		}
 	public:
 		bookCityServiceImpl(){
-			vector<BookInfoTable> bookres; 
-			if( 1 != get_all_book(bookres) ){
+			vector<CombineBook> bookres; 
+			if( SQL_STATUS::EXE_sus == __bookCitySql.get_all_book_info(bookres) ){
 				if(bookres.size() != 0){
-					m_memBookList.setBooks(std::move(bookres) );
+					__memBookList.setBooks(std::move(bookres) );
 				}else{	
 					std::cerr << "初始化实例书籍时查询数据库结果为空";
 				}
@@ -94,33 +113,50 @@ namespace bookCityService
 		};
 		virtual ~bookCityServiceImpl(){};
 		virtual void addBookInfoFun(google::protobuf::RpcController *control_base,
-									const bookInfoItem *request,
+									const bookBaseInfo *request,
 									commonService::commonResp *response,
 									google::protobuf::Closure *done)
 		{ // 添加书籍信息
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
-			int ret = insert_book(request->bookid(), request->bookname(),
-								request->bookheadurl(),request->bookdownurl(),
-								request->authorname(),request->booktype(),
-								request->bookintro(),request->publishtime());
-			if (ret < 1)
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<endl;
+			/*信息验证*/
+			if( request->has_bookid() == false)
+			{
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf) );
+				response->set_errorres("illegal information");
+				LOG(INFO) << control->remote_side() << "传入信息缺少字段" << endl;
+			}
+			//类型转化
+			string bookType = bookType::primary_enum_to_string(static_cast<bookType::primaryClass>(request->booktype()));
+			//插入
+			SQL_STATUS ret = __bookCitySql.insert_book_info(0,request->bookid(),
+														request->bookname(),request->authorname(),
+														bookType,request->publishtime(),
+														request->publishhouse(),request->bookintro(),
+														request->bookpage(),request->languagetype()
+													);
+			//实例书籍添加 缺省
+
+			if (ret != SQL_STATUS::EXE_sus)
 			{
 				cout << endl;
 				LOG(INFO) << "[" << __FILE__ << "]"
 						  << "[" << __LINE__ << "]" << endl;
-				response->set_code(0);
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err) );
 				response->set_errorres("add faild");
-				LOG(INFO) << control->remote_side() << "导入书籍失败" << endl;
+				LOG(INFO)<< control->remote_side() << "导入书籍失败" 
+						<< " 错误码 "<<static_cast<int>(ret)
+						<<" bookId "<< request->bookid()<<endl;
 			}
 			else
 			{
-				response->set_code(1);
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Sus));
 				response->set_errorres("sucessful");
 				LOG(INFO) << endl
 						  << control->remote_side() << "导入书籍成功" << endl;
@@ -135,101 +171,101 @@ namespace bookCityService
 									   const searchBookReq *request,
 									   booksRespList *response,
 									   google::protobuf::Closure *done)
-		{ // 搜索某本书相关信息
+		{ // 搜索某本书相关信息  仅单项的搜索
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
 			cout << endl;
 			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<endl;
 
-			int ret = -1; //保存查找数目
+			SQL_STATUS ret ; 
 			if (request->has_bookid())
 			{
-				BookInfoTable bookres;
-				ret = get_book_by_id(bookres, request->bookid());
-				if (ret != -1)
+				CombineBook bookres;
+				ret = __bookCitySql.get_book_by_book_id(bookres, request->bookid());
+				if (ret == SQL_STATUS::EXE_sus)
 				{
-					response->set_count(ret);
 					auto book = response->add_lists();
 					fillBook(book,bookres);
-					if(-1 == plus_search_times(bookres.bookId,request->daytime(),bookres.bookName) ){
-						LOG(WARNING) << "更新搜索次数失败"<<endl ;
+					if(SQL_STATUS::EXE_sus != __bookCitySql.plus_search_times(
+							get<0>(bookres).autoBookId,	get<0>(bookres).bookId,
+							request->daytime(),get<0>(bookres).bookName
+						)
+					)
+					{
+						LOG(WARNING) << "更新搜索次数失败"
+						<<" bookId "<<get<0>(bookres).bookId <<endl ;
 					}
+					response->set_count(1);
 				}
+				else
+					response->set_count(-1);
+				LOG(INFO) << endl
+					<< control->remote_side()
+					<< " 搜索图书方式为 bookId "
+					<<" 搜索值为  "<<request->bookid() <<endl;
+				return ;
 			}
+			/**
+			 * 获取选项，根据选项查找
+			 */
+			string optionName ,optionValue ;
 			if (request->has_bookname())
 			{
-				vector<BookInfoTable> bookres;
-				ret = get_book_by_bookname(bookres, request->bookname());
-				for (int i = 0; i < ret; ++i)
-				{
-					response->set_count(ret);
-					auto book = response->add_lists();
-					fillBook(book,bookres[i]);
-					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
-						LOG(WARNING) << "更新搜索次数失败"<<endl ;
-					}
-				}
+				optionName = "bookName";
+				optionValue = request->bookname();
 			}
+			
 			if (request->has_authorname())
 			{
-				vector<BookInfoTable> bookres;
-				ret = get_book_by_authorname(bookres, request->authorname());
-				for (int i = 0; i < ret; ++i)
-				{
-					response->set_count(ret);
-					auto book = response->add_lists();
-					fillBook(book,bookres[i]);
-					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName )){
-						LOG(WARNING) << "更新搜索次数失败"<<endl ;
-					}
-				}
+				optionName = "authorName";
+				optionValue = request->bookname();
+			}
+			if (request->has_publishhouse())
+			{
+				optionName = "publishHouse";
+				optionValue = request->publishhouse();
 			}
 
 			if (request->has_booktype())
 			{
 				if(  false == bookType::isPrimaryClass(request->booktype())){
-					response->set_count(-1);
+					response->set_count(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
 					LOG(INFO) << endl
 							<< control->remote_side()
 							<< "搜索错误类型图书" << endl;
 					return;
 				}
-				
+				optionName = "bookType";
 				//变为枚举
 				bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
-				string stringType =  "编程书籍";// bookType::primary_enum_to_string(typeEnum) ;
-				cout<<"   -  "<<stringType<<endl;
-				vector<BookInfoTable> bookres;
-				ret = get_book_by_bookType(bookres, stringType);
-				for (int i = 0; i < ret; ++i)
+				optionValue = bookType::primary_enum_to_string(typeEnum) ;
+			}
+
+			LOG(INFO) << endl
+					<< control->remote_side()
+					<< " 搜索图书方式为 " << optionName
+					<<" 搜索值为  "<<optionValue <<endl;
+
+			vector<CombineBook> bookres;
+			ret =  __bookCitySql.get_books_by_option(bookres,optionName,optionValue);
+			for (int i = 0; i < bookres.size(); ++i)
+			{
+				auto book = response->add_lists();
+				fillBook(book,bookres[i]);
+				if(SQL_STATUS::EXE_sus != __bookCitySql.plus_search_times(
+						get<0>(bookres[i]).autoBookId,	get<0>(bookres[i]).bookId,
+						request->daytime(),get<0>(bookres[i]).bookName 
+					)
+				)
 				{
-					response->set_count(ret);
-					auto book = response->add_lists();
-					fillBook(book,bookres[i]);
-					if(-1 == plus_search_times(bookres[i].bookId,request->daytime(),bookres[i].bookName) ){
-						LOG(WARNING) << "更新搜索次数失败"<<endl ;
-					}
+					LOG(WARNING) << "更新搜索次数失败"<<endl ;
 				}
 			}
-
-
-			if (ret == -1)
-			{
-				response->set_count(-1);
-				LOG(INFO) << endl
-						  << control->remote_side()
-						  << "未搜索到图书" << endl;
-			}
-			else
-			{
-				
-				LOG(INFO) << endl
-						  << control->remote_side()
-						  << "搜索到图书" << ret << " 本。" << endl;
-			}
+			response->set_count(bookres.size());
 
 			if (FLAGS_echo_attachment)
 			{
@@ -238,7 +274,7 @@ namespace bookCityService
 		}
 
 		virtual void setBookInfoFun(google::protobuf::RpcController *control_base,
-									const bookInfoItem *request,
+									const updateBookBaseInfo *request,
 									commonService::commonResp *response,
 									google::protobuf::Closure *done)
 		{ // 更新书籍信息
@@ -251,42 +287,189 @@ namespace bookCityService
 					  << " (attached : " << control->request_attachment() << ")"
 					  <<"请求修改书籍信息";
 
-			//非法信息处理
-			if(!request->has_authorname() && !request->has_bookdownurl()
-				&& !request->has_bookheadurl() && !request->has_bookname() 
-				&& !request->has_booktype() && !request->has_hits())
+			map<option,sqlUpdateVal> up_data;
+			sqlUpdateVal buffer;
+			//必填字段
+			if(request->has_bookid() == true)
 			{
-				response->set_code(-1);
-				response->set_errorres("Fields are missing");
-				LOG(INFO) << endl
-                        << control->remote_side() << "   缺少字段" << endl;
-				return ;
+				if(request->bookid() != "")
+				{
+					buffer.strVal = request->bookid();
+					buffer.type = COND_TYPE::String;
+					up_data["bookId"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->bookid()<<endl;
+					return ;
+				}
+			}
+			//更改选项
+			if(request->has_bookname() == true)
+			{
+				if(request->bookname() != "")
+				{
+					buffer.strVal = request->bookname();
+					buffer.type = COND_TYPE::String;
+					up_data["bookName"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->bookname()<<endl;
+					return ;
+				}
+			}
+			if(request->has_authorname() == true)
+			{
+				if(request->authorname() != "")
+				{
+					buffer.strVal = request->authorname();
+					buffer.type = COND_TYPE::String;
+					up_data["authorName"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->authorname()<<endl;
+					return ;
+				}
+			}
+			if(request->has_booktype() == true)
+			{
+				if(bookType::isPrimaryClass(request->booktype()))
+				{
+					buffer.strVal = request->booktype();
+					buffer.type = COND_TYPE::Int;
+					up_data["bookType"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->booktype()<<endl;
+					return ;
+				}
+			}
+			if(request->has_publishhouse() == true)
+			{
+				if(request->publishhouse() != "")
+				{
+					buffer.strVal = request->publishhouse();
+					buffer.type = COND_TYPE::String;
+					up_data["publishHouse"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->publishhouse()<<endl;
+					return ;
+				}
 			}
 
-			int ret = up_book(request->bookid(), request->bookname(),
-							request->bookheadurl(), request->bookdownurl(), 
-							request->booktype(), request->authorname(),
-							request->bookintro(),request->publishtime());
-			if (ret == 0)
+			if(request->has_publishtime() == true)
+			{
+				if(request->publishtime() != "")
+				{
+					buffer.strVal = request->publishtime();
+					buffer.type = COND_TYPE::String;
+					up_data["publishTime"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->publishtime()<<endl;
+					return ;
+				}
+			}
+			if(request->has_bookpage() == true)
+			{
+				if(request->bookpage() > 0)
+				{
+					buffer.strVal = request->bookpage();
+					buffer.type = COND_TYPE::Int;
+					up_data["bookPage"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->bookpage()<<endl;
+					return ;
+				}
+			}
+			if(request->has_languagetype() == true)
+			{
+				if(request->languagetype() > 0)
+				{
+					buffer.strVal = request->languagetype();
+					buffer.type = COND_TYPE::Int;
+					up_data["languageType"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->languagetype()<<endl;
+					return ;
+				}
+			}
+			if(request->has_bookintro() == true)
+			{
+				if(request->bookintro() != "")
+				{
+					buffer.strVal = request->bookintro();
+					buffer.type = COND_TYPE::String;
+					up_data["bookIntro"] = buffer;
+				}
+				else
+				{
+					response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_errorres("Fields are missing");
+					LOG(INFO) << endl
+							<< control->remote_side() << "  缺少字段  "
+							 << request->bookintro()<<endl;
+					return ;
+				}
+			}
+			
+			//进行修改
+			SQL_STATUS ret =   __bookCitySql.up_book_Info(up_data);
+			if (ret != SQL_STATUS::EXE_sus)
 			{
 				cout << endl;
 				LOG(INFO) << "[" << __FILE__ << "]"
 						  << "[" << __LINE__ << "]" << endl;
-				response->set_code(-1);
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err));
 				response->set_errorres("update faild");
 				LOG(INFO) << endl
                         << control->remote_side() << "  更新书籍信息失败" << endl;
 			}
-			else if (ret == -1)//空串
-			{
-				response->set_code(-1);
-                response->set_errorres("block Fields");
-                LOG(INFO) << endl
-                        << control->remote_side() << "  填入了空的字段" << endl;
-			}
             else
             {
-                response->set_code(1);
+                response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Sus));
                 response->set_errorres("sucessful");
                 LOG(INFO) << endl
                         << control->remote_side() << "更新书籍信息成功" << endl;
@@ -309,27 +492,36 @@ namespace bookCityService
 			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
-			vector<BookInfoTable> bookres;
-			int ret = get_all_book(bookres); // 获取所有书籍信息
-			if (ret == -1)
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<endl;
+					
+			vector<CombineBook> bookres;
+			SQL_STATUS ret =  __bookCitySql.get_all_book_info(bookres);
+			
+			if(SQL_STATUS::EXE_sus == ret )
 			{
-				cout << endl;
-				LOG(INFO) << "[" << __FILE__ << "]"
-						  << "[" << __LINE__ << "]" << endl;
+				int size = bookres.size();
+				for (int i = 0; i < size; ++i)
+				{
+					auto book = response->add_lists();
+					fillBook(book,bookres[i]);
+				}
+				response->set_count(size);
+
+				LOG(INFO) << endl
+						<< control->remote_side() 
+						<< " 查询所有书籍成功，本次查到 " 
+						<< size << " 本书 " << endl;
 			}
-			int start = request->offset();
-			int size = 0 == request->size() ? request->size() : 10;
-			int i = start;
-			int end = std::min(start + 10, ret);
-			for (; start < ret; ++start)
+			else
 			{
-				auto book = response->add_lists();
-				fillBook(book,bookres[start]);
+				response->set_count(0);
+
+				LOG(INFO) << endl
+						<< control->remote_side() 
+						<< " 查询所有书籍失败 "<<endl;
 			}
-			response->set_count(ret);
-			LOG(INFO) << endl
-					  << control->remote_side() << "查询所有书籍成功，本次查到 " << ret << " 本书" << endl;
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -341,82 +533,9 @@ namespace bookCityService
 									commonService::commonResp *response,
 									google::protobuf::Closure *done)
 		{ // 删除某本书
-			brpc::ClosureGuard done_guard(done);
-			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
-					  << "] 客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
-
-			int ret = del_book(request->bookid());
-			if (ret == -1)
-			{
-				cout << endl;
-				LOG(INFO) << "[" << __FILE__ << "]"
-						  << "[" << __LINE__ << "]" << endl;
-				response->set_code(0);
-				response->set_errorres("delete faild");
-			}
-            else
-            {
-                response->set_code(1);
-                response->set_errorres("delete sucessful");
-                LOG(INFO) << endl
-                        << control->remote_side() << "删除书籍成功" << endl;
-            }
-			
-			if (FLAGS_echo_attachment)
-			{
-				control->response_attachment().append(control->request_attachment());
-			}
+			//缺省，包含多表约束的删除和实例化书籍删除
 		}
 
-		virtual void getBookADSFun(google::protobuf::RpcController *control_base,
-									   const adsReq *request,
-									   adsRes *response,
-									   google::protobuf::Closure *done)
-		{ // 获取广告图片
-			brpc::ClosureGuard done_guard(done);
-			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
-					  << "] 客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ")";
-			vector<BookADSTable> ads;
-			int ret = get_all_ads(ads);
-			if (ret == -1)
-			{
-				cout << endl;
-				LOG(INFO) << "[" << __FILE__ << "]"
-						  << "[" << __LINE__ << "]" << endl;
-			}
-			int start = 0;
-			int i = start;
-			int end = std::min(start + 10, ret);
-			int count = 0;
-			for (; start < ret; ++start)
-			{
-				auto adRes = response->add_lists();
-				adRes->set_adurl(ads[start].adUrl);
-				BookInfoTable bookres;
-				int retBook = get_book_by_id(bookres, ads[start].bookId);
-				if (retBook != -1)
-				{
-					auto adBookRes = adRes->add_lists();
-					fillBook(adBookRes,bookres);
-				}
-				++count;
-			}
-			response->set_count(count);
-			LOG(INFO) << endl
-					  << control->remote_side() << "查询广告成功" << endl;
-			if (FLAGS_echo_attachment)
-			{
-				control->response_attachment().append(control->request_attachment());
-			}
-		}
 
 		virtual void getRecommendBookFun(google::protobuf::RpcController *control_base,
 									   const recommendBookReq *request,
@@ -440,25 +559,33 @@ namespace bookCityService
 			{
 				recommendTimes[request->userid()] = curIndex;
 			}
-			vector<BookInfoTable> books;
-			int ret = get_recommend_book(books, curIndex);
-			if (ret == -1)
+
+			vector<CombineBook> bookres;
+			SQL_STATUS ret =  __bookCitySql.get_recommend_book(bookres, curIndex);
+			if (ret != SQL_STATUS::EXE_sus)
 			{
-				cout << endl;
-				LOG(INFO) << "[" << __FILE__ << "]"
-						  << "[" << __LINE__ << "]" << endl;
+				response->set_count(0);
+				LOG(INFO) <<endl
+						<< "[" << __FILE__ << "]"
+						<< "[" << __LINE__ << "]" 
+						<< " 查询个性化推荐失败 "<<endl;
 			}
-			int start = 0;
-			int i = start;
-			int end = std::min(start + 10, ret);
-			for (; start < ret; ++start)
+			else
 			{
-				auto book = response->add_lists();
-				fillBook(book,books[start]);
+				int start = 0 ,size = bookres.size();
+				//int i = start;
+				int end = std::min(start + 10, size);
+				for (; start < end; ++start)
+				{
+					auto book = response->add_lists();
+					fillBook(book,bookres[start]);
+				}
+				response->set_count(size);
+				LOG(INFO) << endl
+						<< control->remote_side() << "查询个性化推荐成功，本次查到 " 
+						<< size << " 本书" << endl;
 			}
-			response->set_count(ret);
-			LOG(INFO) << endl
-					  << control->remote_side() << "查询个性化推荐成功，本次查到 " << ret << " 本书" << endl;
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -487,25 +614,33 @@ namespace bookCityService
 			{
 				browseTimes[request->userid()] = curIndex;
 			}
-			vector<BookInfoTable> books;
-			int ret = get_recommend_book(books, curIndex);
-			if (ret == -1)
+			vector<CombineBook> bookres;
+			SQL_STATUS ret =  __bookCitySql.get_recommend_book(bookres, curIndex);
+			if (ret != SQL_STATUS::EXE_sus)
 			{
-				cout << endl;
-				LOG(INFO) << "[" << __FILE__ << "]"
-						  << "[" << __LINE__ << "]" << endl;
+				LOG(INFO)<< endl
+						<< "[" << __FILE__ << "]"
+						<< "[" << __LINE__ << "]" 
+						<< " 浏览推荐失败 "<<endl;
+				response->set_count(0);
 			}
-			int start = 0;
-			int i = start;
-			int end = std::min(start + 10, ret);
-			for (; start < ret; ++start)
+			else
 			{
-				auto book = response->add_lists();
-				fillBook(book,books[start]);
+				int start = 0 ,size = bookres.size();
+				//int i = start;
+				int end = std::min(start + 10, size);
+				for (; start < end; ++start)
+				{
+					auto book = response->add_lists();
+					fillBook(book,bookres[start]);
+				}
+				response->set_count(size);
+				LOG(INFO) << endl
+						<< control->remote_side() 
+						<< "查询随机书城推荐成功，本次查到 " 
+						<< size << " 本书" << endl;
 			}
-			response->set_count(ret);
-			LOG(INFO) << endl
-					  << control->remote_side() << "查询随机书城推荐成功，本次查到 " << ret << " 本书" << endl;
+			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -524,12 +659,14 @@ namespace bookCityService
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << "请求热搜书籍 "
 					  << request->count() <<" 本 "
-					  <<control->request_attachment() << ")";
+					  <<control->request_attachment() << ")"
+					  <<endl;
 
 			if(!request->has_daytime()){
-				response->set_count(-2);
+				response->set_count(0);
 				LOG(INFO) << endl
-					<< control->remote_side() <<"查询热搜书籍推荐失败，daytime 字段缺失 "
+					<< control->remote_side() 
+					<<" : 查询热搜书籍推荐失败，daytime 字段缺失 "
 					<< endl;
 				return ;
 			}
@@ -542,14 +679,15 @@ namespace bookCityService
 
 			for(int mon = 0;mon < 12 ; mon++){
 				if(  resultBook.size() == 10 ) break ;//查找足够提前退出
-				int ret = get_mostly_search_by_month_count(month,books,searchCount) ;
-				if(-1 == ret)
+				SQL_STATUS ret = __bookCitySql.get_mostly_search_by_month_count(month,books,searchCount) ;
+				int size = books.size();
+				if(SQL_STATUS::EXE_sus != ret)
 				{
 					LOG(INFO) <<"查询 "<<month<<" 月热搜书籍推荐失败"<< endl;
 				}
 				else
 				{
-					for (int start = 0; start < ret; ++start){
+					for (int start = 0; start < size; ++start){
 						auto iter = resultBook.find(books[start].bookId);
 						if(iter == resultBook.end()){
 							book.bookId = books[start].bookId;
@@ -574,25 +712,27 @@ namespace bookCityService
 				}
 				response->set_count(resultBook.size());
 				LOG(INFO) << endl
-					<< control->remote_side() <<month <<"月查询热搜书籍推荐成功,共"
+					<< control->remote_side() <<month 
+					<<"月查询热搜书籍推荐成功,共"
 					<<resultBook.size()<<"本"<< endl;
 			}
 			else//查询不足在书城发送查找发送 包含书籍不足searchCount
 			{
-				vector<BookInfoTable>  books;
-				int ret = get_book_offset(books,2,searchCount);
-				cout<<"ret is "<<ret <<endl ;
+				vector<CombineBook>  books;
+				SQL_STATUS ret = __bookCitySql.get_book_offset(books,2,searchCount);
+				int size = books.size();
+				cout<<"size is "<<size <<endl ;
 				for(auto & bookres : books){
 					auto book = response->add_lists();
-					book->set_bookid(bookres.bookId);
-					book->set_bookname(bookres.bookName);
+					book->set_bookid(get<0>(bookres).bookId);
+					book->set_bookname(get<0>(bookres).bookName);
 					book->set_searchtimes(1);
 				}
-				response->set_count(ret);
+				response->set_count(size);
 				LOG(INFO) << endl
 					<< control->remote_side() << "  "
 					<<month <<"月查询热搜书籍推荐不足，书城发送共"
-					<<ret<<"本"<< endl;
+					<<size<<"本"<< endl;
 			}
 			
 		}
@@ -611,20 +751,24 @@ namespace bookCityService
 			//非法数据处理
 			if(request->count() <= 0)
 			{
-				response->set_count(-1);
+				response->set_count(0);
 				LOG(WARNING) << endl
-					  << control->remote_side() << "榜单查询失败,qong" << endl;
+					  << control->remote_side() 
+					  << "请求数量错误，榜单查询失败" 
+					  << endl;
 			}
 
 
-			vector<BookInfoTable> books ;
-			int ret = get_book_offset(books,1,request->count());
+			vector<CombineBook> books ;
+			SQL_STATUS ret =  __bookCitySql.get_book_offset(books,0,request->count());
 
-			if( ret == -1)
+			if( ret != SQL_STATUS::EXE_sus)
 			{
-				response->set_count(-1);
+				response->set_count(0);
 				LOG(WARNING) << endl
-					  << control->remote_side() << "榜单查询失败" << endl;
+					  << control->remote_side() 
+					  << " 数据库执行错误，榜单查询失败" 
+					  << endl;
 			}
 			else
 			{
@@ -632,9 +776,11 @@ namespace bookCityService
 					auto book = response->add_lists();
 					fillBook(book,bookres);
 				}
-				response->set_count(ret);
+				response->set_count(books.size());
 				LOG(WARNING) << endl
-					  << control->remote_side() << "榜单查询成功,共" << ret<<"本"<<endl;
+					  << control->remote_side() 
+					  << " 榜单查询成功,共" 
+					  << books.size()<<"本"<<endl;
 			}
 
 		}
@@ -648,50 +794,61 @@ namespace bookCityService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ") "
-					  <<"请求模糊匹配书籍";
+					  <<" 请求模糊匹配书籍 "<<endl;
 
 			//非法信息处理
 			if(request->daytime() == "" || request->words() == "" ||
 					request->count() <= 0 || request->offset() < 0){
 				LOG(INFO) << "字段缺失，或数据非法 daytime : " << request->daytime()
-						<<" word  :  "<<request->words()<<" coutn :" << request->count()
+						<<" word  :  "<<request->words()<<" count :" << request->count()
 						<<" offset : " << request->offset()<<endl;
-				response->set_count(-1);
+				response->set_count(0);
 				return ;
 			}
 
-			vector<BookInfoTable> books;
+			vector<int> autoBookIds;
 			//从实例读出书籍
-			m_memBookList.fuzzySearch(books,request->words(),request->offset(),request->count()) ;
-			cout<<"list size is "<<books.size()<<endl ;
-			int size = books.size();
-			response->set_count(size);
-			for (int i = 0; i < size ; ++i)
+			__memBookList.fuzzySearch(autoBookIds,request->words(),request->offset(),request->count()) ;
+			CombineBook bookbuffer ;
+			int beginSize = autoBookIds.size(),count =0;
+			SQL_STATUS ret ;
+
+			for(int index = 0; index < beginSize; index++)
 			{
-				auto book = response->add_lists();
-				fillBook(book,books[i]);
-				if(-1 == plus_search_times(books[i].bookId,request->daytime(),books[i].bookName) ){
-					LOG(WARNING) << " : 更新搜索次数失败"<<endl ;
+				ret =__bookCitySql.get_book_by_autoBookId(bookbuffer,autoBookIds[index]);
+				if(SQL_STATUS::EXE_sus != ret )
+				{
+					LOG(INFO)<< endl
+						 	<<" 书籍模糊匹配后查找失败 "
+							<<" autobookid  "<<autoBookIds[index]
+							<<endl;
+					continue;
 				}
+				count++;
+				auto book = response->add_lists();
+				fillBook(book,bookbuffer);
 			}
-			if (size == 0)
+			
+			cout<<endl <<" 初始值  "<<beginSize<<" 终值  "<<count<<endl ;
+			if (count == 0)
 			{
-				response->set_count(-1);
+				response->set_count(0);
 				LOG(INFO) << endl
 						  << control->remote_side()
 						  << " :未搜索到图书" << endl;
 			}
 			else
 			{
-				
+				response->set_count(count);
 				LOG(INFO) << endl
 						  << control->remote_side()
-						  << "搜索到图书" << size << " 本。" << endl;
+						  << " :搜索到图书 " << beginSize << " 本。" << endl;
 			}
 
 		}
