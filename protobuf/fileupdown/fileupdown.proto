@@ -1,5 +1,5 @@
 syntax = "proto2";
-import "bookcity.proto";
+// import "bookcity.proto";
 package fileService;
 option cc_generic_services = true;
 
@@ -17,7 +17,7 @@ message HttpResponse
 service fileService 
 { // 文件传输服务
   rpc fileDownFun(HttpRequest) returns(HttpResponse);
-  rpc bookDownFun(bookCityService.bookInfoItem) returns(HttpResponse);
+  //rpc bookDownFun(bookCityService.bookInfoItem) returns(HttpResponse);
 };
 
 

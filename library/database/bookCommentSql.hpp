@@ -289,6 +289,16 @@ SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,inforCo
 
 SQL_STATUS BookCommentImpl::hit_comment_by_bookId_praised(const int & hitter,const string & book_id,const int & praised)
 {
+    int isRemark = __grade->is_remark(book_id,praised);
+    if(isRemark == -1)
+    {//连接错误
+        return SQL_STATUS::Pool_err;
+    }
+    else if(isRemark == 0)
+    {//无对应评论
+        return SQL_STATUS::Illegal_info;
+    }
+
     BookBaseInfoTable bookbuffer ;
     SQL_STATUS ret = __book->get_book_baseInfo_by_book_id(bookbuffer,book_id);
     if(ret != SQL_STATUS::EXE_sus)
@@ -347,7 +357,6 @@ SQL_STATUS BookCommentImpl::add_comment(const string &book_id ,const int &user_i
 {
     BookBaseInfoTable buffer;
     SQL_STATUS ret = __book->get_book_baseInfo_by_book_id(buffer,book_id);
-
     if(ret != SQL_STATUS::EXE_sus)
         return ret;
     BookGradeInfoTable  score ;
@@ -363,7 +372,7 @@ SQL_STATUS BookCommentImpl::add_comment(const string &book_id ,const int &user_i
 
 SQL_STATUS BookCommentImpl::delete_comment(const string &book_id ,const int &user_id)
 {
-    int isExist = __grade->isRemark(book_id,user_id);
+    int isExist = __grade->is_remark(book_id,user_id);
     if(isExist == 1)
     {
         SQL_STATUS ret = __grade->delete_score_by_bookId_userId(book_id,user_id);

@@ -67,7 +67,7 @@ namespace ormpp
                                         const string &book_id ,const int &user_id,
                                         const int &book_score,const string & title,
                                         const string &content,const string & remark_time );
-        int isRemark(const string &book_id ,const int &user_id);
+        int is_remark(const string &book_id ,const int &user_id);
         /*占位 将实现*/
         // virtual SQL_STATUS del_book();
         // virtual SQL_STATUS up_book();
@@ -301,7 +301,7 @@ SQL_STATUS BookGradeInfo::create_indexs()
     return create_double_index();
 }
 
-int BookGradeInfo::isRemark(const string &book_id ,const int &user_id)
+int BookGradeInfo::is_remark(const string &book_id ,const int &user_id)
 {// -1:池错误  0:在 1:在
     auto conn = get_conn_from_pool();
     conn_guard guard(conn);
