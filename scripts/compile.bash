@@ -59,7 +59,7 @@ if [$# != 1 ] ; then
 fi
 #将服务和端口对应
 serverArr=("echoService" "bookCityService" "bookShelfService" "collectDataService"
-             "commonService" "fileUpDownService" "accountService")
+             "bookCommentService" "fileUpDownService" "accountService")
 #portArr=(8001 8002 8003 8004 8005 8006 8007)
 #echo bookCity bookShelf collectData common fileUpDown account
 #参数对应 -ec -bc -bs -cd -cm  -fi -ac  -all(全部编译)

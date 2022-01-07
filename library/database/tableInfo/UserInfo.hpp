@@ -371,7 +371,6 @@ SQL_STATUS UserInfo::update_password(const int &  user_id,const string &  user_p
 
 
 
-
 }
 
 

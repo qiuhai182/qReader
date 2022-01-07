@@ -116,6 +116,13 @@ namespace BookCommentService
 			{
 				response->set_count(0);
 				response->set_errorres("query information failed");
+				LOG(INFO) <<endl
+					  <<"获取书籍评论失败  observer: " <<request->observer()
+					  <<" bookId : "<<request->bookid()
+					  <<" count "<<request->count()
+					  <<" offset "<<request->offset()
+					  <<" pattern "<<request->pattern()
+					  <<" reverse "<<request->reverse()<<endl;
 				return ;
 			}
 			for(auto  temp : res)
@@ -173,7 +180,7 @@ namespace BookCommentService
 			else
 			{
 				LOG(INFO) <<endl
-					  <<"书籍点赞成功  hitter: " <<request->hitter()
+					  <<"书籍评论点赞失败  hitter: " <<request->hitter()
 					  <<" bookId : "<<request->bookid()
 					  <<" praised "<<request->praised()<<endl;
 				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err) );
