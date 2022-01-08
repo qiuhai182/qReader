@@ -203,27 +203,27 @@ class read:
             self.speedPoints = np.empty((11, 1))  # 若数据不足
 
 
-        # 阅读热力图
-        self.readPoint = np.zeros((128, 171))
-        for i in range(len(self.X)):
-            self.readPoint[math.floor(self.X[i] / 8)][math.floor(self.Y[i] / 8)] += 1
-        ax = plt.subplots(figsize=(128, 171))
-        plt.axis('off')
-        ax = sns.heatmap(self.readPoint, cmap="RdPu", cbar=False)  # 热力图绘制
-        plt.savefig("../../qReaderData/sightData/sightAnalyseJson/" + sys.argv[1] + '/' + sys.argv[1] + '_Analyse.png', bbox_inches = 'tight')
+        # # 阅读热力图
+        # self.readPoint = np.zeros((128, 171))
+        # for i in range(len(self.X)):
+        #     self.readPoint[math.floor(self.X[i] / 8)][math.floor(self.Y[i] / 8)] += 1
+        # ax = plt.subplots(figsize=(128, 171))
+        # plt.axis('off')
+        # ax = sns.heatmap(self.readPoint, cmap="RdPu", cbar=False)  # 热力图绘制
+        # plt.savefig("../../../../qReaderData/sightData/sightAnalyseJson/" + sys.argv[1] + '/' + sys.argv[1] + '_Analyse.png', bbox_inches = 'tight')
 
 
 def main():
     assert 2 == len(sys.argv)
     userId = sys.argv[1]
-    analyseJsonPath = "../../qReaderData/sightData/sightAnalyseJson/"
+    analyseJsonPath = "../../../../qReaderData/sightData/sightAnalyseJson/"
     jsonFilePath = os.path.join(analyseJsonPath, userId, userId + "_Analyse.json")
     with open(jsonFilePath, "w", encoding="utf-8") as f:
         # 4格空格符为格式化标准，以下两行均可用于写入json文件
         initDict = {}
         json.dump(initDict, f, indent=4, ensure_ascii=False)
         # f.write(json.dumps(initDict, indent=4, ensure_ascii=False))
-    sightCsvPath = "../../qReaderData/sightData/sightCsv/"
+    sightCsvPath = "../../../../qReaderData/sightData/sightCsv/"
     csvFilePath = os.path.join(sightCsvPath, userId + "_Analyse.csv")
     assert os.path.exists(csvFilePath)
     csv_data = pd.read_csv(csvFilePath)

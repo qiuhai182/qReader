@@ -117,6 +117,7 @@ SQL_STATUS UserShelfInfo::get_book_by_userid(vector<UserShelfTable> &books, cons
 	}
 	string cond = " where userId = " + to_string(user_id) + 
                 "  and isRemove = 0 ";
+    
 	auto res = conn->query<UserShelfTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
