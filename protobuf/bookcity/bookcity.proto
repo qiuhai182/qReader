@@ -65,13 +65,15 @@ message getAllBookInfoReq
 
 message searchBookReq 
 { // 多属性或单属性查找书籍，一般为单属性
-	optional string userId = 1;
+	optional int32 userId = 1;
 	optional string bookId = 2;
 	optional string bookName = 3;
 	optional string authorName = 4; 
 	optional int32  bookType = 5;
 	optional string publishHouse = 6;
 	required string dayTime = 7;
+	required int32 offset = 8;
+	required int32 count = 9;
 }
 
 

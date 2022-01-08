@@ -19,7 +19,6 @@
 #include "membooks.hpp"
 #include "bookType.hpp"
 
-
 using namespace std;
 using namespace ormpp;
 using namespace service;
@@ -32,7 +31,10 @@ DEFINE_string(ipPort, FLAGS_ip + ":" + FLAGS_stringPort, "服务ip:port");
 DEFINE_int32(idle_timeout_s, -1, "超时没有读写操作断开连接");
 DEFINE_int32(logoff_ms, 2000, "Maximum duration of server's LOGOFF state ");
 
+
 #define IOBuf_MAX_SIZE 253952 // IOBuf的单次读取大小
+
+ static int MIN_ACCOUNT  = 10000 ;
 
 namespace bookCityService
 {
@@ -181,6 +183,8 @@ namespace bookCityService
 					  << " (attached : " << control->request_attachment() << ")"
 					  <<endl;
 
+			
+				
 			SQL_STATUS ret ; 
 			if (request->has_bookid())
 			{
@@ -202,12 +206,25 @@ namespace bookCityService
 					response->set_count(1);
 				}
 				else
-					response->set_count(-1);
+					response->set_count(0);
 				LOG(INFO) << endl
 					<< control->remote_side()
 					<< " 搜索图书方式为 bookId "
 					<<" 搜索值为  "<<request->bookid() <<endl;
 				return ;
+			}
+			/*选项时判断*/
+			//信息判断
+			if(request->userid() < MIN_ACCOUNT || request->offset() < 0 || request->count() < 0)
+			{
+				response->set_count(0);
+					LOG(INFO) << endl
+							<< control->remote_side()
+							<< " 字段错误  userId :"
+							<<request->userid()
+							<<" offset "<<request->offset()
+							<<" count "<<request->count()<< endl;
+					return;
 			}
 			/**
 			 * 获取选项，根据选项查找
@@ -233,7 +250,7 @@ namespace bookCityService
 			if (request->has_booktype())
 			{
 				if(  false == bookType::isPrimaryClass(request->booktype())){
-					response->set_count(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+					response->set_count(0);
 					LOG(INFO) << endl
 							<< control->remote_side()
 							<< "搜索错误类型图书" << endl;
@@ -251,7 +268,7 @@ namespace bookCityService
 					<<" 搜索值为  "<<optionValue <<endl;
 
 			vector<CombineBook> bookres;
-			ret =  __bookCitySql.get_books_by_option(bookres,optionName,optionValue);
+			ret =  __bookCitySql.get_books_by_option(bookres,optionName,optionValue,request->offset(),request->count());
 			for (int i = 0; i < bookres.size(); ++i)
 			{
 				auto book = response->add_lists();

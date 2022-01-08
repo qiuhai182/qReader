@@ -25,26 +25,26 @@ namespace Init
 
   void createSql()
   {
-    // try{
-    //     BookBaseInfo baseBook(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        BookBaseInfo baseBook(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
     
-    // try{
-    //     UserInfo userInfo(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        UserInfo userInfo(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
 
-    // try{
-    //     UserShelfInfo userShelfInfo(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        UserShelfInfo userShelfInfo(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
 
     try{
         BookGradeInfo gradeBook(false);
@@ -67,26 +67,26 @@ namespace Init
         cout<<"Error: "<<error<<endl;
     }
 
-    // try{
-    //     BookSearchInfo searchInfo(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        BookSearchInfo searchInfo(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
 
-    // try{
-    //     SightInfo searchInfo(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        SightInfo searchInfo(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
 
-    // try{
-    //     ReadIntervalInfo intervalInfo(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
+    try{
+        ReadIntervalInfo intervalInfo(false);
+        usleep(1000);
+    }catch(const char *error){
+        cout<<"Error: "<<error<<endl;
+    }
 
   }
 }

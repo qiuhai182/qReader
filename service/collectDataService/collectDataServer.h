@@ -117,17 +117,17 @@ namespace collectdataService
 
 			//一天的专注度统计
 			//数据库读取写入csv
-			int csvRet = __sightAnalyze.storage_analyse_csv(request->daytime(),request->userid());
-			//当天没有数据
-			if( csvRet == -1){
-				response->mutable_status()->set_code(-1);
-				response->mutable_status()->set_errorres("今日未读书");
-				LOG(INFO)<<endl
-						<< "(客户端ip+port: " << control->remote_side()
-						<< " 应答服务器ip+port: " << control->local_side()
-						<<"请求" << request->daytime() << "的阅读分析数据失败)";
-				return;
-			}
+			// int csvRet = __sightAnalyze.storage_analyse_csv(request->daytime(),request->userid());
+			// //当天没有数据
+			// if( csvRet == -1){
+			// 	response->mutable_status()->set_code(-1);
+			// 	response->mutable_status()->set_errorres("今日未读书");
+			// 	LOG(INFO)<<endl
+			// 			<< "(客户端ip+port: " << control->remote_side()
+			// 			<< " 应答服务器ip+port: " << control->local_side()
+			// 			<<"请求" << request->daytime() << "的阅读分析数据失败)";
+			// 	return;
+			// }
 			//当天有数据
 			__sightAnalyze.storage_analyse_json(request->userid());
 			//结果从json获取

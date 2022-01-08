@@ -56,7 +56,7 @@ namespace ormpp
         SQL_STATUS get_all_book_baseInfo(vector<BookBaseInfoTable> &res);
         SQL_STATUS get_book_baseInfo_by_book_id(BookBaseInfoTable &book, const string &book_id);
         SQL_STATUS get_books_baseInfo_by_option(vector<BookBaseInfoTable> &books, 
-                                                const option & optionName,const string &optionValue);
+                                                const option & optionName,const string &optionValue,const int & offset,const int & count) ;
         SQL_STATUS insert_book_baseInfo(const BookBaseInfoTable &book);
         SQL_STATUS insert_book_baseInfo(const int & auto_book_id,const string &book_id, 
                                                 const string &book_name, const string &author_name, 
@@ -163,7 +163,7 @@ SQL_STATUS BookBaseInfo::get_book_baseInfo_by_autoBookId(BookBaseInfoTable & boo
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string cond = " where autoBookId = " + to_string(auto_book_id) + " isDelete =  0";
+	string cond = " where autoBookId = " + to_string(auto_book_id) + " and isDelete =  0";
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
@@ -226,7 +226,7 @@ SQL_STATUS BookBaseInfo::get_autoBookId_by_bookId(const string & book_id,int & a
         return SQL_STATUS::Pool_err;
     }
 
-    string state = "where bookId = \'" + book_id + "\'  isDelete = 0" ;
+    string state = "where bookId = \'" + book_id + "\' and  isDelete = 0" ;
 	auto res = conn->query<BookBaseInfoTable>(state);
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;
@@ -285,7 +285,7 @@ bool BookBaseInfo::isOption(const option & opt)
 }
 
 SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option(vector<BookBaseInfoTable> &books, 
-                                                const option & optionName,const string &optionValue)
+                                                const option & optionName,const string &optionValue,const int & offset,const int &count) 
 {
     auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
@@ -299,7 +299,10 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option(vector<BookBaseInfoTable> 
     if( !isOption(optionName))
         return SQL_STATUS::Illegal_info ;
     
-	string cond = " where " + optionName + " LIKE \'\%" + optionValue + "\%\'  and isDelete = 0";
+	string cond = " where " + optionName + " LIKE \'\%" + 
+                        optionValue + 
+                        "\%\'  and isDelete = 0" + 
+                        " limit " + to_string(offset) + " , " +  to_string(count);
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
