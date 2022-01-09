@@ -139,8 +139,8 @@ namespace bookCityService
 			//插入
 			SQL_STATUS ret = __bookCitySql.insert_book_info(0,request->bookid(),
 														request->bookname(),request->authorname(),
-														bookType,request->publishtime(),
-														request->publishhouse(),request->bookintro(),
+														bookType,request->publishhouse(),
+														request->publishtime(),request->bookintro(),
 														request->bookpage(),request->languagetype()
 													);
 			//实例书籍添加 缺省
