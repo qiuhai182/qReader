@@ -1,16 +1,19 @@
 # -*- coding: UTF-8 -*-
-# shell内核调用方式： python server.py "userId"
+# shell内核调用方式： python server.py "xxx/.../x.csv" "xxx/.../x.json"
 
 import os
-from sklearn.cluster import KMeans, DBSCAN
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
 import sys
 import math
 import json
-from dateutil.parser import parse
+import copy
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import seaborn as sns; sns.set()
+from dateutil.parser import parse
+from sklearn.cluster import KMeans, DBSCAN
+from matplotlib.pyplot import MultipleLocator
+from itertools import cycle  ##python自带的迭代器模块
 
 
 
@@ -104,8 +107,140 @@ def isContinue(d1, d2):
         return False
 
 
-class read:
+class calculateLine:
+    '''
+    阅读行数计算
+    '''
     def __init__(self, csv_data):
+        self.allDataLength = len(csv_data)  # 总视线点数
+        # 剔除屏幕外点
+        csv_data = csv_data[0 < csv_data['x']]
+        csv_data = csv_data[csv_data['x'] < 1024]
+        csv_data = csv_data[0 < csv_data['y']]
+        csv_data = csv_data[csv_data['y'] < 1366]
+        # 取x、y、time、pageNum
+        self.X = np.array(csv_data['x'])
+        self.Y = np.array(csv_data['y'])
+        self.PageNum = np.array(csv_data['pageNum'])
+        # 倒序剔除连续重复点
+        for i in range(len(csv_data) - 1, 0, -1):
+            # 相较前一个点，x、y、页数 均未变化，则剔除该点
+            if (self.X[i] == self.X[i - 1] and self.Y[i] == self.Y[i - 1] and self.PageNum[i] == self.PageNum[i - 1]):
+                csv_data.drop(csv_data.index[[i]], axis=0)  # 剔除连续重复点
+        # 重定义X、Y、Time、Page, 新定义BookId
+        self.X = np.array(csv_data['x'])
+        self.Y = np.array(csv_data['y'])
+        self.PageNum = np.array(csv_data['pageNum'])
+        self.AllPages = set(self.PageNum)
+        self.AllPages = list(self.AllPages)
+        self.AllPages = np.array(self.AllPages)
+        self.AllData = []
+        self.dataNum = len(self.AllPages)
+        #将每一页的页码及数据做成2维数组
+        for i in range(len(self.AllPages)):
+            temp = []
+            for j in range(len(self.X)):
+                tempXY = [] 
+                if self.PageNum[j] == self.AllPages[i]:
+                    tempXY.append(self.X[j])
+                    tempXY.append(self.Y[j])
+                    temp.append(tempXY)
+            self.AllData.append(temp)
+        self.XWeight = 0.0
+        
+    def modelLoad(self):
+        #模型预加载
+        rf = open("RowTrainResult.json", "r")
+        textStr = rf.read()
+        dictOfX = json.loads(textStr)
+        self.XWeight = dictOfX["XWeight"]
+        
+    def Row(self, num):
+        #加载模型
+        self.modelLoad()
+        #提取num页的所有点
+        self.XYData = np.array(self.AllData[num])
+        #计算差值(该数据经过处理放大了1000倍)
+        self.XYdifference = np.empty(shape=((len(self.XYData) - 1), 2))
+        for i in range(0, len(self.XYData) - 1):
+            self.XYdifference[i][0] = self.XYData[i + 1][0] - self.XYData[i][0]
+            self.XYdifference[i][1] = self.XYData[i + 1][1] - self.XYData[i][1]
+            self.XYdifference[i][1] /= 1366 / 1000
+            self.XYdifference[i][0] /= 1024 / 1000
+        #self.YRange = np.zeros(shape = (1, 50))
+        self.Xdifference = []
+        self.rowNum = 0          #计算行数
+        self.isBegin = False     #是否开始阅读
+        self.addPoint = 0.0       #用户视线向右点相加
+        self.minusPoint = 0.0     #用户视线向左点相加
+        self.isAddAlready = False #页数是否增加
+        #将Δx单独取出放入一个数组
+        for i in range (len(self.XYdifference)):
+            self.Xdifference.append(self.XYdifference[i][0])
+        #计算行数
+        for i in range (len(self.Xdifference)):
+                #第一个if：判断用户是否开始阅读该页，以x方向速度第一个为正的点开始
+                if self.isBegin == False and self.Xdifference[i] < 0:
+                    continue
+                else:
+                    self.isBegin = True
+                #第二个if：判断数据为向左还是向右并加入相应的值内
+                if self.Xdifference[i] > 0:
+                    self.addPoint += self.Xdifference[i]
+                else:
+                    self.minusPoint += self.Xdifference[i]
+                #若还未计入行数(isAddAlready = False)且向右阅读相加的值大于零且向右值（正）加向左值（负)小于阈值可视为视线回转，行数+1，右阅读值清零，
+                if (self.isAddAlready == False and self.addPoint > 0 and self.minusPoint + self.addPoint < self.addPoint * self.XWeight):
+                    self.rowNum += 1
+                    self.minusPoint += self.addPoint * (1-self.XWeight)
+                    self.addPoint = 0.0
+                    self.isAddAlready = True
+                    continue
+                #在已经计算行数后且再次向右阅读时将向左值清零并重置isAddAlready
+                if self.isAddAlready == True and self.addPoint + self.minusPoint > 0:
+                    self.minusPoint = 0.0
+                    self.isAddAlready = False  
+        #翻页数据没有负数，行数加一
+        self.rowNum += 1
+        return self.rowNum
+    
+    def allRows(self):
+        #计算所有页行数并返回总值
+        self.resultAll = 0
+        for i in range(self.dataNum):
+            self.resultAll += self.Row(i)
+        return self.resultAll
+
+class read:
+    '''
+    阅读数据分析
+    '''
+    def Efficient(self):
+        return len(self.X) / self.allDataLength;
+    def Challange(self, num):
+        self.XYData = np.array(self.AllData[num])
+        self.db = DBSCAN(eps=70, min_samples=70)
+        self.db.fit(self.XYData)
+        lables = self.db.labels_
+        #Browse:浏览 gaze:注视
+        for i in range(len(lables)):
+            if lables[i] == -1:
+                self.Browse += 1
+            else:
+                self.Gaze += 1
+    def pieChartResult(self):
+        for i in range(len(self.AllPages)):
+            self.Challange(i)
+    def returnBrowse(self):
+        return self.Browse / self.allDataLength;
+    def returnGaze(self):
+        return self.Gaze / self.allDataLength;
+    def returnUnfocused(self):
+        return 1 - self.Efficient()
+    def returnPages(self):
+        return len(self.AllPages)
+    def __init__(self, csv_data):
+        '''初始化'''
         self.allDataLength = len(csv_data)  # 总视线点数
         # 剔除屏幕外点
         csv_data = csv_data[0 < csv_data['x']]
@@ -120,7 +255,6 @@ class read:
         self.Time = np.array(csv_data['timeStamp'])
         self.PageNum = np.array(csv_data['pageNum'])
         self.Pages = 0  # 阅读页数
-        self.Rows = 0  # 阅读行数
         self.droppedDataLength = 0  # 被剔除的连续重复点数
         self.latestCounting = True  # 是否正在计算最近一次阅读时长
         self.latestReadSeconds = 0.0  # 最近一次阅读时长总秒数
@@ -139,9 +273,6 @@ class read:
                 # 页数不一致 => 翻页
                 if (self.PageNum[i] != self.PageNum[i - 1]):
                     self.Pages += 1  # 页数+1
-                # 相较1秒前的点的距离，点左移且超过屏幕宽度一半 => 换行
-                if (i > 10 and self.X[i - 10] - self.X[i] > 600):
-                    self.Rows += 1  # 行数+1
         self.userfulDataLength = len(csv_data)  # 有效视线点数
         # 重定义X、Y、Time、Page
         self.X = np.array(csv_data['x'])
@@ -176,6 +307,25 @@ class read:
             self.deltaAngle = np.append(self.deltaAngle, np.array(
                 getDeltaAngle((x1, y1), (x2, y2)), float))
 
+        self.AllPages = set(self.PageNum)
+        self.AllPages = list(self.AllPages)
+        self.AllPages = np.array(self.AllPages)
+        self.AllData = []
+        #将每一页的页码及数据做成2维数组
+        for i in range(len(self.AllPages)):
+            temp = []
+            for j in range(len(self.X)):
+                tempXY = [] 
+                if self.PageNum[j] == self.AllPages[i]:
+                    tempXY.append(self.X[j])
+                    tempXY.append(self.Y[j])
+                    temp.append(tempXY)
+            self.AllData.append(temp)
+        #Browse:浏览 gaze:注视    
+        self.Browse = 0 
+        self.Gaze = 0
+        self.pieChartResult()
+
         # 阅读散点图
         xy = list(zip(self.deltaX, self.deltaY))
         XY = np.array(xy)
@@ -203,38 +353,37 @@ class read:
             self.speedPoints = np.empty((11, 1))  # 若数据不足
 
 
-        # 阅读热力图
-        self.readPoint = np.zeros((128, 171))
-        for i in range(len(self.X)):
-            self.readPoint[math.floor(self.X[i] / 8)][math.floor(self.Y[i] / 8)] += 1
-        ax = plt.subplots(figsize=(128, 171))
-        plt.axis('off')
-        ax = sns.heatmap(self.readPoint, cmap="RdPu", cbar=False)  # 热力图绘制
-        plt.savefig("../../qReaderData/sightData/sightAnalyseJson/" + sys.argv[1] + '/' + sys.argv[1] + '_Analyse.png', bbox_inches = 'tight')
+        # # 阅读热力图
+        # self.readPoint = np.zeros((128, 171))
+        # for i in range(len(self.X)):
+        #     self.readPoint[math.floor(self.X[i] / 8)][math.floor(self.Y[i] / 8)] += 1
+        # ax = plt.subplots(figsize=(128, 171))
+        # plt.axis('off')
+        # ax = sns.heatmap(self.readPoint, cmap="RdPu", cbar=False)  # 热力图绘制
+        # plt.savefig("../../../../qReaderData/sightData/sightAnalyseJson/" + sys.argv[1] + '/' + sys.argv[1] + '_Analyse.png', bbox_inches = 'tight')
 
 
 def main():
-    assert 2 == len(sys.argv)
-    userId = sys.argv[1]
-    analyseJsonPath = "../../qReaderData/sightData/sightAnalyseJson/"
-    jsonFilePath = os.path.join(analyseJsonPath, userId, userId + "_Analyse.json")
-    with open(jsonFilePath, "w", encoding="utf-8") as f:
-        # 4格空格符为格式化标准，以下两行均可用于写入json文件
+    assert 3 == len(sys.argv)
+    csvFilePath = sys.argv[1]
+    assert os.path.exists(csvFilePath)
+    outputJsonPath = sys.argv[2]
+    with open(outputJsonPath, "w", encoding="utf-8") as f:
+        # 清空文件内容、格式化，4格空格符为格式化标准，以下两行均可用于写入json文件
         initDict = {}
         json.dump(initDict, f, indent=4, ensure_ascii=False)
         # f.write(json.dumps(initDict, indent=4, ensure_ascii=False))
-    sightCsvPath = "../../qReaderData/sightData/sightCsv/"
-    csvFilePath = os.path.join(sightCsvPath, userId + "_Analyse.csv")
-    assert os.path.exists(csvFilePath)
+    sightCsvPath = "../../../../qReaderData/sightData/sightCsv/"
     csv_data = pd.read_csv(csvFilePath)
     assert(len(csv_data))
-    res = read(csv_data)
-    dict = {"hour": res.hour, "min": res.min, "sec": res.sec, "focus": res.focus,
-            "pages": res.Pages, "rows": res.Rows, "speedPoints": res.speedPoints.tolist(),
-            "point0Action" : "专注", "point0Color" : "#d71345", "point0" : res.point0[:20].tolist(),
-            "point1Action" : "走神", "point1Color" : "#7fb80e", "point1" : res.point1[:20].tolist(),
-            "point2Action" : "疑惑", "point2Color" : "#4e72b8", "point2" : res.point2[:20].tolist()}
-    with open(jsonFilePath, "w", encoding="utf-8") as f:
+    resLine = calculateLine(copy.deepcopy(csv_data))
+    res = read(copy.deepcopy(csv_data))
+    dict = {"hour": res.hour, "min": res.min, "sec": res.sec, "focus": res.Efficient(),
+            "pages": res.returnPages(), "rows": resLine.allRows(), "speedPoints": res.speedPoints.tolist(),
+            "Browse" : "浏览比重", "BrowsePercentage":res.returnBrowse(),
+            "Gaze" : "注视比重", "GazePercentage":res.returnGaze(),
+            "Unfocused" : "不专注比重", "UnfocusedPercentage": res.returnUnfocused()}
+    with open(outputJsonPath, "w", encoding="utf-8") as f:
         # 4格空格符为格式化标准，以下两行均可用于写入json文件
         # json.dump(dict, f, indent=4, ensure_ascii=False)
         f.write(json.dumps(dict, indent=4, ensure_ascii=False))
