@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 syntax = "proto2";
 import "common.proto";
 package bookCityService;
@@ -217,3 +218,232 @@ service bookCityService
 // 	required int32 count = 2;
 // }
 
+=======
+syntax = "proto2";
+import "common.proto";
+package bookCityService;
+option cc_generic_services = true;
+
+
+message bookBaseInfo
+{// 书本基础信息
+	required string bookName 	= 1;
+	required string authorName 	= 2;
+	required int32  bookType 	= 3;
+	required string publishTime = 4;	// 入库时间
+	required string publishHouse= 5;	// 出版社
+	required string bookIntro 	= 6; 	// 书籍简介
+	required int32  bookPage 	= 7;	// 页数
+	required int32  languageType= 8; 	// 语言类型
+	optional string bookId	 	= 9;	//该项仅在增添时启用
+}
+
+message updateBookBaseInfo
+{
+	optional string bookName 	= 1;
+	optional string authorName 	= 2;
+	optional int32  bookType 	= 3;
+	optional string publishTime = 4;	// 入库时间
+	optional string publishHouse= 5;	// 出版社
+	optional string bookIntro 	= 6; 	// 书籍简介
+	optional int32  bookPage 	= 7;	// 页数
+	optional int32  languageType= 8; 	// 语言类型
+	required string bookId	 	= 9;	
+}
+
+message bookDownInfo
+{// 书籍下载相关信息
+	required int32   fileSize	= 1;
+	required string bookHeadUrl = 2;
+	required string bookDownUrl = 3;
+
+}
+
+message bookGradeInfo
+{// 书籍评分信息
+	required int32 remarkCount	= 1; 
+	required float averageScore	= 2;
+}
+
+message boocomCombinekInfo
+{ // 书籍信息总结构
+	required string bookId 			= 1;
+	required bookBaseInfo baseInfo 	= 2;
+	required bookDownInfo downInfo  = 3;
+	required bookGradeInfo gradeInfo= 4;
+}
+
+message bookMarkItem 
+{ // 读书笔记结构
+	required string bookId = 1;
+}
+
+message getAllBookInfoReq 
+{ // 获取数据库所有书籍信息请求信息
+	optional int32 offset = 1;
+	optional int32 size = 2;
+}
+
+message searchBookReq 
+{ // 多属性或单属性查找书籍，一般为单属性
+	optional int32 userId = 1;
+	optional string bookId = 2;
+	optional string bookName = 3;
+	optional string authorName = 4; 
+	optional int32  bookType = 5;
+	optional string publishHouse = 6;
+	required string dayTime = 7;
+	required int32 offset = 8;
+	required int32 count = 9;
+}
+
+
+
+
+message booksRespList 
+{ // 大量书籍信息回发信息
+	optional string userId = 1;
+	repeated boocomCombinekInfo lists = 2;
+	required int32 count = 3;
+}
+
+message getBookTypeReq 
+{ // 获取某种type类型的图书
+	optional string userId = 1;				// 
+	required string type = 2;				//
+	optional int32  offset = 3;				//
+	required int32  count = 4;				//
+	optional int32  sortMethod = 5;			// 排序算法
+}
+
+
+
+message delBookReq
+{ // 删除数据库书籍请求
+    required string userId = 1;
+    required string bookId = 2;
+    optional string delTime = 3;
+}
+
+message adsReq
+{ // 书城广告图片请求
+	optional string bookId = 1;
+	optional string adUrl = 2;
+}
+
+message adInfo
+{ // 一份广告信息
+	optional string adUrl = 1;
+	repeated boocomCombinekInfo lists = 2;
+}
+
+message adsRes
+{ // 书城广告图片回发信息
+	repeated adInfo lists = 1;
+	required int32 count = 2;
+}
+
+message recommendBookReq
+{ // 个性化书籍推荐请求
+	required int32 userId = 1;
+}
+
+message recommendBookRes
+{ // 个性化书籍推荐
+	repeated boocomCombinekInfo lists = 1;
+	required int32 count = 2;
+}
+
+message browseBookReq
+{ // 翻阅书城书籍请求
+	required int32 userId = 1;
+}
+
+message browseBookRes
+{ // 翻阅书城书籍
+	repeated boocomCombinekInfo lists = 1;
+	required int32 count = 2;
+}
+
+message universalBlankReq
+{//榜单、词条通用
+	optional string dayTime = 1;	//今日时间 xxxx-xx-xx
+	optional int32 count = 2  ;	//请求书本数目
+}
+
+message mostlybooks
+{
+	required string bookId =  1 ;
+	required string bookName = 2 ;
+	required int32 searchTimes = 3 ;
+}
+message mostlySearchRes
+{ // 搜索最多书籍结果 
+	repeated mostlybooks lists = 1;
+	required int32 count = 2;
+}
+
+message fuzzySearchRequest
+{
+	required string  words = 1 ;
+	required string  dayTime = 2 ;
+	required int32 count = 3 ;
+	required int32 offset = 4 ;
+}
+service bookCityService 
+{
+	rpc addBookInfoFun(bookBaseInfo) returns(commonService.commonResp);			// 
+	rpc searchBookInfoFun(searchBookReq) returns(booksRespList);			    // 
+	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);		    // 
+	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
+	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
+	rpc getBookADSFun(adsReq) returns(adsRes); 									// 书城广告图片
+	rpc getRecommendBookFun(recommendBookReq) returns(recommendBookRes); 		// 个性化书籍
+	rpc getBrowseBookFun(browseBookReq) returns(browseBookRes); 				// 翻阅书城书籍
+	rpc getMostlySearchFun(universalBlankReq) returns(mostlySearchRes); 		// 获取搜索最多的书籍
+	rpc getPopularSearchFun(universalBlankReq) returns(booksRespList); 			// 获取榜单书籍
+	rpc FuzzySearchBooksFun(fuzzySearchRequest) returns(booksRespList);			// 模糊匹配书籍
+}
+
+
+
+// message searchItem
+// { // 查根据书籍单条属性查找书籍，废弃
+// 	required string attribute = 1;		// 属性名
+// 	required string value = 2;			// 属性值
+// }
+
+// message searchItems
+// { // 多属性查找书籍，废弃
+// 	repeated searchItem attrlists = 1;
+// 	required int32 count = 2;
+// }
+
+
+// 该消息接口应当被废弃 暂时留存等待新表建立
+// message bookInfoItem 
+// { // 书籍信息结构
+// 	required string bookId = 1;
+// 	optional string bookName = 2;
+// 	optional string bookHeadUrl = 3;
+// 	optional string bookDownUrl = 4;
+// 	optional string bookType = 5;
+// 	optional string authorName = 6;
+// 	optional string publishTime = 7;	// 入库时间
+// 	optional string userId = 8;
+//     optional int32  hits = 9;           // 可选参数，点赞数
+// 	optional string bookIntro = 10; // 书籍简介
+// }
+
+// message getBookTypeResp 
+// { // 获取书籍类型结果信息
+// 	repeated bookInfoItem bookLists = 1;
+// 	required int32 count = 2;	
+// }
+
+// message readBookRecordResp
+// { // 获取最近阅读记录结果信息
+// 	repeated bookInfoItem bookLists = 1;
+// 	required int32 count = 2;
+// }
+>>>>>>> 6e3698d0b0c8dda16fd56ca04329a5f75e4f0595
