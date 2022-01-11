@@ -81,7 +81,8 @@ namespace Analyze
         void read_line_chart(vector<double> &lineChart,
                                 const rapidjson::Document & document,int &counter);
         
-        
+        int replace_rows(map<string,string> & timeFocus,const int & user_id);
+
         int deal_read_interval(vector<string> &allTime, float *res);
         
     private:
@@ -133,7 +134,26 @@ int SightAnalyze::get_interval_count(const int & user_id, string day_time,  floa
 }
 
 
+int SightAnalyze::replace_rows(map<string,string> & timeFocus,const int & user_id)
+{//替换行算法，暂时使用
+    string analyseCsvFilePath = FLAGS_sightCsvPath  + to_string(user_id) + "_Analyse.csv";
+    string rowJsonFilePath =  FLAGS_sightAnalyseJsonPath+ to_string(user_id)+"/row_" + to_string(user_id) + "_Analyse.json";
+    rapidjson::Document document;
+    
+    int ret = system(string("python ../../../dispose/LineCalculate.py " + analyseCsvFilePath +" " +rowJsonFilePath).c_str());
 
+    string localJs = FLAGS_sightAnalyseJsonPath + to_string(user_id)+"/row_" + to_string(user_id) + "_Analyse.json";
+    string json_content = get_json_content(rowJsonFilePath) ;
+    cout<<"json_content"<<json_content<<endl;
+    document.Parse(json_content.c_str());
+
+    if ((document.HasMember("rows")))
+    {
+        cout<<"000"<<endl;
+        timeFocus["rows"] = std::to_string(document["rows"].GetInt());         
+    }
+    return 1 ;
+}
 
 SQL_STATUS SightAnalyze::insert_sight_data(const pageSight & data)
 {
@@ -198,6 +218,7 @@ int SightAnalyze::storage_analyse_csv(const string &timeStamp,const int & userId
     string CsvFilePath = FLAGS_sightCsvPath + to_string(userId) + "_Analyse.csv";
     vector<SightTable>result ;
     SQL_STATUS ret = __sight.get_sight_by_timeStamp(result,timeStamp,userId);
+
     if(ret == SQL_STATUS::EXE_sus && result.size() > 0){
         write_sightTable_csv(CsvFilePath,result);
         return 1;
@@ -214,16 +235,16 @@ int SightAnalyze::storage_analyse_json(const int & userId)
         int ret = mkdir(filePath.data(), 0775);
         if (ret)
         {
-        cout << endl
-                <<"FILE: " << __FILE__ << endl
-                << "创建(" << filePath << ")目录错误: " 
-                << strerror(errno) << " LINE  "
-                << __LINE__ << endl;
-        return -1;
+            cout << endl
+                    <<"FILE: " << __FILE__ << endl
+                    << "创建(" << filePath << ")目录错误: " 
+                    << strerror(errno) << " LINE  "
+                    << __LINE__ << endl;
+            return -1;
         }
     }
 
-    int ret = system(string("python server.py " + to_string(userId)).c_str());
+    int ret = system(string("python ../../../dispose/server.py " + to_string(userId)).c_str());
         
     return ret ;
 }
@@ -353,6 +374,10 @@ int SightAnalyze::get_analyse_result(map<string,string> & timeFocus,
     int counter = 0 ;
     //专注度
     read_time_focus(timeFocus,document,counter);
+    //暂时替换
+    int ret = replace_rows(timeFocus,userId);
+    if(ret != 1)
+        return 0;
     //散点
     read_scatter_diagram(scatterDiagram,document,counter);
     //折线图

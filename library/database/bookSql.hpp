@@ -46,13 +46,13 @@ namespace ormpp
                                                 const int &auto_book_id);
         SQL_STATUS get_book_by_book_id(CombineBook & book, 
                                                 const string &book_id);
-        SQL_STATUS get_books_by_option(vector<CombineBook > &books, 
-                                                const option & optionName,const string &optionValue);
+        SQL_STATUS get_books_by_option(vector<CombineBook > &books,const option & optionName,
+                                            const string &optionValue, const int & offset,const int & count);
         SQL_STATUS insert_book_info(const BookBaseInfoTable &book);
         SQL_STATUS insert_book_info(const int & auto_book_id,const string &book_id, 
                                                 const string &book_name, const string &author_name, 
-                                                const string &bookType, const string &publishTime, 
-                                                const string &publishHouse,const string & bookIntro,
+                                                const string &bookType, const string &publishHouse , 
+                                                const string &publishTime,const string & bookIntro,
                                                 const int & book_page,const int & languageType);
         SQL_STATUS get_all_book_info(vector<CombineBook > &books);
         virtual SQL_STATUS up_book_Info(std::map<option,sqlUpdateVal> up_data);
@@ -96,13 +96,13 @@ SQL_STATUS BookInfoImpl::get_book_by_autoBookId(CombineBook & book,
     SQL_STATUS ret = __base->get_book_baseInfo_by_autoBookId(base_book_info,auto_book_id);
     if(ret != SQL_STATUS::EXE_sus)
         return SQL_STATUS::EXE_err;
-    
+
     BookScoreStat stat_info; 
     
     ret = __grade->get_remark_count(stat_info.count,base_book_info.autoBookId);
     if(ret != SQL_STATUS::EXE_sus)
         return SQL_STATUS::EXE_err;
-
+    
     //暂无评分
     if(stat_info.count == 0)
     {
@@ -191,11 +191,13 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(CombineBook & book,
     return SQL_STATUS::EXE_sus;
 }
 
-SQL_STATUS BookInfoImpl::get_books_by_option(vector<CombineBook > &books, 
-                                                const option & optionName,const string &optionValue)
+SQL_STATUS BookInfoImpl::get_books_by_option(vector<CombineBook > &books,const option & optionName,
+                                            const string &optionValue, const int & offset,const int & count)
 {
+    if(offset < 0 ||count < 0)
+        return SQL_STATUS::Illegal_info;
     vector<BookBaseInfoTable> base_info_books;
-    SQL_STATUS ret = __base-> get_books_baseInfo_by_option(base_info_books,optionName,optionValue) ;
+    SQL_STATUS ret = __base-> get_books_baseInfo_by_option(base_info_books,optionName,optionValue,offset,count) ;
     if(ret == SQL_STATUS::EXE_err || ret == SQL_STATUS::Pool_err)
         return SQL_STATUS::EXE_err;
     else if(ret == SQL_STATUS::Illegal_info)
@@ -239,13 +241,13 @@ SQL_STATUS BookInfoImpl::up_book_Info(std::map<option,sqlUpdateVal> up_data)
 
 SQL_STATUS BookInfoImpl::insert_book_info(const int & auto_book_id,const string &book_id, 
                                         const string &book_name, const string &author_name, 
-                                        const string &bookType, const string &publishTime, 
-                                        const string &publishHouse,const string & bookIntro,
+                                        const string &bookType, const string &publishHouse , 
+                                        const string &publishTime,const string & bookIntro,
                                         const int & book_page,const int & languageType)
 {
     cout<<" t  h"<<publishTime<<" "<<publishHouse<<endl;
-    return __base->insert_book_baseInfo(auto_book_id,book_id,book_name,author_name,bookType,publishTime, 
-                                            publishHouse, bookIntro,book_page,languageType);
+    return __base->insert_book_baseInfo(auto_book_id,book_id,book_name,author_name,bookType,
+                                            publishHouse,publishTime, bookIntro,book_page,languageType);
 }
 
 SQL_STATUS BookInfoImpl::get_mostly_search_by_month_count(const string & monthTime,
