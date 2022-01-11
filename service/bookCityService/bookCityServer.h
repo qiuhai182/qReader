@@ -239,7 +239,7 @@ namespace bookCityService
 			if (request->has_authorname())
 			{
 				optionName = "authorName";
-				optionValue = request->bookname();
+				optionValue = request->authorname();
 			}
 			if (request->has_publishhouse())
 			{

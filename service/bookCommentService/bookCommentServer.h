@@ -35,7 +35,7 @@ namespace BookCommentService
 	private:
 		inline bool isSqlOption(const int & option)
 		{//模式 0:按照时间 1:按照点赞数 2:按照评分
-			if( 0 <= option && option <= 3)
+			if( 0 <= option && option <= 2)
 				return true;
 			else
 				return false;
@@ -48,7 +48,7 @@ namespace BookCommentService
 			comment->set_content(get<1>(commentSql));
 			comment->set_score(get<2>(commentSql)* 0.1);
 			string  userHeadUrl ;//头像
-			if(get<5>(commentSql) == 0)
+			if(get<5>(commentSql) == 1)
 				userHeadUrl = FLAGS_headUrlPre +  to_string(get<3>(commentSql)) + "_head.png";
 			else
 				userHeadUrl = FLAGS_headUrlPre + "default.png";
@@ -99,17 +99,17 @@ namespace BookCommentService
 			if(request->pattern() == 0)
 			{//时间
 				ret = __bookCommentSql.get_comment_by_time(request->observer() ,
-							request->offset(), request->count(), res,request->reverse() );
+							request->offset(), request->count(), res,request->bookid(),request->reverse() );
 			}
 			else if(request->pattern() == 1)
 			{//点赞
 				ret = __bookCommentSql.get_comment_by_hit(request->observer() ,
-							request->offset(), request->count(), res,request->reverse() );
+							request->offset(), request->count(), res,request->bookid(),request->reverse() );
 			}
 			else
 			{//评分
 				ret = __bookCommentSql.get_comment_by_score(request->observer() ,
-							request->offset(), request->count(), res,request->reverse() );
+							request->offset(), request->count(), res,request->bookid(),request->reverse() );
 			}
 			//结果判断
 			if(ret != SQL_STATUS::EXE_sus && res.size() == 0)
