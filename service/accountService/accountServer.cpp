@@ -5,10 +5,10 @@ int main(int argc, char *argv[])
 {
 
   cout << endl
-       << "   重庆师范大学-智能阅读器-服务器  开始初始化" << endl
+       << "   重庆师范大学-智能阅读器-用户服务  开始初始化" << endl
        << endl;
 
-  initDataPath(); // 初始化函数
+  //initDataPath(); // 初始化函数
 
   GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 

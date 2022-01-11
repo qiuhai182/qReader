@@ -6,13 +6,6 @@
 #include <unordered_map>
 #include <butil/logging.h>
 #include <sys/io.h>
-#include "userdata.hpp"
-#include "bookdata.hpp"
-#include "usershelfdata.hpp"
-#include "commentdata.hpp"
-#include "bitmap.hpp"
-#include "sightdata.hpp"
-#include "contenttype.hpp"
 #include "echo.pb.h"
 
 using namespace std;

@@ -1,11 +1,3 @@
-/*
- * @Author: zqj
- * @Date: 2021-11-06 01:41:04
- * @LastEditTime: 2021-11-07 01:08:37
- * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /qReader/fileUpDownService/fileUpDownServer.h
- */
 #pragma once
 
 #include <gflags/gflags.h>
@@ -14,12 +6,8 @@
 #include <unordered_map>
 #include <butil/logging.h>
 #include <sys/io.h>
-#include "userdata.hpp"
-#include "bookdata.hpp"
-#include "usershelfdata.hpp"
-#include "commentdata.hpp"
+#include "public/location.hpp"
 #include "bitmap.hpp"
-#include "sightdata.hpp"
 #include "contenttype.hpp"
 #include "fileupdown.pb.h"
 using namespace std;
