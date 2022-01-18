@@ -1,0 +1,77 @@
+syntax = "proto2";
+import "common.proto";
+package PageCommentService;
+option cc_generic_services = true;
+
+message pageCommentInfo
+{// 书籍评论信息
+	required string title 	    = 1;	// 标题
+	required string content 	= 2;	// 内容
+	required float  score 		= 3;	// 评分
+	required int32 	praised     = 4;	// 被点赞userId
+	required string nickName	= 5;	// 昵称
+	required string headUrl 	= 6; 	// 头像
+	required string remarkTime 	= 7;	// 发表时间
+	required string bookId		= 8;	// bookId
+	required bool   isHit		= 9; 	// 获取者是否点赞
+	required int32 	hitCount	= 10;	// 被点赞数
+    required int32  commentId   = 11;    // commentId
+}
+
+message pageCommentReq
+{//书籍评论请求
+	
+	required int32 	observer  	= 1;	// 请求者userId
+	required int32  offset 		= 2 ;	// 偏移量
+	required int32  count 		= 3;	// 请求数
+	required string bookId		= 4 ;	//	被查看的书籍bookId
+    /*通过pattern和reverse确定请求类型*/
+	required int32  pattern 	= 5;	// 模式 0:按照时间 1:按照点赞数 2:按照评分
+	required bool 	reverse		= 6;	// 排序模式 true为降序 ，false 为升序
+    optional int32  parentId    = 7;	// 父评论ID 请求子评论时发送
+}
+
+message pageCommentResp
+{//返回的书籍评论
+	repeated pageCommentInfo lists  = 1; // 评论
+	required int32 		count		= 2; // 数量	 
+	optional string 	errorRes	= 3; // 错误原因
+}
+
+message hitCommentReq
+{
+	required int32  hitter	= 1;	// 点赞者
+	required int32 praised  = 2;	// 被点赞者
+	required string bookId 	= 3;	// 对应评论的bookId
+    required int32  commentId = 4 ;	// 被点赞评论ID
+}
+
+message deleteCommentReq
+{
+	required int32 commentId = 1 ;		// 被删除评论ID
+	required int32 type	 	 = 2 ; 		// 评论种类 0:父评论 1:子评论
+} 
+
+message addCommentReq
+{
+	required int32 userId = 1 ;		// 评论者userId
+	required string bookId = 2;		// 评论的书籍bookId
+	required string title = 3 ;		// 标题
+	required string content = 4;	// 内容
+	required string remarkTime = 5; // 评论时间
+	required int32  page = 6 ;		// page
+    optional int32 parentId = 7;    // 父评论ID 回复顶层评论时填充
+}
+
+service PageCommentService 
+{
+	rpc getTopCommentFun(pageCommentReq) returns(pageCommentResp);						// 
+    rpc getSubCommentFun(pageCommentReq) returns(pageCommentResp);                      //
+	rpc hitCommentFun(hitCommentReq) returns(commonService.commonResp);			    	// 
+	rpc CancalHitCommentFun(hitCommentReq) returns(commonService.commonResp);			//
+    rpc addTopCommentFun(addCommentReq) returns(commonService.commonResp);			    // 
+    rpc addSubCommentFun(addCommentReq) returns(commonService.commonResp);				// 
+	rpc delCommentFun(deleteCommentReq) returns(commonService.commonResp);				// 
+}
+
+

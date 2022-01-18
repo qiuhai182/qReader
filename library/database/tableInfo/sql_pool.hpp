@@ -74,12 +74,11 @@ namespace ormpp
 	inline SQL_STATUS execute_sql(pool_conn & conn ,const string & cause,const string & state)
 	{//执行原生语句
 		int ret = conn->execute(state); 
-		cout <<"cond is "<<state << " ret is " << ret<<endl ;
-		cout<<" ret  is "<< ret << endl ;
 		if (ret != 1)
 		{
 			cout<<endl
-				<< cause << " error" << endl;
+				<< cause << " error" 
+				<< endl;
 			return SQL_STATUS::EXE_err;
 		}
 		else{

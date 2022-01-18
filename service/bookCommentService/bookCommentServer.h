@@ -264,7 +264,8 @@ namespace BookCommentService
 				response->set_errorres("illegal information");
 				return;
 			}
-
+			//书籍评论仅仅覆盖
+			__bookCommentSql.delete_comment(request->bookid(),request->userid());
 			SQL_STATUS ret = __bookCommentSql.add_comment(
 											request->bookid(),request->userid(),request->score() * 10,//整型保存
 											request->title(),request->content(),request->remarktime()
