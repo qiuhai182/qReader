@@ -36,8 +36,8 @@ namespace ormpp
         int page ; //
         int replyCount; // 回复人数
     };
-    REFLECTION(PageCommentInfoTable, commentId,reviewer,title, 
-                        content,remarkTime,hitCount,bookId,page);
+    REFLECTION(PageCommentInfoTable, commentId,parentId,reviewer,title, 
+                        content,remarkTime,hitCount,bookId,page,replyCount);
 
     class PageCommentInfo{
     public: 
@@ -83,7 +83,7 @@ SQL_STATUS PageCommentInfo::create_table()
     string state = 
     "CREATE TABLE PageCommentInfoTable( "
         " commentId INTEGER NOT NULL, "
-        " parentId TEXT NOT NULL, "
+        " parentId INTEGER NOT NULL, "
         " reviewer INTEGER NOT NULL , "
         " title TEXT NOT NULL , "
         " content TEXT NOT NULL, "
@@ -92,7 +92,7 @@ SQL_STATUS PageCommentInfo::create_table()
         " bookId TEXT NOT NULL , "
         " page INTEGER NOT NULL, "
         " replyCount INTEGER NOT NULL ,"
-        " PRIMARY KEY (commentId,reviewer), "
+        " PRIMARY KEY (commentId,reviewer,page), "
         " CONSTRAINT page_reviewer_book_id FOREIGN KEY (reviewer) REFERENCES  UserInfoTable(userId) "
     " ) ENGINE = InnoDB  DEFAULT CHARSET = UTF8MB4 " ;
 
@@ -115,11 +115,21 @@ SQL_STATUS PageCommentInfo::insert_comment(const PageCommentInfoTable & comment)
             << " LINE  " << __LINE__ << endl;
         return SQL_STATUS::Pool_err;
     }
-
+    cout<<"ee"
+        <<comment.commentId
+        <<" "<<comment.bookId
+        <<" "<<comment.content
+        <<" "<<comment.hitCount
+        <<" "<<comment.page
+        <<" "<<comment.parentId
+        <<" "<<comment.replyCount
+        <<" "<<comment.remarkTime
+        <<" "<<comment.reviewer
+        <<endl;
 	int ret = conn->insert<PageCommentInfoTable>(comment);
-     if( 1 != ret ){
+    if( 1 != ret ){
         cout << __FILE__ << " : " << __LINE__ 
-            << "insert PageCommentInfoTable  error" << endl;
+             << "    insert PageCommentInfoTable  error  " << endl;
         return SQL_STATUS::EXE_err;
     }
     return SQL_STATUS::EXE_sus;
@@ -136,14 +146,11 @@ SQL_STATUS PageCommentInfo::delete_comment(const int & comment_id)
             << " LINE  " << __LINE__ << endl;
         return SQL_STATUS::Pool_err;
     }
-    string cond =  "commitId = " + to_string(comment_id);
-	bool ret = conn->delete_records<PageCommentInfoTable>(cond);
-     if( !ret ){
-        cout << __FILE__ << " : " << __LINE__ 
-            << "delete PageCommentInfoTable  error" << endl;
-        return SQL_STATUS::EXE_err;
-    }
-    return SQL_STATUS::EXE_sus;
+    string state = 
+            " delete from PageCommentInfoTable  where "
+            " commentId = " + to_string(comment_id) ;
+     
+    return execute_sql(conn," delete PageCommentInfoTable  a comment ",state);
 }
 
 SQL_STATUS PageCommentInfo::get_max_commentId(int & max_comment_id)
@@ -158,8 +165,8 @@ SQL_STATUS PageCommentInfo::get_max_commentId(int & max_comment_id)
         return SQL_STATUS::Pool_err;
     }
 
-    string state = "select *  from PageCommentInfoTable  where userId = (select max(userId) from PageCommentInfoTable) ";
-    auto res = conn->query<PageCommentInfoTable>(state);
+    string state = "select max(commentId) from PageCommentInfoTable ";
+    auto res = conn->query<tuple<int>>(state);
     if(res.size() ==0 ){
         cout << "FILE: " << __FILE__ << " "
             << " Possible maximum Commentid failure "
@@ -167,7 +174,7 @@ SQL_STATUS PageCommentInfo::get_max_commentId(int & max_comment_id)
         max_comment_id = 1;
         return SQL_STATUS::EXE_err;
     }
-    max_comment_id = res[0].commentId;
+    max_comment_id = get<0>(res[0]) + 1;
     return SQL_STATUS::EXE_sus;
 }
 
@@ -188,7 +195,7 @@ SQL_STATUS PageCommentInfo::increase_comment_hit(const int & comment_id)
     return execute_sql(conn,"increase page comment hit ",state);
 }
 
-SQL_STATUS decrease_comment_hit(const int & comment_id)
+SQL_STATUS PageCommentInfo::decrease_comment_hit(const int & comment_id)
 {//点赞减一
     auto conn = get_conn_from_pool();
     conn_guard guard(conn);

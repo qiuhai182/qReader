@@ -23,17 +23,38 @@ using namespace std;
 
 namespace ormpp
 {
+    struct pageCommentRes
+    {
+        string title;
+        string content;
+        int reviewer  ;     //
+        int hitCount; //
+        string remarkTime ;
+        int replyCount  ;     //
+        int isUpdateHead; //
+        string nickname; //
+        int commentId;
+        int isHited;
+    };
+
+    struct pageCommentParameter
+    {
+        string bookId;
+        int page;
+        int observer;
+        int offset;
+        int count;
+        bool reverse;
+        int parentId; //可选
+    };
 
     /** 
      * 某页评论信息操作
      */
-    //一个联合查询评论的结果结构 
-    //标题、具体内容、评分、userid、昵称、是否更改头像,时间 ,bookId  不包含是否已经点赞,被点赞数
-    typedef tuple<string,string,int,int,string,int,string,string,string>  sqlComHitRes;
-    //返回给调用层的结果  标题、具体内容、评分、userid、昵称、是否更改头像,时间,bookId、是否已经点赞、被点赞数
-    typedef tuple<string,string,int,int,string,int,string,string,bool,int>  commentRes;
-    //为点赞数评论查找的结果  标题、具体内容、评分、昵称,是否、更改头像时间
-    typedef tuple<string,string,int,string,int,string>  inforCount;
+    //一个联合查询页面评论的结果结构 
+    //标题，内容，点赞数，评论者userId,评论时间,回复数,是否更改头像,昵称,commentId
+    typedef tuple<string,string,int,int,string,int,int,string,int>   sqlPageComRes ;
+
     class PageCommentImpl
     {
 
@@ -50,28 +71,29 @@ namespace ormpp
             delete __comment;
             delete __comHit;
         }
-        SQL_STATUS get_supper_comment_by_time(vector<commentRes> & res ,const string & book_id ,
-                                                    const int & page ,const bool & reverse = false);
-        SQL_STATUS get_supper_comment_by_hit(vector<commentRes> & res ,const string & book_id ,
-                                                    const int & page ,const bool & reverse = false);
+        SQL_STATUS get_supper_comment_by_time(vector<pageCommentRes> & res ,const pageCommentParameter& para);
+        SQL_STATUS get_supper_comment_by_hit(vector<pageCommentRes> & res ,const pageCommentParameter& para);
 
-        SQL_STATUS get_sub_comment_by_time(vector<commentRes> & res ,
-                                                    const int &supper_comment_id,const bool & reverse = false);
-         SQL_STATUS get_sub_comment_by_hit(vector<commentRes> & res ,
-                                                    const int &supper_comment_id,const bool & reverse = false);
+        SQL_STATUS get_sub_comment_by_time(vector<pageCommentRes> & res ,const pageCommentParameter& para);
+        SQL_STATUS get_sub_comment_by_hit(vector<pageCommentRes> & res ,const pageCommentParameter& para);
+
         SQL_STATUS hit_comment(const PageCommentHitInfoTable & data);
         SQL_STATUS cancal_hit_comment_by_commentId_hitter(const int & comment_id,const int & hitter);       
-        SQL_STATUS add_comment(const PageCommentInfo & data);
+        SQL_STATUS add_comment(const PageCommentInfoTable & data);
         SQL_STATUS delete_comment(const int & comment_id ,const int & comment_type);
+        int is_exist_supper_comment(const int & comment_id);
+        int is_existing(const int & comment_id);
+        int is_hit_commented(const int & hitter,const int & comment_id);
+        SQL_STATUS get_max_commentId(int & max_comment_id);
     private:
-        string get_cond_by_pattern_reverse(const int &  pattern,const bool reverse);
         SQL_STATUS delete_some_sub_comment(const int &comment_id);
         SQL_STATUS delete_one_sub_comment(const int &comment_id);
         SQL_STATUS delete_supper_comment(const int & comment_id);
 
-        SQL_STATUS get_other_info_for_count(const int & praised,inforCount & res);
-        void get_full_comment(const int & observer,const vector<sqlComHitRes> & in,vector<commentRes> & res);
-        void get_full_comment(const int & observer,const vector<PageCommentInfoTable> & in,vector<commentRes> & res);
+        // SQL_STATUS add_supper_comment(const PageCommentInfo & data);
+        // SQL_STATUS add_sub_comment(const PageCommentInfo & data);
+
+        void get_full_comment(const int & observer,const vector<sqlPageComRes> & in,vector<pageCommentRes> & res);
     private:
         UserInfo * __user;
         PageCommentHitInfo * __comHit ;
@@ -90,29 +112,232 @@ SQL_STATUS PageCommentImpl::delete_comment(const int & comment_id ,const int & c
 {
     if(comment_type < 0 || comment_type > 1)
         return SQL_STATUS::Illegal_info;
-    if(comment_id = 0)
+    if(comment_type == 0)
         return delete_supper_comment(comment_id);
     else    
         return delete_one_sub_comment(comment_id);
 }
 
-/***********************************private**********************************/
-string PageCommentImpl::get_cond_by_pattern_reverse(const int &  pattern,const bool reverse)
-{// 0:time  1:hit  2:score
-    if( pattern < 0 || pattern > 2) 
-        return "";
+SQL_STATUS PageCommentImpl::get_supper_comment_by_time(vector<pageCommentRes> & res ,const pageCommentParameter& para)
+{//默认时间升序
+    if(para.offset < 0 || para.count < 0)
+        return SQL_STATUS::Illegal_info ;
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
+    }
+    string order = para.reverse == true ? "desc":"asc" ;
+
+    string state  = 
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName ,C.commentId "
+        " from PageCommentInfoTable C  "
+        " join UserInfoTable  U "  
+        " on U.userId = C.reviewer "
+        " where C.bookId = \'" + para.bookId + "\'" +
+        " and C.page = " + to_string(para.page) + 
+        " order by C.remarkTime  " + order +  
+        " limit " + to_string(para.offset) + " , " +  to_string(para.count);
+    cout << "state  is "<<state <<endl ;
+    auto buffer = conn->query<sqlPageComRes>(state);
+    if(buffer.size() == 0)
+        return SQL_STATUS::Empty_info ;
+    get_full_comment(para.observer,buffer,res);
+    if(res.size() == 0) 
+        return SQL_STATUS::EXE_err;
+    else 
+        return SQL_STATUS::EXE_sus;
+
+}
+
+SQL_STATUS PageCommentImpl::get_supper_comment_by_hit(vector<pageCommentRes> & res,const pageCommentParameter& para)
+{//默认点赞升序,时间升序
+    if(para.offset < 0 || para.count < 0)
+        return SQL_STATUS::Illegal_info ;
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
+    }
+    string order = para.reverse == true ? "desc":"asc" ;
+
+    string state  = 
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName ,C.commentId "
+        " from PageCommentInfoTable C  "
+        " join UserInfoTable  U "  
+        " on U.userId = C.reviewer "
+        " where C.bookId = \'" + para.bookId + "\'" +
+        " and C.page = " + to_string(para.page) + 
+        " order by C.hitCount  " + order +  
+        " , C.remarkTime desc"
+        " limit " + to_string(para.offset) + " , " +  to_string(para.count);
+    cout << "state  is "<<state <<endl ;
+    auto buffer = conn->query<sqlPageComRes>(state);
+    if(buffer.size() == 0)
+        return SQL_STATUS::Empty_info ;
+    get_full_comment(para.observer,buffer,res);
+    if(res.size() == 0) 
+        return SQL_STATUS::EXE_err;
+    else 
+        return SQL_STATUS::EXE_sus;
+
+}
+
+SQL_STATUS PageCommentImpl::get_sub_comment_by_time(vector<pageCommentRes> & res ,const pageCommentParameter& para)
+{//默认时间升序
+    if(para.offset < 0 || para.count < 0)
+        return SQL_STATUS::Illegal_info ;
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
+    }
+    string order = para.reverse == true ? "desc":"asc" ;
+
+    string state  = 
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName   ,C.commentId"
+        " from PageCommentInfoTable C  "
+        " join UserInfoTable  U "  
+        " on U.userId = C.reviewer "
+        " where C.bookId = \'" + para.bookId + "\'" +
+        " and C.page = " + to_string(para.page) + 
+        " and parentId =  " + to_string(para.parentId) +
+        " order by C.remarkTime  " + order +  
+        " limit " + to_string(para.offset) + " , " +  to_string(para.count);
+    cout<<" state  is "<<state <<endl ;
+    auto buffer = conn->query<sqlPageComRes>(state);
+    if(buffer.size() == 0)
+        return SQL_STATUS::Empty_info ;
+    get_full_comment(para.observer,buffer,res);
+    if(res.size() == 0) 
+        return SQL_STATUS::EXE_err;
+    else 
+        return SQL_STATUS::EXE_sus;
     
-    if(pattern == 0)
+
+}
+
+SQL_STATUS PageCommentImpl::get_sub_comment_by_hit(vector<pageCommentRes> & res ,const pageCommentParameter& para)
+{//默认评分升序,时间升序
+    if(para.offset < 0 || para.count < 0)
+        return SQL_STATUS::Illegal_info ;
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
     {
-        return string(" order by from_unixtime(G.remarkTime) ");
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
     }
-    else if(pattern == 1)
+    string order = para.reverse == true ? "desc":"asc" ;
+
+    string state  = 
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName   ,C.commentId"
+        " from PageCommentInfoTable C  "
+        " join UserInfoTable  U "  
+        " on U.userId = C.reviewer "
+        " where C.bookId = \'" + para.bookId + "\'" +
+        " and C.page = " + to_string(para.page) + 
+        " and parentId =  " + to_string(para.parentId) +
+        " order by C.hitCount  " + order +  
+        " , from_unixtime(C.remarkTime) desc"
+        " limit " + to_string(para.offset) + " , " +  to_string(para.count);
+    
+    auto buffer = conn->query<sqlPageComRes>(state);
+    if(buffer.size() == 0)
+        return SQL_STATUS::Empty_info ;
+    get_full_comment(para.observer,buffer,res);
+    if(res.size() == 0) 
+        return SQL_STATUS::EXE_err;
+    else 
+        return SQL_STATUS::EXE_sus;
+
+}
+
+SQL_STATUS PageCommentImpl::add_comment(const PageCommentInfoTable & data)
+{
+    return __comment->insert_comment(data);
+}
+
+int PageCommentImpl::is_existing(const int & comment_id)
+{
+    return __comment->is_existing(comment_id);
+}
+
+int PageCommentImpl::is_exist_supper_comment(const int & comment_id)
+{//是否存在
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
     {
-        return string(" ");
+        cout << "FILE: " << __FILE__ << " "
+            << "conn is NULL"
+            << " LINE  " << __LINE__ << endl;
+        return -1;
     }
-    else//2
+    string cond = "where commentId = " + to_string(comment_id);
+
+    auto res = conn->query<PageCommentInfoTable>(cond) ;
+
+    if (res.size() == 0)
+        return 0;
+    else if(res[0].parentId != 0)
+        return 0;//非顶层评论
+    else
+        return 1;
+
+}
+
+int PageCommentImpl::is_hit_commented(const int & hitter,const int & comment_id)
+{
+    return __comHit->is_hit_commented(hitter,comment_id);
+}
+
+SQL_STATUS PageCommentImpl::get_max_commentId(int & max_comment_id)
+{
+    return __comment->get_max_commentId(max_comment_id);
+}
+
+/***********************************private**********************************/
+
+void PageCommentImpl::get_full_comment(const int & observer,const vector<sqlPageComRes> & in,vector<pageCommentRes> & res)
+{
+    //标题，内容，点赞数，评论者userId,评论时间,回复数,是否更改头像,昵称,commentId
+    //typedef tuple<string,string,int,int,string,int,int,string,int>   sqlPageComRes ;
+
+    for(auto & temp:in)
     {
-        return string(" ");
+        pageCommentRes buffer;
+        buffer.title =std::move(get<0>(temp));
+        buffer.content = std::move(get<1>(temp));
+        buffer.hitCount = std::move(get<2>(temp));
+        buffer.reviewer = std::move(get<3>(temp));
+        buffer.remarkTime = std::move(get<4>(temp));
+        buffer.replyCount = std::move(get<5>(temp));
+        buffer.isUpdateHead = std::move(get<6>(temp));
+        buffer.nickname = std::move(get<7>(temp));
+        buffer.commentId = std::move(get<8>(temp));
+        int ret = __comHit->is_hit_commented(observer,get<8>(temp)) ;
+        if( ret == 1)
+            buffer.isHited  = 1;
+        else if( ret == 0)
+            buffer.isHited = 0;
+        else
+            continue;
+        res.push_back(std::move(buffer));
     }
 }
 
@@ -128,10 +353,10 @@ SQL_STATUS PageCommentImpl::delete_one_sub_comment(const int &comment_id)
         return SQL_STATUS::Pool_err;
     }
 
-    ret = __comHit->delete_hit_by_commentId(comment_id);
+    auto ret = __comHit->delete_hit_by_commentId(comment_id);
     if(ret != SQL_STATUS::EXE_sus)
         return ret;
-    ret =  __comm->delete_comment(comment_id);
+    ret =  __comment->delete_comment(comment_id);
     if(ret != SQL_STATUS::EXE_sus)
         return ret;
     //最后执行
@@ -151,14 +376,14 @@ SQL_STATUS PageCommentImpl::delete_some_sub_comment(const int &comment_id)
     }
     string cond = " where parentId = " + to_string(comment_id);
 
-	auto res = conn->query<PageCommentInfoTable>()
+	auto res = conn->query<PageCommentInfoTable>(cond);
     if(res.size() ==  0)
-        return SQL_STATUS::Illegal_info；
+        return SQL_STATUS::EXE_sus; // 无子评论
     
     for(auto & temp : res)
-    {
-        __comHit->delete_hit_by_commentId(comment_id);
-        __comm->delete_comment(comment_id);
+    {   
+        __comHit->delete_hit_by_commentId(temp.commentId);
+        __comment->delete_comment(temp.commentId);
     }
     return SQL_STATUS::EXE_sus;
 }
@@ -181,7 +406,7 @@ SQL_STATUS PageCommentImpl::delete_supper_comment(const int & comment_id)
     ret = __comHit->delete_hit_by_commentId(comment_id);
     if(ret != SQL_STATUS::EXE_sus)
         return ret;
-    ret =  __comm->delete_comment(comment_id);
+    ret =  __comment->delete_comment(comment_id);
     if(ret != SQL_STATUS::EXE_sus)
         return ret;
     
@@ -210,6 +435,7 @@ SQL_STATUS PageCommentImpl::cancal_hit_comment_by_commentId_hitter(const int & c
         return status;
     return __comment->decrease_comment_hit(comment_id);
 }
+
 
 #endif
 

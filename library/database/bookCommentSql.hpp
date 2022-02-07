@@ -69,9 +69,10 @@ namespace ormpp
                                         const string &content,const string & remark_time );
         SQL_STATUS delete_comment(const string &book_id ,const int &user_id);
     private:
-        SQL_STATUS get_other_info_for_count(const int & praised,inforCount & res);
+        SQL_STATUS get_other_info_for_count(const int & praised,const string &book_id,inforCount & res);
         void get_full_comment(const int & observer,const vector<sqlComHitRes> & in,vector<commentRes> & res);
-        void get_full_comment(const int & observer,const vector<BookCommentHitCountInfoTable> & in,vector<commentRes> & res);
+        void get_full_comment(const int & observer,const string &book_id,
+                                        const vector<BookCommentHitCountInfoTable> & in,vector<commentRes> & res);
         BookCommentHitInfo * __comHit ;
         UserInfo * __user;
         BookCommentHitCountInfo * __hitCount;
@@ -119,7 +120,7 @@ void BookCommentImpl::get_full_comment(const int & observer,const vector<sqlComH
     }
 }
 
-void BookCommentImpl::get_full_comment(const int & observer,
+void BookCommentImpl::get_full_comment(const int & observer,const string &book_id,
                                     const vector<BookCommentHitCountInfoTable> & in,vector<commentRes> & res)
 {//重载 获取bookId,praised,count以外的信息
 
@@ -134,7 +135,7 @@ void BookCommentImpl::get_full_comment(const int & observer,
     int isHit  = -1;
     for(int index = 0 ;index < size ;index++)
     {
-        ret = get_other_info_for_count(in[index].praised,get_info);
+        ret = get_other_info_for_count(in[index].praised,book_id,get_info);
         if(ret != SQL_STATUS::EXE_sus)
             continue;//错误
         get<0>(res_buffer) = get<0>(get_info);  // 标题
@@ -252,7 +253,7 @@ SQL_STATUS BookCommentImpl::get_comment_by_hit(const int & observer, const int &
     auto buffer = conn->query<BookCommentHitCountInfoTable>(cond);
     if(buffer.size() == 0)
         return SQL_STATUS::Empty_info ;
-    get_full_comment(observer,buffer,res);
+    get_full_comment(observer,book_id,buffer,res);
     if(res.size() == 0) 
         return SQL_STATUS::EXE_err;
     else 
@@ -260,7 +261,7 @@ SQL_STATUS BookCommentImpl::get_comment_by_hit(const int & observer, const int &
 
 }
 
-SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,inforCount & res)
+SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,const string &book_id,inforCount & res)
 {//获取其他的信息
     auto conn = get_conn_from_pool();
     conn_guard guard(conn);
@@ -277,7 +278,8 @@ SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,inforCo
         " select  G.title ,G.content ,G.bookScore , U.userNickName ,U.isUpdateHead, G.remarkTime "
         " from  BookGradeInfoTable  G  "
         " join UserInfoTable  U   on G.userId = U.userId  "
-        " where G.userId = " + to_string(praised);
+        " where G.userId = " + to_string(praised) +
+        " and G.bookId =  \'" + book_id + "\'";
     
     auto buffer = conn->query<inforCount>(state);
     if(buffer.size() == 0)

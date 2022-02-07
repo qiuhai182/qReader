@@ -42,7 +42,7 @@ namespace BookCommentService
 		}
 		//返回给调用层的结果  标题、具体内容、评分、userid、昵称、是否更改头像,时间,bookId、是否已经点赞、被点赞数
     	//typedef tuple<string,string,int,int,string,int,string,string,bool,int>  commentRes;
-		inline void fillComment(::BookCommentService::bookCommentInfo* comment,const commentRes & commentSql)
+		inline void fullComment(::BookCommentService::bookCommentInfo* comment,const commentRes & commentSql)
 		{//填充评论信息
 			comment->set_title(get<0>(commentSql));
 			comment->set_content(get<1>(commentSql));
@@ -112,7 +112,7 @@ namespace BookCommentService
 							request->offset(), request->count(), res,request->bookid(),request->reverse() );
 			}
 			//结果判断
-			if(ret != SQL_STATUS::EXE_sus && res.size() == 0)
+			if(ret != SQL_STATUS::EXE_sus || res.size() == 0)
 			{
 				response->set_count(0);
 				response->set_errorres("query information failed");
@@ -130,7 +130,7 @@ namespace BookCommentService
 				if(ret != SQL_STATUS::EXE_sus)
 					continue;
 				auto comment = response->add_lists();
-				fillComment(comment,temp);
+				fullComment(comment,temp);
 			}
 			response->set_count( res.size());
 			LOG(INFO) <<endl
@@ -264,7 +264,8 @@ namespace BookCommentService
 				response->set_errorres("illegal information");
 				return;
 			}
-
+			//书籍评论仅仅覆盖
+			__bookCommentSql.delete_comment(request->bookid(),request->userid());
 			SQL_STATUS ret = __bookCommentSql.add_comment(
 											request->bookid(),request->userid(),request->score() * 10,//整型保存
 											request->title(),request->content(),request->remarktime()
