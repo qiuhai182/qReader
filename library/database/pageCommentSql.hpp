@@ -83,6 +83,7 @@ namespace ormpp
         SQL_STATUS delete_comment(const int & comment_id ,const int & comment_type);
         int is_exist_supper_comment(const int & comment_id);
         int is_existing(const int & comment_id);
+        int is_hit_commented(const int & hitter,const int & comment_id);
         SQL_STATUS get_max_commentId(int & max_comment_id);
     private:
         SQL_STATUS delete_some_sub_comment(const int &comment_id);
@@ -133,7 +134,7 @@ SQL_STATUS PageCommentImpl::get_supper_comment_by_time(vector<pageCommentRes> & 
     string order = para.reverse == true ? "desc":"asc" ;
 
     string state  = 
-        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName  "
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName ,C.commentId "
         " from PageCommentInfoTable C  "
         " join UserInfoTable  U "  
         " on U.userId = C.reviewer "
@@ -141,7 +142,7 @@ SQL_STATUS PageCommentImpl::get_supper_comment_by_time(vector<pageCommentRes> & 
         " and C.page = " + to_string(para.page) + 
         " order by C.remarkTime  " + order +  
         " limit " + to_string(para.offset) + " , " +  to_string(para.count);
-    
+    cout << "state  is "<<state <<endl ;
     auto buffer = conn->query<sqlPageComRes>(state);
     if(buffer.size() == 0)
         return SQL_STATUS::Empty_info ;
@@ -154,7 +155,7 @@ SQL_STATUS PageCommentImpl::get_supper_comment_by_time(vector<pageCommentRes> & 
 }
 
 SQL_STATUS PageCommentImpl::get_supper_comment_by_hit(vector<pageCommentRes> & res,const pageCommentParameter& para)
-{//默认评分升序,时间升序
+{//默认点赞升序,时间升序
     if(para.offset < 0 || para.count < 0)
         return SQL_STATUS::Illegal_info ;
     auto conn = get_conn_from_pool();
@@ -169,16 +170,16 @@ SQL_STATUS PageCommentImpl::get_supper_comment_by_hit(vector<pageCommentRes> & r
     string order = para.reverse == true ? "desc":"asc" ;
 
     string state  = 
-        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName  "
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName ,C.commentId "
         " from PageCommentInfoTable C  "
         " join UserInfoTable  U "  
         " on U.userId = C.reviewer "
         " where C.bookId = \'" + para.bookId + "\'" +
         " and C.page = " + to_string(para.page) + 
         " order by C.hitCount  " + order +  
-        " , from_unixtime(C.remarkTime) desc"
+        " , C.remarkTime desc"
         " limit " + to_string(para.offset) + " , " +  to_string(para.count);
-    
+    cout << "state  is "<<state <<endl ;
     auto buffer = conn->query<sqlPageComRes>(state);
     if(buffer.size() == 0)
         return SQL_STATUS::Empty_info ;
@@ -206,16 +207,16 @@ SQL_STATUS PageCommentImpl::get_sub_comment_by_time(vector<pageCommentRes> & res
     string order = para.reverse == true ? "desc":"asc" ;
 
     string state  = 
-        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName  "
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName   ,C.commentId"
         " from PageCommentInfoTable C  "
         " join UserInfoTable  U "  
         " on U.userId = C.reviewer "
         " where C.bookId = \'" + para.bookId + "\'" +
         " and C.page = " + to_string(para.page) + 
-        "and parentId =  " + to_string(para.parentId) +
+        " and parentId =  " + to_string(para.parentId) +
         " order by C.remarkTime  " + order +  
         " limit " + to_string(para.offset) + " , " +  to_string(para.count);
-    
+    cout<<" state  is "<<state <<endl ;
     auto buffer = conn->query<sqlPageComRes>(state);
     if(buffer.size() == 0)
         return SQL_STATUS::Empty_info ;
@@ -244,13 +245,13 @@ SQL_STATUS PageCommentImpl::get_sub_comment_by_hit(vector<pageCommentRes> & res 
     string order = para.reverse == true ? "desc":"asc" ;
 
     string state  = 
-        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName  "
+        " select C.title ,C.content,C.hitCount,C.reviewer,C.remarkTime, C.replyCount,U.isUpdateHead ,U.userNickName   ,C.commentId"
         " from PageCommentInfoTable C  "
         " join UserInfoTable  U "  
         " on U.userId = C.reviewer "
         " where C.bookId = \'" + para.bookId + "\'" +
         " and C.page = " + to_string(para.page) + 
-        "and parentId =  " + to_string(para.parentId) +
+        " and parentId =  " + to_string(para.parentId) +
         " order by C.hitCount  " + order +  
         " , from_unixtime(C.remarkTime) desc"
         " limit " + to_string(para.offset) + " , " +  to_string(para.count);
@@ -300,6 +301,11 @@ int PageCommentImpl::is_exist_supper_comment(const int & comment_id)
 
 }
 
+int PageCommentImpl::is_hit_commented(const int & hitter,const int & comment_id)
+{
+    return __comHit->is_hit_commented(hitter,comment_id);
+}
+
 SQL_STATUS PageCommentImpl::get_max_commentId(int & max_comment_id)
 {
     return __comment->get_max_commentId(max_comment_id);
@@ -323,8 +329,13 @@ void PageCommentImpl::get_full_comment(const int & observer,const vector<sqlPage
         buffer.replyCount = std::move(get<5>(temp));
         buffer.isUpdateHead = std::move(get<6>(temp));
         buffer.nickname = std::move(get<7>(temp));
+        buffer.commentId = std::move(get<8>(temp));
         int ret = __comHit->is_hit_commented(observer,get<8>(temp)) ;
-        if( ret != 1)
+        if( ret == 1)
+            buffer.isHited  = 1;
+        else if( ret == 0)
+            buffer.isHited = 0;
+        else
             continue;
         res.push_back(std::move(buffer));
     }

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-01-07 20:53:10
- * @LastEditTime: 2022-01-10 21:04:13
+ * @LastEditTime: 2022-02-07 00:32:13
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /oxc/qReader/scripts/init/init.h
@@ -97,12 +97,12 @@ namespace Init
     //     cout<<"Error: "<<error<<endl;
     // }
 
-    try{
-        PageCommentInfo pagecommentInfo(false);
-        usleep(1000);
-    }catch(const char *error){
-        cout<<"Error: "<<error<<endl;
-    }
+    // try{
+    //     PageCommentInfo pagecommentInfo(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
 
     try{
         PageCommentHitInfo pagecommentHitInfo(false);

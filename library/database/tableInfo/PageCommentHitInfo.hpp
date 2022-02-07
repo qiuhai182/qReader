@@ -81,7 +81,7 @@ SQL_STATUS PageCommentHitInfo::create_table()
         " praised INTEGER NOT NULL , "
         " page INTEGER NOT NULL , "
         " bookId TEXT NOT NULL, "
-        " PRIMARY KEY (commentId) ,"
+        " PRIMARY KEY (commentId,hitter,praised) ,"
         " CONSTRAINT page_comment_hitId FOREIGN KEY (commentId) REFERENCES  PageCommentInfoTable(commentId)"
     " ) ENGINE = InnoDB  DEFAULT CHARSET = UTF8MB4 " ;
 
@@ -108,7 +108,7 @@ SQL_STATUS PageCommentHitInfo::insert_hit(const PageCommentHitInfoTable & page_c
 	int ret = conn->insert<PageCommentHitInfoTable>(page_comment_hit);
      if( 1 != ret ){
         cout << __FILE__ << " : " << __LINE__ 
-            << "insert PageCommentHitInfoTable  error" << endl;
+            << "  insert PageCommentHitInfoTable  error" << endl;
         return SQL_STATUS::EXE_err;
     }
     return SQL_STATUS::EXE_sus;

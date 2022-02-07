@@ -3,19 +3,19 @@ import "common.proto";
 package PageCommentService;
 option cc_generic_services = true;
 
+
 message pageCommentInfo
 {// 书籍评论信息
 	required string title 	    = 1;	// 标题
 	required string content 	= 2;	// 内容
-	required float  score 		= 3;	// 评分
-	required int32 	praised     = 4;	// 被点赞userId
-	required string nickName	= 5;	// 昵称
-	required string headUrl 	= 6; 	// 头像
-	required string remarkTime 	= 7;	// 发表时间
-	required string bookId		= 8;	// bookId
-	required bool   isHit		= 9; 	// 获取者是否点赞
-	required int32 	hitCount	= 10;	// 被点赞数
-    required int32  commentId   = 11;    // commentId
+	required int32 	reviewer    = 3;	// 被点赞userId
+	required int32 hitCount	= 4;	// 昵称
+	required string remarkTime 	= 5; 	// 头像
+	required int32 replyCount 	= 6;	// 发表时间
+	required string headUrl		= 7;	// bookId
+	required string   nickname	= 8; 	// 获取者是否点赞
+	required int32 	isHited		= 9;	// 被点赞数
+    optional int32  commentId   = 10;    // commentId
 }
 
 message pageCommentReq
@@ -26,9 +26,10 @@ message pageCommentReq
 	required int32  count 		= 3;	// 请求数
 	required string bookId		= 4 ;	//	被查看的书籍bookId
     /*通过pattern和reverse确定请求类型*/
-	required int32  pattern 	= 5;	// 模式 0:按照时间 1:按照点赞数 2:按照评分
+	required int32  pattern 	= 5;	// 模式 0:按照时间 1:按照点赞数 
 	required bool 	reverse		= 6;	// 排序模式 true为降序 ，false 为升序
-    optional int32  parentId    = 7;	// 父评论ID 请求子评论时发送
+	required int32 	page 		= 7;
+    optional int32  parentId    = 8;	// 父评论ID 请求子评论时发送
 }
 
 message pageCommentResp
@@ -41,9 +42,10 @@ message pageCommentResp
 message hitCommentReq
 {
 	required int32  hitter	= 1;	// 点赞者
-	required int32 praised  = 2;	// 被点赞者
-	required string bookId 	= 3;	// 对应评论的bookId
-    required int32  commentId = 4 ;	// 被点赞评论ID
+	optional int32 	praised  = 2;	// 被点赞者
+	optional string bookId 	= 3;	// 对应评论的bookId
+	optional int32 	page 	= 4;	//
+    required int32  commentId = 5 ;	// 被点赞评论ID
 }
 
 message deleteCommentReq
