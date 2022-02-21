@@ -8,20 +8,20 @@ namespace bookType{
 
     
     enum class primaryClass{
-        Computer = 1 ,  
-        Education= 2,
-        Finance_economics = 3, 
-        Science_fiction = 4,
-        Suspense_reasoning = 5,//悬疑推理
-        Romance = 6 ,//言情
-        Literature = 7,
-        History = 8,
-        Geographic = 9,
-        Political = 10,
-        Chemical = 11,
-        Biological = 12,
-        Physical = 13,
-        Mathematics = 14
+        Computer = 0 ,  
+        Education= 1,
+        Finance_economics = 2, 
+        Science_fiction = 3,
+        Suspense_reasoning = 4,//悬疑推理
+        Romance = 5 ,//言情
+        Literature = 6,
+        History = 7,
+        Geographic = 8,
+        Political = 9,
+        Chemical = 10,
+        Biological = 11,
+        Physical = 12,
+        Mathematics = 13
     };
     
     std::string primary_enum_to_string(const primaryClass & type) 
@@ -99,7 +99,7 @@ namespace bookType{
 
     bool isPrimaryClass(int type)
     {
-        if(type < 0 || type > 14){
+        if(type < 0 || type > 13){
             return false; 
         }
         return true;
