@@ -57,11 +57,11 @@ namespace ormpp
         }
     
         SQL_STATUS get_comment_by_score(const int & observer, const int & offset, 
-                                        const int &count ,vector<commentRes> & res, const bool &reverse = false);
+                                        const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse = false);
         SQL_STATUS get_comment_by_time(const int & observer, const int & offset, 
-                                        const int &count ,vector<commentRes> & res, const bool &reverse = false);
+                                        const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse = false);
         SQL_STATUS get_comment_by_hit(const int & observer, const int & offset, 
-                                        const int &count ,vector<commentRes> & res, const bool &reverse = false);
+                                        const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse = false);
         SQL_STATUS hit_comment_by_bookId_praised(const int & hitter,const string & book_id,const int & praised);
         SQL_STATUS cancal_hit_comment_by_bookId_praised(const int & hitter,const string & book_id,const int & praised);               
         SQL_STATUS add_comment(const string &book_id ,const int &user_id,
@@ -69,12 +69,10 @@ namespace ormpp
                                         const string &content,const string & remark_time );
         SQL_STATUS delete_comment(const string &book_id ,const int &user_id);
     private:
-        SQL_STATUS create_table();
-        SQL_STATUS get_other_info_for_count(const int & praised,inforCount & res);
+        SQL_STATUS get_other_info_for_count(const int & praised,const string &book_id,inforCount & res);
         void get_full_comment(const int & observer,const vector<sqlComHitRes> & in,vector<commentRes> & res);
-        void get_full_comment(const int & observer,const vector<BookCommentHitCountInfoTable> & in,vector<commentRes> & res);
-        // SQL_STATUS create_double_index();
-        // SQL_STATUS create_indexs();
+        void get_full_comment(const int & observer,const string &book_id,
+                                        const vector<BookCommentHitCountInfoTable> & in,vector<commentRes> & res);
         BookCommentHitInfo * __comHit ;
         UserInfo * __user;
         BookCommentHitCountInfo * __hitCount;
@@ -122,7 +120,7 @@ void BookCommentImpl::get_full_comment(const int & observer,const vector<sqlComH
     }
 }
 
-void BookCommentImpl::get_full_comment(const int & observer,
+void BookCommentImpl::get_full_comment(const int & observer,const string &book_id,
                                     const vector<BookCommentHitCountInfoTable> & in,vector<commentRes> & res)
 {//重载 获取bookId,praised,count以外的信息
 
@@ -137,7 +135,7 @@ void BookCommentImpl::get_full_comment(const int & observer,
     int isHit  = -1;
     for(int index = 0 ;index < size ;index++)
     {
-        ret = get_other_info_for_count(in[index].praised,get_info);
+        ret = get_other_info_for_count(in[index].praised,book_id,get_info);
         if(ret != SQL_STATUS::EXE_sus)
             continue;//错误
         get<0>(res_buffer) = get<0>(get_info);  // 标题
@@ -160,7 +158,7 @@ void BookCommentImpl::get_full_comment(const int & observer,
 }
 
 SQL_STATUS BookCommentImpl::get_comment_by_score(const int & observer, const int & offset, 
-                                        const int &count ,vector<commentRes> & res, const bool &reverse )
+                                        const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse)
 {//默认评分升序,时间升序
     if(offset < 0 || count < 0)
         return SQL_STATUS::Illegal_info ;
@@ -177,9 +175,10 @@ SQL_STATUS BookCommentImpl::get_comment_by_score(const int & observer, const int
     string order = reverse == true ? "desc":"asc" ;
 
     string state  = 
-        " select  G.title , G.content , G.bookScore , U.userId , U.userNickName , U.isUpdateHead, from_unixtime(G.remarkTime), G.bookId"
+        " select  G.title , G.content , G.bookScore , U.userId , U.userNickName , U.isUpdateHead, G.remarkTime, G.bookId"
         " from  BookGradeInfoTable  G join UserInfoTable  U  "
         " on G.userId = U.userId  "
+        " where G.bookId = \'" + book_id + "\'" +
         " order by  G.bookScore "
         + order + 
         "  , from_unixtime(G.remarkTime) desc " 
@@ -197,7 +196,7 @@ SQL_STATUS BookCommentImpl::get_comment_by_score(const int & observer, const int
 
 
 SQL_STATUS BookCommentImpl::get_comment_by_time(const int & observer, const int & offset, 
-                                        const int &count ,vector<commentRes> & res, const bool &reverse )
+                                        const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse)
 {//默认时间升序
     if(offset < 0 || count < 0)
         return SQL_STATUS::Illegal_info ;
@@ -214,9 +213,10 @@ SQL_STATUS BookCommentImpl::get_comment_by_time(const int & observer, const int 
     string order = reverse == true ? "desc":"asc" ;
 
     string state  = 
-        " select  G.title , G.content , G.bookScore , U.userId , U.userNickName ,U.isUpdateHead, from_unixtime(G.remarkTime), G.bookId"
+        " select  G.title , G.content , G.bookScore , U.userId , U.userNickName ,U.isUpdateHead, G.remarkTime, G.bookId"
         " from  BookGradeInfoTable  G join UserInfoTable  U  "
         " on G.userId = U.userId  "
+        " where G.bookId = \'" + book_id + "\'" +
         " order by from_unixtime(G.remarkTime) " + 
         order + " limit " + to_string(offset) + " , " +  to_string(count);
 
@@ -231,7 +231,7 @@ SQL_STATUS BookCommentImpl::get_comment_by_time(const int & observer, const int 
 }
 
 SQL_STATUS BookCommentImpl::get_comment_by_hit(const int & observer, const int & offset, 
-                                        const int &count ,vector<commentRes> & res, const bool &reverse )
+                                        const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse)
 {//根据点赞数获取升序 时间降序
     if(offset < 0 || count < 0)
         return SQL_STATUS::Illegal_info ;
@@ -246,13 +246,14 @@ SQL_STATUS BookCommentImpl::get_comment_by_hit(const int & observer, const int &
         return SQL_STATUS::Pool_err;
     }
     string order = reverse == true ? "desc":"asc" ;
-    string cond  = " order by count " + order +
+    string cond  =  " where bookId = \'" + book_id + "\'" + 
+                    " order by count " + order +
                     " limit " + to_string(offset) + " , " +  to_string(count);
     
     auto buffer = conn->query<BookCommentHitCountInfoTable>(cond);
     if(buffer.size() == 0)
         return SQL_STATUS::Empty_info ;
-    get_full_comment(observer,buffer,res);
+    get_full_comment(observer,book_id,buffer,res);
     if(res.size() == 0) 
         return SQL_STATUS::EXE_err;
     else 
@@ -260,7 +261,7 @@ SQL_STATUS BookCommentImpl::get_comment_by_hit(const int & observer, const int &
 
 }
 
-SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,inforCount & res)
+SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,const string &book_id,inforCount & res)
 {//获取其他的信息
     auto conn = get_conn_from_pool();
     conn_guard guard(conn);
@@ -274,10 +275,11 @@ SQL_STATUS BookCommentImpl::get_other_info_for_count(const int & praised,inforCo
     //为点赞数评论查找的结果  标题、具体内容、评分、昵称,是否、更改头像、时间
     //typedef tuple<string,string,int,string,int,string>  inforCount;
     string state  = 
-        " select  G.title ,G.content ,G.bookScore , U.userNickName ,U.isUpdateHead, from_unixtime(G.remarkTime) "
+        " select  G.title ,G.content ,G.bookScore , U.userNickName ,U.isUpdateHead, G.remarkTime "
         " from  BookGradeInfoTable  G  "
         " join UserInfoTable  U   on G.userId = U.userId  "
-        " where G.userId = " + to_string(praised);
+        " where G.userId = " + to_string(praised) +
+        " and G.bookId =  \'" + book_id + "\'";
     
     auto buffer = conn->query<inforCount>(state);
     if(buffer.size() == 0)
@@ -367,6 +369,16 @@ SQL_STATUS BookCommentImpl::add_comment(const string &book_id ,const int &user_i
     score.remarkTime = remark_time ;
     score.userId = user_id ;
     score.title = title ;
+
+    BookCommentHitCountInfoTable count;
+    count.autoBookId = buffer.autoBookId ;
+    count.bookId = buffer.bookId ;
+    count.praised = user_id;
+    count.count = 0;//新插入
+
+    ret = __hitCount->insert_hit(count);
+    if(ret != SQL_STATUS::EXE_sus)
+        return ret;
     return __grade->insert_score(score);
 }
 
