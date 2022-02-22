@@ -51,6 +51,7 @@ namespace ormpp
         SQL_STATUE get_book_by_book_id(BookDownloadCountTable &downloadCount, const string &bookId);
         SQL_STATUS get_books_by_option(vector<CombineBook> &books, const option &optionName,
                                        const string &optionValue, const int &offset, const int &count);
+        SQL_STATUS set_newest_book_count(BookDownloadCountTable &downloadCount);
         SQL_STATUS insert_book_info(const BookBaseInfoTable &book);
         SQL_STATUS insert_book_info(const int &auto_book_id, const string &book_id,
                                     const string &book_name, const string &author_name,
@@ -237,6 +238,12 @@ SQL_STATUS BookInfoImpl::get_books_by_option(vector<CombineBook> &books, const o
 
     return SQL_STATUS::EXE_sus;
 }
+
+SQL_STATUS BookInfoImpl::set_newest_book_count(BookDownloadCountTable &downloadCount)
+{
+    return __downloadCount->set_newest_count(downloadCount);
+}
+
 
 SQL_STATUS BookInfoImpl::insert_book_info(const BookBaseInfoTable &book)
 {

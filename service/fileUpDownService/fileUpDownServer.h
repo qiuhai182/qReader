@@ -122,6 +122,7 @@ namespace fileService
 				__bookSql.get_book_by_book_id(downloadCount, bookId);
 				downloadCount.dayTime = dayTime;
 				++downloadCount.times;
+				__bookSql.set_newest_book_count(downloadCount);
 				sendFile(control, filePath, getContentType(suffix));
 			}
 			else
