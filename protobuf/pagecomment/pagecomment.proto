@@ -9,12 +9,12 @@ message pageCommentInfo
 	required string title 	    = 1;	// 标题
 	required string content 	= 2;	// 内容
 	required int32 	reviewer    = 3;	// 被点赞userId
-	required int32 hitCount	= 4;	// 昵称
-	required string remarkTime 	= 5; 	// 头像
-	required int32 replyCount 	= 6;	// 发表时间
-	required string headUrl		= 7;	// bookId
-	required string   nickname	= 8; 	// 获取者是否点赞
-	required int32 	isHited		= 9;	// 被点赞数
+	required int32 hitCount		= 4;	// 点赞数
+	required string remarkTime 	= 5; 	// 评论时间
+	required int32 replyCount 	= 6;	// 恢复时间
+	required string headUrl		= 7;	// 头像url
+	required string   nickname	= 8; 	// 
+	required int32 	isHited		= 9;	// 是否点赞
     optional int32  commentId   = 10;    // commentId
 }
 

@@ -1,0 +1,19 @@
+{
+    "hour": 0,
+    "min": 28,
+    "sec": 7,
+    "focus": 0.22824028994915072,
+    "pages": 39,
+    "rows": 585,
+    "speedPoints": [
+        [
+            0.00021154228120925695
+        ]
+    ],
+    "Browse": "浏览比重",
+    "BrowsePercentage": 0.0852401817591691,
+    "Gaze": "注视比重",
+    "GazePercentage": 0.1430001081899816,
+    "Unfocused": "不专注比重",
+    "UnfocusedPercentage": 0.7717597100508493
+}
