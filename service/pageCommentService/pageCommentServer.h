@@ -270,7 +270,7 @@ namespace PageCommentService
 					  <<endl;
 			//信息判断
 			if( request->hitter() < MIN_ACCOUNT || request->praised()< MIN_ACCOUNT ||
-				request->page() < 1 || request->bookid().size() < 20 ||//暂定
+				request->page() < 0 || request->bookid().size() < 20 ||//暂定
 				__pageCommentSql.is_existing(request->commentid() ) != 1 ||
 				__pageCommentSql.is_hit_commented(request->hitter(),request->commentid()) == 1 //已经点赞
 			)
@@ -333,7 +333,7 @@ namespace PageCommentService
 					  <<endl;
 			//信息判断
 			if( request->hitter() < MIN_ACCOUNT || request->praised()< MIN_ACCOUNT ||
-				request->page() < 1 || request->bookid().size() < 20 || //暂定
+				request->page() < 0 || request->bookid().size() < 20 || //暂定
 				__pageCommentSql.is_existing(request->commentid() ) != 1 ||
 				__pageCommentSql.is_hit_commented(request->hitter(),request->commentid()) == 0 //未点赞
 			)

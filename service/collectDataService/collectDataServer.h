@@ -102,7 +102,7 @@ namespace collectdataService
 		// 获取区间阅读统计数据
 		virtual void getReadTimeCount(google::protobuf::RpcController *control_base,
 									  const readCountReq *request,
-									  readCountResp *response,
+									  readSightAnalyeReq *response,
 									  google::protobuf::Closure *done)
 		{
 			brpc::ClosureGuard done_guard(done);
