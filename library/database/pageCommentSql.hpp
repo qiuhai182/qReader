@@ -140,6 +140,7 @@ SQL_STATUS PageCommentImpl::get_supper_comment_by_time(vector<pageCommentRes> & 
         " on U.userId = C.reviewer "
         " where C.bookId = \'" + para.bookId + "\'" +
         " and C.page = " + to_string(para.page) + 
+        " and C.ParentId = 0 " + 
         " order by C.remarkTime  " + order +  
         " limit " + to_string(para.offset) + " , " +  to_string(para.count);
     cout << "state  is "<<state <<endl ;
@@ -176,6 +177,7 @@ SQL_STATUS PageCommentImpl::get_supper_comment_by_hit(vector<pageCommentRes> & r
         " on U.userId = C.reviewer "
         " where C.bookId = \'" + para.bookId + "\'" +
         " and C.page = " + to_string(para.page) + 
+        " and C.ParentId = 0 " + 
         " order by C.hitCount  " + order +  
         " , C.remarkTime desc"
         " limit " + to_string(para.offset) + " , " +  to_string(para.count);
@@ -269,6 +271,13 @@ SQL_STATUS PageCommentImpl::get_sub_comment_by_hit(vector<pageCommentRes> & res 
 
 SQL_STATUS PageCommentImpl::add_comment(const PageCommentInfoTable & data)
 {
+    
+    if(data.parentId != 0)//回复父亲评论
+    {
+        SQL_STATUS status = __comment->increase_comment_reply(data.parentId);
+        if(status != SQL_STATUS::EXE_sus)
+        return status;
+    }
     return __comment->insert_comment(data);
 }
 
@@ -352,7 +361,6 @@ SQL_STATUS PageCommentImpl::delete_one_sub_comment(const int &comment_id)
             << " LINE  " << __LINE__ << endl;
         return SQL_STATUS::Pool_err;
     }
-
     auto ret = __comHit->delete_hit_by_commentId(comment_id);
     if(ret != SQL_STATUS::EXE_sus)
         return ret;

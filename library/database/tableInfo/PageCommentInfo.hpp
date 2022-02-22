@@ -54,6 +54,9 @@ namespace ormpp
         SQL_STATUS get_max_commentId(int & max_comment_id);
         SQL_STATUS increase_comment_hit(const int & comment_id);
         SQL_STATUS decrease_comment_hit(const int & comment_id);
+        SQL_STATUS increase_comment_reply(const int & comment_id);
+        SQL_STATUS decrease_comment_reply(const int & comment_id);
+
         int is_existing(const int & comment_id);
     private:
         SQL_STATUS create_table();
@@ -115,17 +118,17 @@ SQL_STATUS PageCommentInfo::insert_comment(const PageCommentInfoTable & comment)
             << " LINE  " << __LINE__ << endl;
         return SQL_STATUS::Pool_err;
     }
-    cout<<"ee"
-        <<comment.commentId
-        <<" "<<comment.bookId
-        <<" "<<comment.content
-        <<" "<<comment.hitCount
-        <<" "<<comment.page
-        <<" "<<comment.parentId
-        <<" "<<comment.replyCount
-        <<" "<<comment.remarkTime
-        <<" "<<comment.reviewer
-        <<endl;
+    // cout<<"ee"
+    //     <<comment.commentId
+    //     <<" "<<comment.bookId
+    //     <<" "<<comment.content
+    //     <<" "<<comment.hitCount
+    //     <<" "<<comment.page
+    //     <<" "<<comment.parentId
+    //     <<" "<<comment.replyCount
+    //     <<" "<<comment.remarkTime
+    //     <<" "<<comment.reviewer
+    //     <<endl;
 	int ret = conn->insert<PageCommentInfoTable>(comment);
     if( 1 != ret ){
         cout << __FILE__ << " : " << __LINE__ 
@@ -211,6 +214,39 @@ SQL_STATUS PageCommentInfo::decrease_comment_hit(const int & comment_id)
 
     return execute_sql(conn,"increase page comment hit ",state);
 
+}
+
+SQL_STATUS PageCommentInfo::increase_comment_reply(const int & comment_id)
+{
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
+    }
+    string state = " update PageCommentInfoTable set replyCount = replyCount - 1 "
+                    "where commentId = " + to_string(comment_id);
+
+    return execute_sql(conn,"increase page comment replyCount ",state);
+}
+SQL_STATUS PageCommentInfo::decrease_comment_reply(const int & comment_id)
+{
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
+    }
+    string state = " update PageCommentInfoTable set replyCount = replyCount - 1 "
+                    "where commentId = " + to_string(comment_id);
+
+    return execute_sql(conn,"decrease page comment replyCount ",state);
 }
 
 int PageCommentInfo::is_existing(const int & comment_id)

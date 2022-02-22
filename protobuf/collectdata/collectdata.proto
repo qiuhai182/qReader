@@ -87,6 +87,7 @@ message speedPoint
 {
 	required float  point = 1;
 }
+//整体结构被废弃，留存占位
 message readCountResp
 {
 	repeated minute lists = 1;
@@ -94,6 +95,26 @@ message readCountResp
 	required commonService.commonResp  status = 3 ;
 	repeated pointType  scatterDiagram = 4 ;
 	repeated speedPoint  speedPoints = 5;
+
+}
+
+message chartPart//饼图
+{
+	required string behavior = 1 ; 	//行为
+	required float Percentage = 24 ;	//百分比
+}
+
+message readSightAnalyeReq
+{
+	optional int32 hour = 1;
+	optional int32 min = 2 ;
+	optional int32 sec = 3 ;
+	optional float focus = 4 ;
+	optional int32 pages  = 5 ;
+	optional int32 rows = 6 ;
+	optional float speedPoint = 7 ;
+	repeated chartPart pipChart = 8 ;
+	required commonService.commonResp  status = 3 ;		//该结构必须存在
 }
 
 message targetMinute
@@ -118,7 +139,7 @@ message setTargetMinuteReq
 service collectService 
 { // 收集视线、阅读数据
 	rpc collectReadDataFun(readBookRecored) returns(commonService.commonResp);
-	rpc getReadTimeCount(readCountReq) returns(readCountResp);
+	rpc getReadTimeCount(readCountReq) returns(readSightAnalyeReq);
 	rpc getTargetMinuteFun(getTargetMinuteReq) returns(targetMinute);
 	rpc setTargetMinuteFun(setTargetMinuteReq) returns(commonService.commonResp);
 }
