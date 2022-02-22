@@ -44,8 +44,8 @@ namespace bookCityService
 	{
 	private:
 		BookInfoImpl __bookCitySql;
-		MemBooks __memBookList ;				// 实例化书籍，配合模糊匹配
-		map<int, int> recommendTimes;		// 记录个性化推荐批次
+		MemBooks __memBookList;			// 实例化书籍，配合模糊匹配
+		map<int, int> recommendTimes;	// 记录个性化推荐批次
 		map<int, int> browseTimes;		// 记录书城浏览批次
 	private:
 		//填充回发消息
@@ -181,7 +181,7 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")"
-					  <<endl;
+					  << endl;
 
 			
 				
@@ -196,13 +196,8 @@ namespace bookCityService
 					fillBook(book,bookres);
 					if(SQL_STATUS::EXE_sus != __bookCitySql.plus_search_times(
 							get<0>(bookres).autoBookId,	get<0>(bookres).bookId,
-							request->daytime(),get<0>(bookres).bookName
-						)
-					)
-					{
-						LOG(WARNING) << "更新搜索次数失败"
-						<<" bookId "<<get<0>(bookres).bookId <<endl ;
-					}
+							request->daytime(),get<0>(bookres).bookName))
+						LOG(WARNING) << "更新搜索次数失败" << " bookId "<< get<0>(bookres).bookId << endl;
 					response->set_count(1);
 				}
 				else
@@ -657,17 +652,17 @@ namespace bookCityService
 						<< "查询随机书城推荐成功，本次查到 " 
 						<< size << " 本书" << endl;
 			}
-			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
 			}
 		}
+
 		virtual void getMostlySearchFun(google::protobuf::RpcController *control_base,
                        const ::bookCityService::universalBlankReq* request,
                        ::bookCityService::mostlySearchRes* response,
                        ::google::protobuf::Closure* done)
-		{//搜索书籍推荐
+		{ // 搜索书籍推荐
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
 			cout << endl;
@@ -678,7 +673,6 @@ namespace bookCityService
 					  << request->count() <<" 本 "
 					  <<control->request_attachment() << ")"
 					  <<endl;
-
 			if(!request->has_daytime()){
 				response->set_count(0);
 				LOG(INFO) << endl
@@ -690,12 +684,11 @@ namespace bookCityService
 			vector<SearchStatisticsTable> books ;
 			string month = request->daytime().substr(0,7);
 			int searchCount = request->count()  ;//请求回发书籍
-			//桶排序查找12月热搜去重  bookid-SearchStatisticsTable
+			// 桶排序查找12月热搜去重  bookid-SearchStatisticsTable
 			map<string,SearchStatisticsTable> resultBook ;
 			SearchStatisticsTable book;
-
-			for(int mon = 0;mon < 12 ; mon++){
-				if(  resultBook.size() == 10 ) break ;//查找足够提前退出
+			for(int mon = 0; mon < 12 ; mon++){
+				if(resultBook.size() == 10 ) break; //查找足够提前退出
 				SQL_STATUS ret = __bookCitySql.get_mostly_search_by_month_count(month,books,searchCount) ;
 				int size = books.size();
 				if(SQL_STATUS::EXE_sus != ret)
@@ -712,15 +705,13 @@ namespace bookCityService
 							book.bookName = books[start].bookName ;
 							resultBook.insert(pair<string,SearchStatisticsTable>(book.bookId,book));
 						}
-					}	
-					
+					}
 				}
-				//月份前移
+				// 月份前移
 				reduce_months(month);
 			}
-			
 			if(resultBook.size() == searchCount){
-				//--结果发送  
+				// --结果发送  
 				for (auto & bookres:resultBook){
 					auto book = response->add_lists();
 					book->set_bookid(bookres.second.bookId);
@@ -733,7 +724,7 @@ namespace bookCityService
 					<<"月查询热搜书籍推荐成功,共"
 					<<resultBook.size()<<"本"<< endl;
 			}
-			else//查询不足在书城发送查找发送 包含书籍不足searchCount
+			else // 查询不足在书城发送查找发送 包含书籍不足searchCount
 			{
 				vector<CombineBook>  books;
 				SQL_STATUS ret = __bookCitySql.get_book_offset(books,2,searchCount);
@@ -751,8 +742,8 @@ namespace bookCityService
 					<<month <<"月查询热搜书籍推荐不足，书城发送共"
 					<<size<<"本"<< endl;
 			}
-			
 		}
+
 		virtual void getPopularSearchFun(google::protobuf::RpcController *control_base,
 							const ::bookCityService::universalBlankReq* request,
 							::bookCityService::booksRespList* response,

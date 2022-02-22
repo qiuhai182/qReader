@@ -127,7 +127,7 @@ SQL_STATUS BookSearchInfo::create_indexs()
 
 SQL_STATUS BookSearchInfo::get_mostly_search_by_month_count(const string & monthTime,
                                 vector<SearchStatisticsTable> &searchList,const int & count)
-{//分页查找
+{ // 分页查找
     auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)
@@ -224,7 +224,7 @@ SQL_STATUS BookSearchInfo::update_seacrh_inf(const SearchStatisticsTable & stat)
 
 SQL_STATUS BookSearchInfo::plus_search_times(const int & auto_book_id,const string &book_id,
                             const string & dayTime,const string & bookName)
-{//搜索时更新搜索时间
+{ // 搜索时更新搜索时间
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)

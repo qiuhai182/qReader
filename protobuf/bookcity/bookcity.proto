@@ -5,7 +5,7 @@ option cc_generic_services = true;
 
 
 message bookBaseInfo
-{// 书本基础信息
+{ // 书本基础信息
 	required string bookName 	= 1;
 	required string authorName 	= 2;
 	required int32  bookType 	= 3;
@@ -145,9 +145,9 @@ message browseBookRes
 }
 
 message universalBlankReq
-{//榜单、词条通用
-	optional string dayTime = 1;	//今日时间 xxxx-xx-xx
-	optional int32 count = 2  ;	//请求书本数目
+{ // 榜单、词条通用
+	optional string dayTime = 1; //今日时间xxxx-xx-xx
+	optional int32 count = 2  ; //请求书本数目
 }
 
 message mostlybooks
@@ -156,6 +156,7 @@ message mostlybooks
 	required string bookName = 2 ;
 	required int32 searchTimes = 3 ;
 }
+
 message mostlySearchRes
 { // 搜索最多书籍结果 
 	repeated mostlybooks lists = 1;
@@ -169,11 +170,12 @@ message fuzzySearchRequest
 	required int32 count = 3 ;
 	required int32 offset = 4 ;
 }
+
 service bookCityService 
 {
 	rpc addBookInfoFun(bookBaseInfo) returns(commonService.commonResp);			// 
 	rpc searchBookInfoFun(searchBookReq) returns(booksRespList);			    // 
-	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);		    // 
+	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);	// 
 	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
 	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
 	rpc getBookADSFun(adsReq) returns(adsRes); 									// 书城广告图片

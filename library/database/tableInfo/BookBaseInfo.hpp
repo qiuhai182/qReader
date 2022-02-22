@@ -256,8 +256,7 @@ SQL_STATUS BookBaseInfo::get_all_book_baseInfo(vector<BookBaseInfoTable> &res)
 }
 
 SQL_STATUS BookBaseInfo::get_book_baseInfo_by_book_id(BookBaseInfoTable &book, const string &book_id)
-{// 通过书籍id获取书籍信息
-	
+{ // 通过书籍id获取书籍信息
     auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)

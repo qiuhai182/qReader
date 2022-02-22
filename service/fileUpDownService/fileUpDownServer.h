@@ -10,6 +10,7 @@
 #include "bitmap.hpp"
 #include "contenttype.hpp"
 #include "fileupdown.pb.h"
+#include "database/bookSql.hpp"
 using namespace std;
 
 DEFINE_bool(echo_attachment, true, "Echo测试");
@@ -27,6 +28,7 @@ namespace fileService
 
 	class fileServiceImpl : public fileService
 	{ // 文件传输服务
+		BookInfoImpl __bookSql;
 	public:
 		fileServiceImpl(){};
 		virtual ~fileServiceImpl(){};
@@ -95,6 +97,41 @@ namespace fileService
 				control->http_response().set_status_code(404);
 			}
 		}
+
+		void bookDownFun(google::protobuf::RpcController *control_base,
+						 const bookDownHttpRequest *request,
+						 HttpResponse *,
+						 google::protobuf::Closure *done)
+		{ // 下载书籍函数，下载书籍单独处理
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")";
+			if (!control->http_request().unresolved_path().empty())
+			{
+				string filePath = FLAGS_dataPath + control->http_request().unresolved_path();
+				cout<<"filepath  is "<< filePath << endl;	
+				string suffix = filePath.substr(filePath.find_last_of('.')); // 获取文件后缀
+				string bookId = request->bookId();
+				int userId = request->userid();
+				string dayTime = request->daytime();
+				int count = request->count();
+				BookDownloadCountTable downloadCount;
+				__bookSql.get_book_by_book_id(downloadCount, bookId);
+				downloadCount.dayTime = dayTime;
+				++downloadCount.times;
+				sendFile(control, filePath, getContentType(suffix));
+			}
+			else
+			{
+				control->http_response().set_status_code(brpc::HTTP_STATUS_NOT_FOUND);
+				control->http_response().set_status_code(404);
+			}
+		}
 	};
 
 }
+
+
