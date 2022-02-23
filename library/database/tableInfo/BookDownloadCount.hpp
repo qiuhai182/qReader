@@ -148,9 +148,9 @@ SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &dow
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string state = "where bookId = " + bookId;
-	auto res = conn->query<BookDownloadCountTable>(state);
-	// auto res = conn->query<BookDownloadCountTable>();
+	// string cond = "where autoBookId = \'" + to_string(downloadCount.autoBookId) + "\'";
+	string cond = "where bookId = \'" + bookId + "\'";
+	auto res = conn->query<BookDownloadCountTable>(cond);
     if(res.size() == 0){
         cout << "查询下载次数记录(" << bookId << ")失败" << endl;
         return SQL_STATUS::EXE_err;
