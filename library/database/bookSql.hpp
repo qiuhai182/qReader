@@ -37,7 +37,7 @@ namespace ormpp
             __base = new BookBaseInfo(true);
             __grade = new BookGradeInfo(true);
             __search = new BookSearchInfo(true);
-            __downloadCount = new BookDownloadCountTable(true);
+            __downloadCount = new BookDownloadCount(true);
         }
         ~BookInfoImpl()
         {
