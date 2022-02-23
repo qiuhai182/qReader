@@ -100,21 +100,21 @@ namespace Init
     // }
 
     // try{
-    //     BookDownloadCount bookDownloadCount(false);
-    //     usleep(1000);
-    // }catch(const char *error){
-    //     cout<<"Error: "<<error<<endl;
-    // }
-
-    // try{
     //     PageCommentInfo pagecommentInfo(false);
     //     usleep(1000);
     // }catch(const char *error){
     //     cout<<"Error: "<<error<<endl;
     // }
 
+    // try{
+    //     PageCommentHitInfo pagecommentHitInfo(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
+
     try{
-        PageCommentHitInfo pagecommentHitInfo(false);
+        BookDownloadCount bookDownloadCount(false);
         usleep(1000);
     }catch(const char *error){
         cout<<"Error: "<<error<<endl;
