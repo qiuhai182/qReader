@@ -189,7 +189,7 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(CombineBook &book, const string &bo
 
 SQL_STATUS BookInfoImpl::get_book_by_book_id(BookDownloadCountTable &downloadCount, const string &bookId)
 {
-    SQL_STATUS ret = __downloadCount->get_newest_count_by_id(&downloadCount, bookId);
+    SQL_STATUS ret = __downloadCount->get_newest_count_by_id(downloadCount, bookId);
     if (ret != SQL_STATUS::EXE_sus)
         cout << "初始化上架书籍下载记录" << endl;
         BookBaseInfoTable base_book_info;
