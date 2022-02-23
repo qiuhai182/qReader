@@ -145,7 +145,7 @@ SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &dow
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string state = "select * from BookDownloadCountTable where bookId = " + bookId;
+	string state = "where bookId = " + bookId;
 	auto res = conn->query<BookDownloadCountTable>(state);
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;

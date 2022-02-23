@@ -87,7 +87,7 @@ SQL_STATUS UserInfo::get_max_account( int &  max_account)
         return SQL_STATUS::Pool_err;
     }
 
-    string state = "select *  from UserInfoTable  where userId = (select max(userId) from UserInfoTable) ";
+    string state = "where userId = (select max(userId) from UserInfoTable) ";
     auto res = conn->query<UserInfoTable>(state);
     if(res.size() ==0 ){
         cout << "FILE: " << __FILE__ << " "
