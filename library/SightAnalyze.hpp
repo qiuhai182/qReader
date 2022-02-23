@@ -151,7 +151,7 @@ namespace Analyze
         }
         for (int i = 0; i < 12; ++i)
         {
-            cout << "数量：" << res[i] << endl;
+            //cout << "数量：" << res[i] << endl;
             res[i] /= 600;
         }
         cout << "统计区间阅读时长成功" << endl;
@@ -168,7 +168,7 @@ namespace Analyze
         vector<string>day_all_time ;
 
         SQL_STATUS ret = __sight.get_a_day_data(user_id, day_time,day_all_time);
-        if(ret != SQL_STATUS::EXE_sus || day_all_time.size() == 0)
+        if(ret != SQL_STATUS::EXE_sus && day_all_time.size() == 0)
             return -1 ;
         return deal_read_interval(day_all_time, res); // 计算出统计阅读时长
     }
