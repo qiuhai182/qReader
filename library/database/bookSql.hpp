@@ -202,7 +202,6 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(BookDownloadCountTable &downloadCou
         downloadCount.bookName = base_book_info.bookName;
         downloadCount.times = 0;
     }
-    cout << "成功测试1：" << downloadCount.times << " " << downloadCount.bookName << endl;
     return SQL_STATUS::EXE_sus;
 }
 
