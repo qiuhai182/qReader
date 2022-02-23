@@ -10,6 +10,7 @@
 #include <memory>
 #include <typeinfo>
 #include <array>
+#include <cfloat>
 #include "database/sightSql.hpp"
 #include "public/Times.hpp"
 #include "rapidjson/document.h"
@@ -61,7 +62,7 @@ namespace Analyze
         {
             string behavior;
             double Percentage;
-        }
+        };
         array<chartPart,3> chart;
 
     public:
@@ -69,22 +70,22 @@ namespace Analyze
         {
             focus = DBL_MAX;
             speedPoint.fill(DBL_MAX);
-            chartPart tmp = {",",DBL_MAX} ;
+            chartPart tmp = {"",DBL_MAX} ;
             chart.fill(tmp);
         }
         bool isCorrect() //检验结果是否正确
         {
-
             if(
                 IntRes.size() != 5 || focus == DBL_MAX || 
-                speedPoint[10] == DBL_MAX || (chart[2].behavior == "" || chart[2].Percentage == DBL_MAX )
-                return false;
+                speedPoint[10] == DBL_MAX || 
+                (chart[2].behavior == "" && chart[2].Percentage == DBL_MAX )
             )
+                return false;
 
             return true;
         }
 
-    }
+    };
     
     class SightAnalyze
     {
@@ -95,14 +96,8 @@ namespace Analyze
         
 
         //获取分析结果
-        int get_analyse_result(readAnalyzeRes & res,const string &timeStamp,const int & userId);
+        bool get_analyse_result(readAnalyzeRes & res,const string &timeStamp,const int & userId);
 
-
-        //获取分析结果
-        int get_analyse_result(map<string,string> & timeFocus,
-                            vector<map<string,vector<map<double,double>>>> & scatterDiagram,
-                            vector<double> &lineChart,
-                            const string &timeStamp,const int & userId);
         
         //查询区间时间
         int get_interval_count(const int & user_id, string day_time,  float *res);
@@ -116,14 +111,6 @@ namespace Analyze
         int write_sightTable_csv(string &csvPath,vector<SightTable>& rsc );
         //获取json文本内容，储存到string
         string get_json_content(const string & filePath);
-        //读取展示页第二行的数据，hour,focus
-        void read_time_focus(map<string,string> & timeFocus,const rapidjson::Document & document,int &counter);
-        //读取散点图数据
-        void read_scatter_diagram(vector<map<string,vector<map<double,double>>>> & scatterDiagram,
-                                const rapidjson::Document & document,int &counter);
-        //读取折线图数据
-        void read_line_chart(vector<double> &lineChart,
-                                const rapidjson::Document & document,int &counter);
         
         int replace_rows(map<string,string> & timeFocus,const int & user_id);
 
@@ -134,6 +121,9 @@ namespace Analyze
         
         //读取数组
         bool read_time_point(readAnalyzeRes & res,const rapidjson::Document & document);
+
+        //读取饼图
+        bool read_pip_chart(readAnalyzeRes & res,const rapidjson::Document & document);
         
     private:
         SightInfoImpl __sight;
@@ -293,8 +283,11 @@ namespace Analyze
                 return -1;
             }
         }
+        string exe_cond = string("python ../../../dispose/server.py  ") +
+            FLAGS_sightCsvPath + to_string(userId) +   "_Analyse.csv  "  + 
+            FLAGS_sightAnalyseJsonPath+ to_string(userId) + "/" + to_string(userId) + "_Analyse.json";
 
-        int ret = system(string("python ../../../dispose/server.py " + to_string(userId)).c_str());
+        int ret = system(exe_cond.c_str());
             
         return ret ;
     }
@@ -313,131 +306,8 @@ namespace Analyze
 
     }
 
-    void SightAnalyze::read_time_focus(map<string,string> & timeFocus,
-                                    const rapidjson::Document & document,int &counter)
-    {//读取展示页第二行的数据，hour,focus
-        if ((document.HasMember("hour")))
-        {
-            timeFocus["hour"] = std::to_string(document["hour"].GetInt());    
-            counter++;           
-        }
-        if ((document.HasMember("min")))
-        {
-            timeFocus["min"] = std::to_string(document["min"].GetInt()); 
-            counter++;            
-        }
-        if ((document.HasMember("sec")))
-        {
-            timeFocus["sec"] = std::to_string(document["sec"].GetInt() );              
-            counter++;
-        }
-        if ((document.HasMember("focus")))
-        {
-            timeFocus["focus"] = std::to_string(document["focus"].GetDouble());   
-            counter++;      
-        }
-        if((document.HasMember("pages")))
-        {
-            timeFocus["pages"] = std::to_string(document["pages"].GetInt());
-            counter++;          
-        }
-        if ((document.HasMember("rows")))
-        {
-            timeFocus["rows"] = std::to_string(document["rows"].GetInt()); 
-            counter++;        
-        }
-    }
-
-    void SightAnalyze::read_scatter_diagram(vector<map<string,vector<map<double,double>>>> & scatterDiagram,
-                                    const rapidjson::Document & document,int &counter)
-    {//读取散点图数据
-        string pre = "point";
-        string actoinStr ;
-        string colorStr ;
-        string point ;
-        vector<map<double,double> > vectorBuffer ;
-        //外层类型,颜色，内层点
-        for(int i = 0 ; i < 3 ; i++){
-            //读取点 x,y值
-            point = pre+ to_string(i);
-            if ( document.HasMember(point.c_str()) )
-            {
-                const Value & pointArr = document[point.c_str()];
-                SizeType size  =  pointArr.Size();
-                for(SizeType j = 0;j < size ;j++ ){
-                    double x = pointArr[j][0].GetDouble() ;
-                    double y = pointArr[j][1].GetDouble();
-                    vectorBuffer.push_back(map<double,double>{{x,y}});
-                    counter += 2;
-                }        
-            }
-            else
-            {
-                return ;
-            }
-            //文字字段提取
-            actoinStr = pre + to_string(i)+"Action";
-            colorStr = pre + to_string(i)+"Color";
-            if ((document.HasMember(actoinStr.c_str())) && (document.HasMember(colorStr.c_str())) )
-            {
-                //便于处理将 action+color
-                string conbination = document[actoinStr.c_str()].GetString() + 
-                                string("+") +document[colorStr.c_str()].GetString();       
-                scatterDiagram.push_back(map<string, vector<map<double,double>>>{{conbination,vectorBuffer }} );   
-                counter += 2;   
-                vectorBuffer.clear();//清空 
-            }
-            else
-            {
-                return ;
-            }   
-        }
-    }
-
-    void SightAnalyze::read_line_chart(vector<double> &lineChart,
-                                    const rapidjson::Document & document,int &counter)
-    {//读取折线图数据
-        if ( document.HasMember("speedPoints") )
-        {
-            const Value & speedPointsArr = document["speedPoints"];
-            SizeType size  =  speedPointsArr.Size();
-            for(SizeType i = 0; i < size ;i++ ){
-            lineChart.push_back(speedPointsArr[i][0].GetDouble());
-            counter++;
-            }        
-        }else{
-            return ;
-        }
-    }
-
-    int SightAnalyze::get_analyse_result(map<string,string> & timeFocus,
-                                    vector<map<string,vector<map<double,double>>>> & scatterDiagram,
-                                    vector<double> &lineChart,
-                                    const string &timeStamp,const int & userId)  
-    {//获取分析结果
-        string jsonFilePath = FLAGS_sightAnalyseJsonPath + to_string(userId)+"/" + to_string(userId) + "_Analyse.json";
-        rapidjson::Document document;
-        
-        string json_content = get_json_content(jsonFilePath) ;
-        document.Parse(json_content.c_str());
-
-        int counter = 0 ;
-        //专注度
-        read_time_focus(timeFocus,document,counter);
-        //暂时替换
-        int ret = replace_rows(timeFocus,userId);
-        if(ret != 1)
-            return 0;
-        //散点
-        read_scatter_diagram(scatterDiagram,document,counter);
-        //折线图
-        read_line_chart(lineChart,document,counter);
-        
-        return counter;
-    }  
-
     /*************************************************************************/
-    int SightAnalyze::get_analyse_result(readAnalyzeRes & res,const string &timeStamp,const int & userId)
+    bool SightAnalyze::get_analyse_result(readAnalyzeRes & res,const string &timeStamp,const int & userId)
     {
         //获取分析结果
         string jsonFilePath = FLAGS_sightAnalyseJsonPath + to_string(userId)+"/" + to_string(userId) + "_Analyse.json";
@@ -445,6 +315,16 @@ namespace Analyze
         
         string json_content = get_json_content(jsonFilePath) ;
         document.Parse(json_content.c_str());
+        if(
+            this->read_time_focus(res,document) == false || 
+            this->read_time_point(res,document) == false ||
+            this->read_pip_chart(res,document) == false 
+        )//短路运算
+        {
+            return false;
+        }
+
+        return true ;
     }
 
     //读取展示页第二行的数据，hour,focus...
@@ -466,11 +346,6 @@ namespace Analyze
             res.IntRes["sec"] = document["sec"].GetInt() ;              
             counter++;
         }
-        if ((document.HasMember("focus")))
-        {
-            res.focus = document["focus"].GetDouble();   
-            counter++;      
-        }
         if((document.HasMember("pages")))
         {
             res.IntRes["pages"] = document["pages"].GetInt();
@@ -481,15 +356,74 @@ namespace Analyze
             res.IntRes["rows"] = document["rows"].GetInt(); 
             counter++;        
         }
+         if ((document.HasMember("focus")))
+        {
+            res.focus = document["focus"].GetDouble(); 
+            counter++;        
+        }
 
-        return counter == 5 ? true : false;
+        return counter == 6 ? true : false;
     }
 
     //读取数组
     bool SightAnalyze::read_time_point(readAnalyzeRes & res,const rapidjson::Document & document)
     {
-        
+        if ( document.HasMember("speedPoints") )
+        {
+            int counter = 0;//计数器
+            const Value & pointArr = document["speedPoints"];
+            SizeType size  =  pointArr.Size();
+            for(SizeType j = 0;j < size ;j++ )
+            {
+                res.speedPoint[counter] = pointArr[j][0].GetDouble();
+                counter++;
+            }
+            if(counter == 11)
+                return true ;
+        }
+       
+       return false; //无内容  元素不够
     }
+
+    //读取饼图
+    bool SightAnalyze::read_pip_chart(readAnalyzeRes & res,const rapidjson::Document & document)
+    {
+        cout<<3<<endl;
+        int counter = 0;
+        if ((document.HasMember("Browse")))
+        {
+            res.chart[0].behavior ="浏览";    
+            counter++;           
+        }
+        if ((document.HasMember("BrowsePercentage")))
+        {
+            res.chart[0].Percentage = document["BrowsePercentage"].GetDouble(); 
+            counter++;            
+        }
+        if ((document.HasMember("Gaze")))
+        {
+            res.chart[1].behavior ="注视";    
+            counter++;           
+        }
+        if ((document.HasMember("GazePercentage")))
+        {
+            res.chart[1].Percentage = document["GazePercentage"].GetDouble(); 
+            counter++;            
+        }
+        if ((document.HasMember("Unfocused")))
+        {
+            res.chart[2].behavior ="不专注";    
+            counter++;           
+        }
+        if ((document.HasMember("UnfocusedPercentage")))
+        {
+            res.chart[2].Percentage = document["UnfocusedPercentage"].GetDouble(); 
+            counter++;            
+        }
+        
+        return counter == 6 ? true : false;
+    }
+
 
 }
 

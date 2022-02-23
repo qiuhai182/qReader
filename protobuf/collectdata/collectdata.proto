@@ -112,9 +112,9 @@ message readSightAnalyeReq
 	optional float focus = 4 ;
 	optional int32 pages  = 5 ;
 	optional int32 rows = 6 ;
-	optional float speedPoint = 7 ;
+	repeated double speedPoints = 7 ;
 	repeated chartPart pipChart = 8 ;
-	required commonService.commonResp  status = 3 ;		//该结构必须存在
+	required commonService.commonResp  status = 9 ;		//该结构必须存在
 }
 
 message targetMinute
@@ -139,7 +139,7 @@ message setTargetMinuteReq
 service collectService 
 { // 收集视线、阅读数据
 	rpc collectReadDataFun(readBookRecored) returns(commonService.commonResp);
-	rpc getReadTimeCount(readCountReq) returns(readSightAnalyeReq);
+	rpc getReadSightAnalyResFun(readCountReq) returns(readSightAnalyeReq);
 	rpc getTargetMinuteFun(getTargetMinuteReq) returns(targetMinute);
 	rpc setTargetMinuteFun(setTargetMinuteReq) returns(commonService.commonResp);
 }
