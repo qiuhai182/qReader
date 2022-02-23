@@ -156,10 +156,6 @@ SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &dow
         return SQL_STATUS::EXE_err;
     }
     downloadCount = std::move(res[0]);
-    // downloadCount.autoBookId = res[0].autoBookId;
-    // downloadCount.bookId = res[0].bookId;
-    // downloadCount.bookName = res[0].bookName;
-    // downloadCount.times = res[0].times;
     cout << "成功测试0：" << downloadCount.times << " " << downloadCount.bookName << endl;
 	return SQL_STATUS::EXE_sus;
 }
