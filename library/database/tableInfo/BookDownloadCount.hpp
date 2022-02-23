@@ -106,9 +106,9 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
 	}
 	string cond = "where autoBookId = \'" + to_string(downloadCount.autoBookId) + "\'";
 	auto res = conn->query<BookDownloadCountTable>(cond);
-    if(0 == res.size())
+    if(0 != res.size())
     {
-        cout << "书籍:" << downloadCount.bookName << "下载次数:" << downloadCount.times-1 << "+1" << endl;
+        cout << "更新书籍:" << downloadCount.bookName << "下载次数:" << downloadCount.times-1 << "+1" << endl;
         cond = "update BookDownloadCountTable set times = " + to_string(downloadCount.times) + " where bookId = " + downloadCount.bookId;
         return execute_sql(conn, "update download times", cond);
     }
