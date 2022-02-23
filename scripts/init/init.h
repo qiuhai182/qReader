@@ -113,12 +113,12 @@ namespace Init
     //     cout<<"Error: "<<error<<endl;
     // }
 
-    try{
-        BookDownloadCount bookDownloadCount(false);
-        usleep(1000);
-    }catch(const char *error){
-        cout<<"Error: "<<error<<endl;
-    }
+    // try{
+    //     BookDownloadCount bookDownloadCount(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
 
   }
   

@@ -87,7 +87,7 @@ namespace fileService
 			if (!control->http_request().unresolved_path().empty())
 			{
 				string filePath = FLAGS_dataPath + control->http_request().unresolved_path();
-				cout<<"filepath  is "<<filePath<<endl ;
+				cout << "filepath  is "<< filePath << endl ;
 				string suffix = filePath.substr(filePath.find_last_of('.')); // 获取文件后缀
 				sendFile(control, filePath, getContentType(suffix));
 			}

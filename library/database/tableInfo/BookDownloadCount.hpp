@@ -79,7 +79,7 @@ SQL_STATUS BookDownloadCount::create_table()
         " bookId text NOT NULL , "
         " dayTime text NOT NULL , "
         " times INTEGER NOT NULL DEFAULT 0 , "
-        " bookName text  NOT NULL, "  
+        " bookName text  NOT NULL, "
         " PRIMARY KEY (autoBookId) ,"
         " CONSTRAINT downloadcount_book_id FOREIGN KEY (autoBookId) REFERENCES  BookBaseInfoTable(autoBookId) "
     " ) ENGINE = InnoDB  DEFAULT CHARSET = UTF8MB3 " ;
@@ -140,7 +140,6 @@ SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &dow
 	string state = "where bookId = " + bookId;
 	auto res = conn->query<BookDownloadCountTable>(state);
     if(res.size() == 0){
-        downloadCount.times = 0;
         return SQL_STATUS::EXE_err;
     }
     downloadCount = res[0];
