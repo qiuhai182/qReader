@@ -46,7 +46,7 @@ namespace ormpp
         }
         SQL_STATUS set_newest_count(const int &autoBookId, const string &bookId, const int &times, const string &dayTime, const string &bookName);
         SQL_STATUS set_newest_count(const BookDownloadCountTable &downloadCount);
-		SQL_STATUS get_newest_count_by_id(BookDownloadCountTable &downloadCount, const string &bookId);
+		SQL_STATUS get_newest_count_by_id(BookDownloadCountTable *downloadCount, const string &bookId);
 
     private:
 		SQL_STATUS create_table();
