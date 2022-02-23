@@ -86,7 +86,7 @@ namespace ormpp
         BookBaseInfo *__base;
         BookGradeInfo *__grade;
         BookSearchInfo *__search;
-        BookDownloadCountTable *__downloadCount;
+        BookDownloadCount *__downloadCount;
     };
 
 }
