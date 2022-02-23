@@ -114,7 +114,7 @@ namespace fileService
 				string filePath = FLAGS_dataPath + control->http_request().unresolved_path();
 				cout<<"filepath  is "<< filePath << endl;	
 				string suffix = filePath.substr(filePath.find_last_of('.')); // 获取文件后缀
-				string bookId = request->bookId();
+				string bookId = request->bookid();
 				int userId = request->userid();
 				string dayTime = request->daytime();
 				int count = request->count();

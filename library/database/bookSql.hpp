@@ -194,7 +194,7 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(BookDownloadCountTable &downloadCou
     if (ret != SQL_STATUS::EXE_sus)
         return SQL_STATUS::EXE_err;
     BookBaseInfoTable base_book_info;
-    SQL_STATUS ret = __base->get_book_baseInfo_by_book_id(base_book_info, bookId);
+    ret = __base->get_book_baseInfo_by_book_id(base_book_info, bookId);
     if (ret != SQL_STATUS::EXE_sus)
         return SQL_STATUS::EXE_err;
     downloadCount.autoBookId = base_book_info.autoBookId;
