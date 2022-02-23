@@ -150,7 +150,7 @@ class calculateLine:
         
     def modelLoad(self):
         #模型预加载
-        rf = open("RowTrainResult.json", "r")
+        rf = open("../../../dispose/RowTrainResult.json", "r")
         textStr = rf.read()
         dictOfX = json.loads(textStr)
         self.XWeight = dictOfX["XWeight"]

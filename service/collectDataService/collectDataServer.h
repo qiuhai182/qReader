@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <butil/logging.h>
 #include <sys/io.h>
+#include "public/service.hpp"
 #include "SightAnalyze.hpp"
 #include "contenttype.hpp"
 #include "collectdata.pb.h"
@@ -13,6 +14,7 @@
 
 using namespace std;
 using namespace Analyze;
+using namespace service;
 
 DEFINE_bool(echo_attachment, true, "Echo测试");
 DEFINE_string(ip, "39.105.217.90", "用于文件下载的ip外网地址");
@@ -57,7 +59,7 @@ namespace collectdataService
 				static_cast<brpc::Controller *>(control_base);
 
 			LOG(INFO) <<endl
-					  << "\n收到请求[log_id=" << control->log_id()
+					  << "\n收到 请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")"
@@ -100,7 +102,7 @@ namespace collectdataService
 		}
 
 		// 获取区间阅读统计数据
-		virtual void getReadTimeCount(google::protobuf::RpcController *control_base,
+		virtual void getReadSightAnalyResFun(google::protobuf::RpcController *control_base,
 									  const readCountReq *request,
 									  readSightAnalyeReq *response,
 									  google::protobuf::Closure *done)
@@ -110,101 +112,78 @@ namespace collectdataService
 				static_cast<brpc::Controller *>(control_base);
 
 			LOG(INFO) <<endl
-					  << "\n收到请求[log_id=" << control->log_id()
+					  << "\n收到 请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
+
+			//信息判断
+			if(request->daytime() == "")
+			{//应当添加用户判断 
+				LOG(INFO) <<endl
+					  <<"  请求视线分析结果 字段错误 dayTime :"<<request->daytime()
+					  <<" userId :"<<request->userid() 
+					  <<endl;
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+				response->mutable_status()->set_errorres("illegal information");
+				return;
+			}
 
 			//一天的专注度统计
 			//数据库读取写入csv
 			// int csvRet = __sightAnalyze.storage_analyse_csv(request->daytime(),request->userid());
 			// //当天没有数据
 			// if( csvRet == -1){
-			// 	response->mutable_status()->set_code(-1);
+			// 	response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Useless_inf));
 			// 	response->mutable_status()->set_errorres("今日未读书");
 			// 	LOG(INFO)<<endl
-			// 			<< "(客户端ip+port: " << control->remote_side()
-			// 			<< " 应答服务器ip+port: " << control->local_side()
-			// 			<<"请求" << request->daytime() << "的阅读分析数据失败)";
+			// 			<< "dayTime :"<<request->daytime()
+			// 		  	<<" userId "<<request->userid()
+			// 			<<" 请求" << request->daytime() << "的阅读分析数据失败,无数据";
 			// 	return;
 			// }
 			//当天有数据
 			__sightAnalyze.storage_analyse_json(request->userid());
 			//结果从json获取
-			map<string,string>time_focus ;
-			//散点 <action+color,points>
-			vector<map<string,vector<map<double,double>>>>scatterDiagram;
-			//line Chart
-			vector<double>lineChart ;
-			int ret = __sightAnalyze.get_analyse_result(time_focus,scatterDiagram,lineChart,request->daytime(),request->userid());
+			readAnalyzeRes res;
+			bool ret = __sightAnalyze.get_analyse_result(res,request->daytime(),request->userid());
 
-			//获取散点  折线图
-			cout<<"ret = "<<ret<<endl;
-			if( ret == 143 ){
-				response->mutable_thistimedata()->set_hour(stoi(time_focus["hour"].c_str()));
-				response->mutable_thistimedata()->set_min(stoi(time_focus["min"].c_str()));
-				response->mutable_thistimedata()->set_sec(stoi(time_focus["sec"].c_str()));
-				response->mutable_thistimedata()->set_focus( atof(time_focus["focus"].c_str() ) ) ;
-				response->mutable_thistimedata()->set_pages(stoi(time_focus["pages"].c_str()));
-				response->mutable_thistimedata()->set_rows(stoi(time_focus["rows"].c_str()));
-				//散点图
-				string x ,y ;
-				int lx,ly ;
-				for(int i = 0 ; i < 3 ; i++	){
-					auto pointype =  response->add_scatterdiagram();
-					unsigned loc = findLocate(scatterDiagram[i].begin()->first,'+');
-					pointype->set_action((scatterDiagram[i].begin()->first).substr(0,loc));//提取action
-					pointype->set_color(
-						scatterDiagram[i].begin()->first.
-							substr(loc + 1,scatterDiagram[i].begin()->first.size() - loc));//提取color
-					for(int j = 0 ; j < 20 ;j++ ){
-						auto point = pointype->add_locate();
-						x = to_string( (scatterDiagram[i].begin()->second)[j].begin()->first ) ;
-						y = to_string( (scatterDiagram[i].begin()->second)[j].begin()->second) ; 
-						lx = x.rfind(".");
-						ly = y.rfind(".");
-						point->set_x(  atof((x.substr(0,lx)).c_str()) );
-						point->set_y(  atof((y.substr(0,ly)).c_str()) );
-					}
-				}
-				//折线图
-				for(int i = 0 ; i < 11 ; i++){
-					auto speedPoints = response->add_speedpoints();
-					speedPoints->set_point(lineChart[i])  ;
-				}
-			}
-
-			//返回
-			if(ret == 143)
+			if(ret == true && res.isCorrect())//是否有正确结果
 			{
-				//12时段
-				int userId = request->userid();
-				string dayTime = request->daytime();
-				float intervals[12] = {0};
-				for (int i = 0; i < size(intervals); ++i)
+				response->set_hour(res.IntRes["hour"]);
+				response->set_min(res.IntRes["min"]);
+				response->set_sec(res.IntRes["sec"]);
+				response->set_pages(res.IntRes["pages"]);
+				response->set_rows(res.IntRes["rows"]);
+				response->set_focus(res.focus);
+
+				for(auto item:res.speedPoint)
 				{
-					intervals[i] = 0;
+					response->add_speedpoints(item) ;
+					 // response->set_speedpoint(item);// response->add_speedpoints();
+			 		//speedPoints->add(item);  //->set_point(lineChart[i])  ;
 				}
-				__sightAnalyze.get_interval_count(userId, dayTime, intervals);
-				for (int i = 0; i < size(intervals); ++i)
+				for(auto item:res.chart)
 				{
-					auto minute = response->add_lists();
-					minute->set_min((int)intervals[i]);
+					auto chart = response->add_pipchart();
+					chart->set_behavior(item.behavior);
+					chart->set_percentage(item.Percentage);
 				}
-				response->mutable_status()->set_code(1);
-				LOG(INFO) <<endl
-						<< "(客户端ip+port: " << control->remote_side()
-						<< " 应答服务器ip+port: " << control->local_side()
-						<<"请求" << request->daytime() << "的阅读分析数据成功)";
+
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Sus));
+				LOG(INFO)<<endl
+						<< "dayTime :"<<request->daytime()
+					  	<<" userId "<<request->userid()
+						<<"  请求" << request->daytime() << "的阅读分析数据成功)";
 			}
 			else
 			{
-				response->mutable_status()->set_code(-1);
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err));
 				response->mutable_status()->set_errorres("今日未读书");
 				LOG(INFO) <<endl
-						<< "(客户端ip+port: " << control->remote_side()
-						<< " 应答服务器ip+port: " << control->local_side()
-						<<"请求" << request->daytime() << "的阅读分析数据失败)";
+						<< "dayTime : :"<<request->daytime()
+					  	<<" userId "<<request->userid()
+						<<"  请求" << request->daytime() << "的阅读分析数据失败,读取失败)";
 			}
 
 			if (FLAGS_echo_attachment)
@@ -223,7 +202,7 @@ namespace collectdataService
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
 			LOG(INFO) 	<<endl
-						<< "\n收到请求[log_id=" << control->log_id()
+						<< "\n收到 请求[log_id=" << control->log_id()
 						<< "] 客户端ip+port: " << control->remote_side()
 						<< " 应答服务器ip+port: " << control->local_side()
 						<< " (attached : " << control->request_attachment() << ")";
@@ -237,7 +216,7 @@ namespace collectdataService
 			LOG(INFO) 	<<endl
 						<< "(客户端ip+port: " << control->remote_side()
 						<< " 应答服务器ip+port: " << control->local_side()
-						<<"请求阅读计划分钟数)";
+						<<" 请求阅读计划分钟数)";
 		}
 
 		// 设置目标时间
@@ -250,7 +229,7 @@ namespace collectdataService
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
 			cout << endl;
-			LOG(INFO) << "\n收到请求[log_id=" << control->log_id()
+			LOG(INFO) << "\n收到 请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")";
