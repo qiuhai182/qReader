@@ -195,10 +195,11 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(BookDownloadCountTable &downloadCou
         return SQL_STATUS::EXE_err;
     ret = __downloadCount->get_newest_count_by_id(downloadCount, bookId);
     if (ret != SQL_STATUS::EXE_sus)
+        cout << "初始化上架书籍下载记录" << endl;
+        downloadCount.autoBookId = base_book_info.autoBookId;
         downloadCount.bookId = base_book_info.bookId;
         downloadCount.bookName = base_book_info.bookName;
         downloadCount.times = 0;
-    downloadCount.autoBookId = base_book_info.autoBookId;
     return SQL_STATUS::EXE_sus;
 }
 
