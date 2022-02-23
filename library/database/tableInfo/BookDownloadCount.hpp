@@ -104,12 +104,11 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string cond;
-    cond += "where autoBookId = \'" + downloadCount.autoBookId + "\'";
+	string cond = "where autoBookId = \'" + to_string(downloadCount.autoBookId) + "\'";
 	auto res = conn->query<UserInfoTable>(cond);
     if(res.size())
     {
-        cond = "update BookDownloadCountTable set times = " + downloadCount.times + "where bookId = \'" + downloadCount.bookId + "\'";
+        cond = "update BookDownloadCountTable set times = " + to_string(downloadCount.times) + "where bookId = \'" + downloadCount.bookId + "\'";
         return execute_sql(conn, "update download times", cond);
     }
     else if (conn->insert(downloadCount) != 1)
