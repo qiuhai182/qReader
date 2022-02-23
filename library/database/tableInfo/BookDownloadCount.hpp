@@ -83,7 +83,7 @@ SQL_STATUS BookDownloadCount::create_table()
         " PRIMARY KEY (autoBookId) ,"
         " CONSTRAINT downloadcount_book_id FOREIGN KEY (autoBookId) REFERENCES  BookBaseInfoTable(autoBookId) "
     " ) ENGINE = InnoDB  DEFAULT CHARSET = UTF8MB3 " ;
-    insert into BookDownloadCountTable (autobookid, bookid, dayTime, times, bookName) values (10000011, "e3916ccea0066aebb38babb547ebde274dd1803e", "2022-02-23", 1, "C++算法刷题必看");
+    // insert into BookDownloadCountTable (autobookid, bookid, dayTime, times, bookName) values (10000011, "e3916ccea0066aebb38babb547ebde274dd1803e", "2022-02-23", 1, "C++算法刷题必看");
     if(conn->execute(state)){
         //设置不可创建
         this->__isCreate =true;
