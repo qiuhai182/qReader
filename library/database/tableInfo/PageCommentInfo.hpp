@@ -227,7 +227,7 @@ SQL_STATUS PageCommentInfo::increase_comment_reply(const int & comment_id)
             << " LINE  " << __LINE__ << endl;
         return SQL_STATUS::Pool_err;
     }
-    string state = " update PageCommentInfoTable set replyCount = replyCount - 1 "
+    string state = " update PageCommentInfoTable set replyCount = replyCount + 1 "
                     "where commentId = " + to_string(comment_id);
 
     return execute_sql(conn,"increase page comment replyCount ",state);
