@@ -9,7 +9,6 @@ function run(){
     res="$(lsof -i:$2)"
     list=($res)
     pid=${list[10]}
-    
     if [ ! "$pid" = "" ];then
         echo -e "\033[31m Hit:Port $2 is already occupied ,$1 Start-up was failed  \033[0m"
         return 
@@ -31,6 +30,7 @@ function run(){
         echo -e "\033[32m Hit: $1 Start-up was successful \033[0m"
     fi
 }
+
 
 #参数个数判断
 if [ ! $# = 1 ] ; then
