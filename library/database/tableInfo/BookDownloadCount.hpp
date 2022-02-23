@@ -137,7 +137,7 @@ SQL_STATUS BookDownloadCount::set_newest_count(const int &autoBookId, const stri
 }
 
 
-SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &downloadCount, const string &bookId)
+SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable *downloadCount, const string &bookId)
 {
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
@@ -155,8 +155,8 @@ SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &dow
         cout << "查询下载次数记录(" << bookId << ")失败" << endl;
         return SQL_STATUS::EXE_err;
     }
-    downloadCount = res[0];
-    cout << "成功测试0：" << downloadCount.times << endl;
+    *downloadCount = res[0];
+    cout << "成功测试0：" << downloadCount->times << endl;
 	return SQL_STATUS::EXE_sus;
 }
 
