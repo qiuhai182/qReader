@@ -120,6 +120,7 @@ namespace fileService
 				int count = request->count();
 				BookDownloadCountTable downloadCount;
 				__bookSql.get_book_by_book_id(downloadCount, bookId);
+    			cout << "成功测试2：" << downloadCount.times << endl;
 				downloadCount.dayTime = dayTime;
 				++downloadCount.times;
 				__bookSql.set_newest_book_count(downloadCount);
