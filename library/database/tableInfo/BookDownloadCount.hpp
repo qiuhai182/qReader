@@ -106,9 +106,9 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
 	}
 	string cond = "where autoBookId = \'" + to_string(downloadCount.autoBookId) + "\'";
 	auto res = conn->query<BookDownloadCountTable>(cond);
-    if(res.size())
+    if(0 == res.size())
     {
-        cond = "update BookDownloadCountTable set times = " + to_string(downloadCount.times) + "where bookId = \'" + downloadCount.bookId + "\'";
+        cond = "update BookDownloadCountTable set times = " + to_string(downloadCount.times) + " where bookId = " + downloadCount.bookId;
         return execute_sql(conn, "update download times", cond);
     }
     else if (conn->insert(downloadCount) != 1)
