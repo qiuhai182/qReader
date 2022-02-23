@@ -82,6 +82,15 @@ namespace bookCityService
 			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
 
 		}
+		//附加类型填充  附加字段暂时只有bookTitle  后可将第三字段变为位运算值
+		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const CombineBook & bookres ,const int value )
+		{
+				fillBook(add_lists,bookres);
+				if(value == 0)
+				{
+					add_lists->set_booktitle("快来看看这本<<" + get<0>(bookres).bookName + ">>" );
+				}
+		}
 		void reduce_months(string  & monthTime)
 		{//减小月份xxxx-xx
 
@@ -499,7 +508,7 @@ namespace bookCityService
 		}
 
 		virtual void getAllBookInfoFun(google::protobuf::RpcController *control_base,
-									   const getAllBookInfoReq *request,
+									   const offsetCountBooksReq *request,
 									   booksRespList *response,
 									   google::protobuf::Closure *done)
 		{ // 获取数据库所有书籍信息
@@ -866,6 +875,57 @@ namespace bookCityService
 				LOG(INFO) << endl
 						  << control->remote_side()
 						  << " :搜索到图书 " << beginSize << " 本。" << endl;
+			}
+
+		}
+		
+		virtual void getPushBooksFun(::google::protobuf::RpcController* control_base,
+                       const ::bookCityService::offsetCountBooksReq* request,
+                       ::bookCityService::booksRespList* response,
+                       ::google::protobuf::Closure* done)
+		{//书籍推送
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ") "
+					  <<" 请求获取推送书籍 "<<endl;
+
+			//非法信息处理
+			if(request->size() <= 0 || request->offset() < 0)
+			{
+				LOG(INFO) << "字段缺失，或数据非法 "
+						<<" count :" << request->size()
+						<<" offset : " << request->offset()<<endl;
+				response->set_count(0);
+				return ;
+			}
+			vector<CombineBook> books ;
+			SQL_STATUS ret =  __bookCitySql.get_book_offset(books,0,request->size());
+
+			if( ret != SQL_STATUS::EXE_sus)
+			{
+				response->set_count(0);
+				LOG(WARNING) << endl
+					  << control->remote_side() 
+					  << " 数据库执行错误，获取推送失败" 
+					  << endl;
+			}
+			else
+			{
+				for(auto & bookres:books ){
+					auto book = response->add_lists();
+					fillBook(book,bookres,0);
+				}
+				response->set_count(books.size());
+				LOG(WARNING) << endl
+					  << control->remote_side() 
+					  << " 获取推送成功,共" 
+					  << books.size()<<"本"<<endl;
 			}
 
 		}

@@ -50,6 +50,7 @@ message boocomCombinekInfo
 	required bookBaseInfo baseInfo 	= 2;
 	required bookDownInfo downInfo  = 3;
 	required bookGradeInfo gradeInfo= 4;
+	optional string bookTitle 		= 5;	//仅仅在推送时存在
 }
 
 message bookMarkItem 
@@ -57,7 +58,7 @@ message bookMarkItem
 	required string bookId = 1;
 }
 
-message getAllBookInfoReq 
+message offsetCountBooksReq 
 { // 获取数据库所有书籍信息请求信息
 	optional int32 offset = 1;
 	optional int32 size = 2;
@@ -169,12 +170,13 @@ message fuzzySearchRequest
 	required int32 count = 3 ;
 	required int32 offset = 4 ;
 }
+
 service bookCityService 
 {
 	rpc addBookInfoFun(bookBaseInfo) returns(commonService.commonResp);			// 
 	rpc searchBookInfoFun(searchBookReq) returns(booksRespList);			    // 
 	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);		    // 
-	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
+	rpc getAllBookInfoFun(offsetCountBooksReq) returns(booksRespList);			// 
 	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
 	rpc getBookADSFun(adsReq) returns(adsRes); 									// 书城广告图片
 	rpc getRecommendBookFun(recommendBookReq) returns(recommendBookRes); 		// 个性化书籍
@@ -182,6 +184,7 @@ service bookCityService
 	rpc getMostlySearchFun(universalBlankReq) returns(mostlySearchRes); 		// 获取搜索最多的书籍
 	rpc getPopularSearchFun(universalBlankReq) returns(booksRespList); 			// 获取榜单书籍
 	rpc FuzzySearchBooksFun(fuzzySearchRequest) returns(booksRespList);			// 模糊匹配书籍
+	rpc getPushBooksFun(offsetCountBooksReq) returns(booksRespList);			// 获取推送书籍							
 }
 
 

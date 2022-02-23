@@ -114,7 +114,8 @@ message readSightAnalyeReq
 	optional int32 rows = 6 ;
 	repeated double speedPoints = 7 ;
 	repeated chartPart pipChart = 8 ;
-	required commonService.commonResp  status = 9 ;		//该结构必须存在
+	repeated int32 timeLists = 9 ;	//12 时段
+	required commonService.commonResp  status = 10 ;		//该结构必须存在
 }
 
 message targetMinute

@@ -101,7 +101,7 @@ namespace collectdataService
 			}
 		}
 
-		// 获取区间阅读统计数据
+		// 获取阅读分析
 		virtual void getReadSightAnalyResFun(google::protobuf::RpcController *control_base,
 									  const readCountReq *request,
 									  readSightAnalyeReq *response,
@@ -146,10 +146,38 @@ namespace collectdataService
 			__sightAnalyze.storage_analyse_json(request->userid());
 			//结果从json获取
 			readAnalyzeRes res;
+
+			//12时段
+			int userId = request->userid();
+			string dayTime = request->daytime();
+			float intervals[12];
+			for (int i = 0; i < size(intervals); ++i)
+			{
+				intervals[i] = -1;
+			}
+				__sightAnalyze.get_interval_count(userId, dayTime, intervals);
+			if(intervals[11] == -1)
+			{
+				LOG(INFO)<<endl
+					<< "dayTime :"<<request->daytime()
+					<<" userId "<<request->userid()
+					<<"  请求" << request->daytime() << "的阅读分析数据失败,时段获取错误)";
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err));
+				response->mutable_status()->set_errorres("时段获取错误");
+				return;
+			}
+			
+
 			bool ret = __sightAnalyze.get_analyse_result(res,request->daytime(),request->userid());
 
 			if(ret == true && res.isCorrect())//是否有正确结果
 			{
+				//将赋值放入最后统一，保证不出现多余值
+				for (int i = 0; i < size(intervals); ++i)
+				{
+					response->add_timelists((int)intervals[i]);
+				}
+
 				response->set_hour(res.IntRes["hour"]);
 				response->set_min(res.IntRes["min"]);
 				response->set_sec(res.IntRes["sec"]);
@@ -160,8 +188,6 @@ namespace collectdataService
 				for(auto item:res.speedPoint)
 				{
 					response->add_speedpoints(item) ;
-					 // response->set_speedpoint(item);// response->add_speedpoints();
-			 		//speedPoints->add(item);  //->set_point(lineChart[i])  ;
 				}
 				for(auto item:res.chart)
 				{
