@@ -184,7 +184,7 @@ SQL_STATUS UserInfo::get_user_by_id(UserInfoTable &user, const int &user_id)
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string state = "where userId = " + std::to_string(user_id) ;
+	string state = "where userId = \'" + std::to_string(user_id) + "\'";
 	auto res = conn->query<UserInfoTable>(state);
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;
