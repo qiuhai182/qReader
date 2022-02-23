@@ -217,26 +217,25 @@ SQL_STATUS BookInfoImpl::get_books_by_option(vector<CombineBook> &books, const o
     for (auto base_info : base_info_books)
     {
         BookScoreStat stat_info;
+        // 获取评分人数
         ret = __grade->get_remark_count(stat_info.count, base_info.autoBookId);
-
         if (ret != SQL_STATUS::EXE_sus)
             continue;
-        //暂无评分
+        // 暂无评分
         if (stat_info.count == 0)
         {
             stat_info.avgScore = -1;
         }
         else
         {
+            // 取平均分
             ret = __grade->get_average_score(stat_info.avgScore, base_info.autoBookId);
             if (ret != SQL_STATUS::EXE_sus)
                 continue;
         }
-
         CombineBook buffer(std::move(base_info), std::move(stat_info));
         books.push_back(buffer);
     }
-
     return SQL_STATUS::EXE_sus;
 }
 

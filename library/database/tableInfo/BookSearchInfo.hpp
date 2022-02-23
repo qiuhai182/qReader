@@ -21,7 +21,7 @@ typedef string option;
 
 namespace ormpp
 {
-  
+
     /** 
      * 书籍搜索次数信息查询
      */
@@ -199,7 +199,7 @@ SQL_STATUS BookSearchInfo::insert_seacrh_inf(const SearchStatisticsTable & stat)
 }
 
 SQL_STATUS BookSearchInfo::update_seacrh_inf(const SearchStatisticsTable & stat)
-{//更新书本当天的搜索信息
+{ // 更新书本当天的搜索信息
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if(conn == NULL)

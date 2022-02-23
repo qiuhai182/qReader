@@ -104,7 +104,14 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-    if (conn->insert(downloadCount) != 1)
+	string cond = "where autoBookId = \'" + downloadCount.autoBookId + "\'";
+	auto res = conn->query<UserInfoTable>(cond);
+    if(res.size())
+    {
+        cond = "update BookDownloadCountTable set times = " + downloadCount.times + "where bookId = \'" + downloadCount.bookId + "\'";
+        return SQL_STATUS::EXE_sus;
+    }
+    else if (conn->insert(downloadCount) != 1)
     {
         cout <<endl
             << __FILE__ << " : " << __LINE__ << "  insert error" << endl;
