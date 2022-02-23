@@ -52,7 +52,8 @@ namespace ormpp
 			if (!ret)
 			{ // 文件信息连接数据库失败
 				// 连接池数量 ip地址 用户 密码 数据库名 超时时间
-				pool.init(10, "localhost", "iReader", "123456@iReader", "iReaderDataBase", 10);
+				// pool.init(10, "localhost", "iReader", "123456@iReader", "iReaderDataBase", 10);
+				pool.init(10, "127.0.0.1", "iReader", "123456@iReader", "iReaderDataBase", 10);
 				return pool.get();
 			}
 			try
