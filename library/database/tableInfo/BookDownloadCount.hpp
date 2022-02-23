@@ -104,7 +104,8 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string cond = "where autoBookId = \'" + downloadCount.autoBookId + "\'";
+	string cond;
+    cond += "where autoBookId = \'" + downloadCount.autoBookId + "\'";
 	auto res = conn->query<UserInfoTable>(cond);
     if(res.size())
     {
