@@ -122,7 +122,6 @@ namespace fileService
 				__bookSql.get_book_by_book_id(downloadCount, bookId);
 				downloadCount.dayTime = dayTime;
 				++downloadCount.times;
-				cout << "书籍:" << downloadCount.bookName << "下载次数:" << downloadCount.times-1 << "+1" << endl;
 				__bookSql.set_newest_book_count(downloadCount);
 				sendFile(control, filePath, getContentType(suffix));
 			}

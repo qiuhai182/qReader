@@ -108,16 +108,19 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
 	auto res = conn->query<BookDownloadCountTable>(cond);
     if(0 == res.size())
     {
+        cout << "书籍:" << downloadCount.bookName << "下载次数:" << downloadCount.times-1 << "+1" << endl;
         cond = "update BookDownloadCountTable set times = " + to_string(downloadCount.times) + " where bookId = " + downloadCount.bookId;
         return execute_sql(conn, "update download times", cond);
     }
     else if (conn->insert(downloadCount) != 1)
     {
+        cout << "书籍:" << downloadCount.bookName << "上架错误" << endl;
         cout <<endl
             << __FILE__ << " : " << __LINE__ << "  insert error" << endl;
         return SQL_STATUS::EXE_err;
     }
     else
+        cout << "书籍:" << downloadCount.bookName << "上架首次下载" << endl;
         return SQL_STATUS::EXE_sus;
 }
 
