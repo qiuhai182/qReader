@@ -191,6 +191,7 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(BookDownloadCountTable &downloadCou
 {
     SQL_STATUS ret = __downloadCount->get_newest_count_by_id(downloadCount, bookId);
     if (ret != SQL_STATUS::EXE_sus)
+    {
         cout << "初始化上架书籍下载记录" << endl;
         BookBaseInfoTable base_book_info;
         ret = __base->get_book_baseInfo_by_book_id(base_book_info, bookId);
@@ -200,6 +201,7 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(BookDownloadCountTable &downloadCou
         downloadCount.bookId = base_book_info.bookId;
         downloadCount.bookName = base_book_info.bookName;
         downloadCount.times = 0;
+    }
     cout << "成功测试1：" << downloadCount.times << " " << downloadCount.bookName << endl;
     return SQL_STATUS::EXE_sus;
 }
