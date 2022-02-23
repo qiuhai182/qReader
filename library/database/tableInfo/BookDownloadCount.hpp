@@ -146,7 +146,8 @@ SQL_STATUS BookDownloadCount::get_newest_count_by_id(BookDownloadCountTable &dow
 		return SQL_STATUS::Pool_err;
 	}
 	string state = "where bookId = " + bookId;
-	auto res = conn->query<BookDownloadCountTable>(state);
+	// auto res = conn->query<BookDownloadCountTable>(state);
+	auto res = conn->query<BookDownloadCountTable>();
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;
     }
