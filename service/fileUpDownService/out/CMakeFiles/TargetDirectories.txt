@@ -1,3 +1,0 @@
-/home/qiuhai/qReader/service/fileUpDownService/out/CMakeFiles/rebuild_cache.dir
-/home/qiuhai/qReader/service/fileUpDownService/out/CMakeFiles/edit_cache.dir
-/home/qiuhai/qReader/service/fileUpDownService/out/CMakeFiles/server.dir

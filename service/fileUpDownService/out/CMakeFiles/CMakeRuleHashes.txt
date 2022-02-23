@@ -1,4 +1,0 @@
-# Hashes of file build rules.
-6b53b465b0a3e241b155c54704eed570 bookcity.pb.h
-313d62e6e4e545a631c9c3bba6f62340 common.pb.h
-2467f292720bfdda129c6d56ace9b966 fileupdown.pb.h
