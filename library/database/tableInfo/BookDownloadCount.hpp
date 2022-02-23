@@ -109,7 +109,7 @@ SQL_STATUS BookDownloadCount::set_newest_count(const BookDownloadCountTable &dow
     if(res.size())
     {
         cond = "update BookDownloadCountTable set times = " + downloadCount.times + "where bookId = \'" + downloadCount.bookId + "\'";
-        return SQL_STATUS::EXE_sus;
+        return execute_sql(conn, "update download times", cond);
     }
     else if (conn->insert(downloadCount) != 1)
     {
