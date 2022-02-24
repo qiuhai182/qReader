@@ -438,8 +438,8 @@ SQL_STATUS BookBaseInfo::up_book_baseInfo(std::map<option,sqlUpdateVal> up_data)
 }
 
 SQL_STATUS BookBaseInfo::get_book_baseInfo_by_offset(vector<BookBaseInfoTable> & books , 
-                                                const int & offset,const int & count)
-{//在表中读取区域的图书
+                                                const int & offset, const int & count)
+{ // 在表中查询指定偏移量、最大结果数量的书籍
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)

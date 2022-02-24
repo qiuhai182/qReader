@@ -47,10 +47,8 @@ namespace bookCityService
 		MemBooks __memBookList;			// 实例化书籍，配合模糊匹配
 		map<int, int> recommendTimes;	// 记录个性化推荐批次
 		map<int, int> browseTimes;		// 记录书城浏览批次
-	private:
-		//填充回发消息
 		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const CombineBook & bookres )
-		{
+		{ // 填充回发消息
 			auto book = add_lists;
 			/**
 			 * 部分信息需要动态生成
@@ -64,7 +62,6 @@ namespace bookCityService
 			struct stat info;
 			stat(filepath.c_str(), &info);
 			int bookSize = info.st_size;
-
 			//返回填充
 			book->set_bookid(get<0>(bookres).bookId);
 			book->mutable_baseinfo()->set_bookname(get<0>(bookres).bookName);
@@ -80,7 +77,37 @@ namespace bookCityService
 			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
 			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
 			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
-
+		}
+		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const BookBaseInfoTable & bookres )
+		{ // 填充回发消息
+			auto book = add_lists;
+			/**
+			 * 部分信息需要动态生成
+			 */
+			//返回数字类型
+			int ret_type = bookType::primary_string_to_int(bookres.bookType);
+			//下载信息
+			string bookHeadUrl = FLAGS_bookHeadUrlPre + bookres.bookId + ".jpg";
+			string bookBodyUrl = FLAGS_bookBodyUrlPre + bookres.bookId + ".pdf";
+			string filepath = FLAGS_renameBooksPath + bookres.bookId + ".pdf";
+			struct stat info;
+			stat(filepath.c_str(), &info);
+			int bookSize = info.st_size;
+			//返回填充
+			book->set_bookid(bookres.bookId);
+			book->mutable_baseinfo()->set_bookname(bookres.bookName);
+			book->mutable_baseinfo()->set_booktype(ret_type);
+			book->mutable_baseinfo()->set_authorname(bookres.authorName);
+			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
+			book->mutable_baseinfo()->set_publishhouse(bookres.publishHouse);
+			book->mutable_baseinfo()->set_bookintro(bookres.bookIntro);
+			book->mutable_baseinfo()->set_bookpage(bookres.bookPage );
+			book->mutable_baseinfo()->set_languagetype(bookres.languageType );
+			book->mutable_downinfo()->set_filesize(bookSize);
+			book->mutable_downinfo()->set_bookheadurl(bookHeadUrl);
+			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
+			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
+			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
 		}
 		void reduce_months(string  & monthTime)
 		{//减小月份xxxx-xx
@@ -182,9 +209,6 @@ namespace bookCityService
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")"
 					  << endl;
-
-			
-				
 			SQL_STATUS ret ; 
 			if (request->has_bookid())
 			{
@@ -230,7 +254,6 @@ namespace bookCityService
 				optionName = "bookName";
 				optionValue = request->bookname();
 			}
-			
 			if (request->has_authorname())
 			{
 				optionName = "authorName";
@@ -241,7 +264,6 @@ namespace bookCityService
 				optionName = "publishHouse";
 				optionValue = request->publishhouse();
 			}
-
 			if (request->has_booktype())
 			{
 				if(  false == bookType::isPrimaryClass(request->booktype())){
@@ -256,7 +278,6 @@ namespace bookCityService
 				bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
 				optionValue = bookType::primary_enum_to_string(typeEnum) ;
 			}
-
 			LOG(INFO) << endl
 					<< control->remote_side()
 					<< " 搜索图书方式为 " << optionName
@@ -393,7 +414,6 @@ namespace bookCityService
 					return ;
 				}
 			}
-
 			if(request->has_publishtime() == true)
 			{
 				if(request->publishtime() != "")
@@ -466,7 +486,6 @@ namespace bookCityService
 					return ;
 				}
 			}
-			
 			//进行修改
 			SQL_STATUS ret =   __bookCitySql.up_book_Info(up_data);
 			if (ret != SQL_STATUS::EXE_sus)
@@ -486,7 +505,6 @@ namespace bookCityService
                 LOG(INFO) << endl
                         << control->remote_side() << "更新书籍信息成功" << endl;
             }
-			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -802,14 +820,12 @@ namespace bookCityService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-
 			LOG(INFO) <<endl
 					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ") "
 					  <<" 请求模糊匹配书籍 "<<endl;
-
 			//非法信息处理
 			if(request->daytime() == "" || request->words() == "" ||
 					request->count() <= 0 || request->offset() < 0){
@@ -819,14 +835,12 @@ namespace bookCityService
 				response->set_count(0);
 				return ;
 			}
-
 			vector<int> autoBookIds;
 			//从实例读出书籍
 			__memBookList.fuzzySearch(autoBookIds,request->words(),request->offset(),request->count()) ;
 			CombineBook bookbuffer ;
 			int beginSize = autoBookIds.size(),count =0;
 			SQL_STATUS ret ;
-
 			for(int index = 0; index < beginSize; index++)
 			{
 				ret =__bookCitySql.get_book_by_autoBookId(bookbuffer,autoBookIds[index]);
@@ -842,7 +856,6 @@ namespace bookCityService
 				auto book = response->add_lists();
 				fillBook(book,bookbuffer);
 			}
-			
 			cout<<endl <<" 初始值  "<<beginSize<<" 终值  "<<count<<endl ;
 			if (count == 0)
 			{
@@ -860,6 +873,54 @@ namespace bookCityService
 			}
 
 		}
-	}; 
+		
+
+		
+	 	virtual void getTypedBooksFun(::google::protobuf::RpcController* control_base,
+										const ::bookCityService::getTypedBookReq* request,
+										::bookCityService::booksRespList* response,
+										::google::protobuf::Closure* done)
+		{ // 根据书籍类型获取指定类别、指定批次书籍
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ") " << endl;
+			int offset = 0;
+			int count = 10;
+			if (request->has_offset())
+				offset = request->offset();
+			if (request->has_count())
+				count = request->count();
+			if(false == bookType::isPrimaryClass(request->booktype())){
+				response->set_count(0);
+				LOG(INFO) << endl
+						<< control->remote_side()
+						<< "搜索错误类型图书" << endl;
+				return;
+			}
+			optionName = "bookType";
+			// int转自定义枚举类型
+			bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
+			// 枚举类型转字符串
+			optionValue = bookType::primary_enum_to_string(typeEnum) ;
+			vector<CombineBook> bookres;
+			ret =  __bookCitySql.get_books_by_option(bookres, optionName, optionValue, offset, count);
+			for (int i = 0; i < bookres.size(); ++i)
+			{
+				auto book = response->add_lists();
+				fillBook(book, bookres[i]);
+			}
+			response->set_count(bookres.size());
+			LOG(INFO) << endl
+						<< control->remote_side()
+						<< "浏览书籍类型:" << optionValue << ",偏移值:" << offset << "," << bookres.size() << " 本" << endl;
+		}
+
+	};
 
 }
+

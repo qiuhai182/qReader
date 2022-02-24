@@ -76,9 +76,6 @@ message searchBookReq
 	required int32 count = 9;
 }
 
-
-
-
 message booksRespList 
 { // 大量书籍信息回发信息
 	optional string userId = 1;
@@ -171,6 +168,13 @@ message fuzzySearchRequest
 	required int32 offset = 4 ;
 }
 
+message getTypedBookReq
+{ // 获取指定类型书籍请求
+	required int32 bookType = 1;
+	optional int32 offset = 2;
+	optional int32 count = 3;
+}
+
 service bookCityService 
 {
 	rpc addBookInfoFun(bookBaseInfo) returns(commonService.commonResp);			// 
@@ -184,6 +188,7 @@ service bookCityService
 	rpc getMostlySearchFun(universalBlankReq) returns(mostlySearchRes); 		// 获取搜索最多的书籍
 	rpc getPopularSearchFun(universalBlankReq) returns(booksRespList); 			// 获取榜单书籍
 	rpc FuzzySearchBooksFun(fuzzySearchRequest) returns(booksRespList);			// 模糊匹配书籍
+	rpc getTypedBooksFun(getTypedBookReq) returns(booksRespList);				// 获取指定类型书籍
 }
 
 
