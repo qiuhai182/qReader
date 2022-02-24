@@ -852,7 +852,7 @@ namespace bookCityService
 
 		}
 		
-<<<<<<< HEAD
+
 		virtual void getPushBooksFun(::google::protobuf::RpcController* control_base,
                        const ::bookCityService::offsetCountBooksReq* request,
                        ::bookCityService::booksRespList* response,
@@ -861,14 +861,12 @@ namespace bookCityService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-
 			LOG(INFO) <<endl
 					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ") "
 					  <<" 请求获取推送书籍 "<<endl;
-
 			//非法信息处理
 			if(request->size() <= 0 || request->offset() < 0)
 			{
@@ -880,7 +878,6 @@ namespace bookCityService
 			}
 			vector<CombineBook> books ;
 			SQL_STATUS ret =  __bookCitySql.get_book_offset(books,0,request->size());
-
 			if( ret != SQL_STATUS::EXE_sus)
 			{
 				response->set_count(0);
@@ -901,51 +898,50 @@ namespace bookCityService
 					  << " 获取推送成功,共" 
 					  << books.size()<<"本"<<endl;
 			}
-
 		}
-	}; 
-=======
+	};
 
-		
-	 	virtual void getTypedBooksFun(::google::protobuf::RpcController* control_base,
-										const ::bookCityService::getTypedBookReq* request,
-										::bookCityService::booksRespList* response,
-										::google::protobuf::Closure* done)
-		{ // 根据书籍类型获取指定类别、指定批次书籍
-			brpc::ClosureGuard done_guard(done);
-			brpc::Controller *control =
-				static_cast<brpc::Controller *>(control_base);
-			LOG(INFO) << endl
-					  << "\n收到请求[log_id=" << control->log_id()
-					  << "] 客户端ip+port: " << control->remote_side()
-					  << " 应答服务器ip+port: " << control->local_side()
-					  << " (attached : " << control->request_attachment() << ") " << endl;
-			int offset = 0;
-			int count = 10;
-			if (request->has_offset())
-				offset = request->offset();
-			if (request->has_count())
-				count = request->count();
-			string optionName = "bookType";
-			// int转自定义枚举类型
-			bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
-			// 枚举类型转字符串
-			string optionValue = bookType::primary_enum_to_string(typeEnum) ;
-			vector<CombineBook> bookres;
-			SQL_STATUS ret =  __bookCitySql.get_books_by_option(bookres, optionName, optionValue, offset, count);
-			for (int i = 0; i < bookres.size(); ++i)
-			{
-				auto book = response->add_lists();
-				fillBook(book, bookres[i]);
-			}
-			response->set_count(bookres.size());
-			LOG(INFO) << endl
-						<< control->remote_side()
-						<< "浏览书籍类型:" << optionValue << ",偏移值:" << offset << "," << bookres.size() << " 本" << endl;
+	
+	virtual void getTypedBooksFun(::google::protobuf::RpcController* control_base,
+									const ::bookCityService::getTypedBookReq* request,
+									::bookCityService::booksRespList* response,
+									::google::protobuf::Closure* done)
+	{ // 根据书籍类型获取指定类别、指定批次书籍
+		brpc::ClosureGuard done_guard(done);
+		brpc::Controller *control =
+			static_cast<brpc::Controller *>(control_base);
+		LOG(INFO) << endl
+					<< "\n收到请求[log_id=" << control->log_id()
+					<< "] 客户端ip+port: " << control->remote_side()
+					<< " 应答服务器ip+port: " << control->local_side()
+					<< " (attached : " << control->request_attachment() << ") " << endl;
+		int offset = 0;
+		int count = 10;
+		if (request->has_offset())
+			offset = request->offset();
+		if (request->has_count())
+			count = request->count();
+		string optionName = "bookType";
+		// int转自定义枚举类型
+		bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
+		// 枚举类型转字符串
+		string optionValue = bookType::primary_enum_to_string(typeEnum) ;
+		vector<CombineBook> bookres;
+		SQL_STATUS ret =  __bookCitySql.get_books_by_option(bookres, optionName, optionValue, offset, count);
+		for (int i = 0; i < bookres.size(); ++i)
+		{
+			auto book = response->add_lists();
+			fillBook(book, bookres[i]);
 		}
+		response->set_count(bookres.size());
+		LOG(INFO) << endl
+					<< control->remote_side()
+					<< "浏览书籍类型:" << optionValue << ",偏移值:" << offset << "," << bookres.size() << " 本" << endl;
+	}
+
 
 	};
->>>>>>> qiuhai
+
 
 }
 
