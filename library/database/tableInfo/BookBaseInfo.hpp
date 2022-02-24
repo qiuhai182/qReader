@@ -297,8 +297,8 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option(vector<BookBaseInfoTable> 
 	}
     if( !isOption(optionName))
         return SQL_STATUS::Illegal_info ;
-	string cond = " where " + optionName + " LIKE \'\%" +  optionValue + "\%\' 
-                    and isDelete = 0 limit " + to_string(offset) + " , " +  to_string(count);
+	string cond = " where " + optionName + " LIKE \'\%" +  optionValue + 
+                    "\%\' and isDelete = 0 limit " + to_string(offset) + " , " +  to_string(count);
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
