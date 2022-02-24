@@ -128,7 +128,7 @@ namespace Times
         int year = curTime->tm_year + 1900;
         int month = curTime->tm_mon + 1;
         int day = curTime->tm_mday;
-        int weekenday = curTime->tm_wda;
+        int weekenday = curTime->tm_wday;
         int hour = curTime->tm_hour;
         int minute = curTime->tm_min;
         int second = curTime->tm_sec;
@@ -138,8 +138,8 @@ namespace Times
         string preMinute = minute > 9 ? " " : "0";
         string preSecond = second > 9 ? " " : "0";
         string timeString = to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + 
-                            to_string(day) + " " + preHour + hour + "-" + preMinute + minute + 
-                            "-" + preSecond + second;
+                            to_string(day) + " " + preHour + to_string(hour) + "-" + preMinute + 
+                            to_string(minute) + "-" + preSecond + to_string(second);
         return get_timeStamp(timeString.data());
     }
 
