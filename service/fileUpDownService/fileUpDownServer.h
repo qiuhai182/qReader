@@ -7,6 +7,7 @@
 #include <butil/logging.h>
 #include <sys/io.h>
 #include "public/location.hpp"
+#include "public/Times.hpp"
 #include "bitmap.hpp"
 #include "contenttype.hpp"
 #include "fileupdown.pb.h"
