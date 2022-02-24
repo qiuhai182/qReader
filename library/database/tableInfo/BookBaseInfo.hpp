@@ -327,8 +327,8 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option_downloadCount(vector<BookB
     if(!isOption(optionName))
         return SQL_STATUS::Illegal_info ;
     string cond = "select base.* from BookBaseInfoTable base, BookDownloadCountTable bdc where base.autoBookId = bdc.autoBookId and base." + 
-                    optionName + " LIKE \'\%" +  optionValue + "\%\' and base.isDelete = 0 order by bdc.times limit " + 
-                    to_string(offset) + " , " +  to_string(count) + " ORDER BY bdc.times DESC";
+                    optionName + " LIKE \'\%" +  optionValue + "\%\' and base.isDelete = 0 order by bdc.times desc limit " + 
+                    to_string(offset) + " , " +  to_string(count);
     auto res = conn->query<std::tuple<int, string, string, string, string, string, string, string, int, int, int>>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
