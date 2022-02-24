@@ -114,10 +114,11 @@ namespace fileService
 				string filePath = FLAGS_dataPath + control->http_request().unresolved_path();
 				cout<<"filepath  is "<< filePath << endl;	
 				string suffix = filePath.substr(filePath.find_last_of('.')); // 获取文件后缀
-				string bookId = request->bookid();
-				int userId = request->userid();
+				string bookId = filePath.substr(filePath.find_last_of('/'), (filePath.find_last_of('.') - filePath.find_last_of('/')));
 				BookDownloadCountTable downloadCount;
 				__bookSql.get_book_by_book_id(downloadCount, bookId);
+				// downloadCount.dayTime = dayTime;
+				downloadCount.dayTime = get_nowTime();
 				++downloadCount.times;
 				__bookSql.set_newest_book_count(downloadCount);
 				sendFile(control, filePath, getContentType(suffix));
