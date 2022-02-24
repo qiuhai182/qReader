@@ -57,6 +57,8 @@ namespace ormpp
         SQL_STATUS get_book_baseInfo_by_book_id(BookBaseInfoTable &book, const string &book_id);
         SQL_STATUS get_books_baseInfo_by_option(vector<BookBaseInfoTable> &books, 
                                                 const option & optionName,const string &optionValue,const int & offset,const int & count) ;
+        SQL_STATUS get_books_baseInfo_by_option_downloadCount(vector<BookBaseInfoTable> &books, 
+                                                const option & optionName,const string &optionValue,const int & offset,const int & count) ;
         SQL_STATUS insert_book_baseInfo(const BookBaseInfoTable &book);
         SQL_STATUS insert_book_baseInfo(const int & auto_book_id,const string &book_id, 
                                                 const string &book_name, const string &author_name, 
