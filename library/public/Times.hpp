@@ -137,7 +137,7 @@ namespace Times
         string preHour = hour > 9 ? " " : "0";
         string preMinute = minute > 9 ? " " : "0";
         string preSecond = second > 9 ? " " : "0";
-        string timeString = to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + 
+        string timeString = "" + to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + 
                             to_string(day) + " " + preHour + to_string(hour) + "-" + preMinute + 
                             to_string(minute) + "-" + preSecond + to_string(second);
         return get_timeStamp(timeString);
