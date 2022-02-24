@@ -853,7 +853,7 @@ namespace bookCityService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-			LOG(INFO) <<endl
+			LOG(INFO) << endl
 					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()

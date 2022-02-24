@@ -211,7 +211,7 @@ SQL_STATUS BookInfoImpl::get_books_by_option(vector<CombineBook> &books, const o
     if (offset < 0 || count < 0)
         return SQL_STATUS::Illegal_info;
     vector<BookBaseInfoTable> base_info_books;
-    SQL_STATUS ret = __base->get_books_baseInfo_by_option(base_info_books, optionName, optionValue, offset, count);
+    SQL_STATUS ret = __base->get_books_baseInfo_by_option_downloadCount(base_info_books, optionName, optionValue, offset, count);
     if (ret == SQL_STATUS::EXE_err || ret == SQL_STATUS::Pool_err)
         return SQL_STATUS::EXE_err;
     else if (ret == SQL_STATUS::Illegal_info)
