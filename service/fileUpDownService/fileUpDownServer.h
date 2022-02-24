@@ -100,7 +100,7 @@ namespace fileService
 		}
 
 		void bookDownFun(google::protobuf::RpcController *control_base,
-						 const bookDownHttpRequest *request,
+						 const HttpRequest *request,
 						 HttpResponse *,
 						 google::protobuf::Closure *done)
 		{ // 下载书籍函数，下载书籍单独处理
