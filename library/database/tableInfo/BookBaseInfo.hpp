@@ -333,9 +333,19 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option_downloadCount(vector<BookB
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
     for(auto &i : res) {
-        BookBaseInfoTable book(get<0>(i), get<1>(i), get<2>(i), get<3>(i),
-        get<4>(i), get<5>(i), get<6>(i), get<7>(i), get<8>(i), get<9>(i), get<10>(i));
-        books.append(book);
+        BookBaseInfoTable book;
+        book.autoBookId = get<0>(i);
+        book.bookId =  get<1>(i);
+        book.bookName = get<2>(i);
+        book.authorName = get<3>(i);
+        book.bookType = get<4>(i);
+        book.publishHouse = get<5>(i);
+        book.publishTime = get<6>(i);
+        book.bookIntro = get<7>(i);
+        book.bookPage = get<8>(i);
+        book.languageType = get<9>(i);
+        book.isDelete = get<10>(i);
+        books.push_back(book);
     }
 	return SQL_STATUS::EXE_sus;
 }
