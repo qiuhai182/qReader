@@ -123,9 +123,8 @@ namespace Times
     string get_nowTimeStamp()
     {
         time_t timeValue = 0;
-        struct tm *p = NULL;
         time(&timeValue);
-        curTime = gmtime(&timeValue);
+        struct tm *curTime = gmtime(&timeValue);
         int year = curTime->tm_year + 1900;
         int month = curTime->tm_mon + 1;
         int day = curTime->tm_mday;
@@ -139,7 +138,7 @@ namespace Times
         string preMinute = minute > 9 ? " " : "0";
         string preSecond = second > 9 ? " " : "0";
         string timeString = to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + 
-                            to_string(day)) + " " + preHour + hour + "-" + preMinute + minute + 
+                            to_string(day) + " " + preHour + hour + "-" + preMinute + minute + 
                             "-" + preSecond + second;
         return get_timeStamp(timeString.data());
     }

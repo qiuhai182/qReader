@@ -119,7 +119,7 @@ namespace fileService
 				BookDownloadCountTable downloadCount;
 				__bookSql.get_book_by_book_id(downloadCount, bookId);
 				// downloadCount.dayTime = dayTime;
-				downloadCount.dayTime = get_nowTime();
+				downloadCount.dayTime = Times::get_nowTime();
 				++downloadCount.times;
 				__bookSql.set_newest_book_count(downloadCount);
 				sendFile(control, filePath, getContentType(suffix));
