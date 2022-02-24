@@ -16,8 +16,7 @@ message bookDownHttpRequest
 { // 下载书籍请求
   required string bookId = 1;
   optional int32 userId = 2;
-  required string dayTime = 3;  //今日时间xxxx-xx-xx
-  required int32 count = 4;     //请求书本数目
+  required string dayTime = 3;  // 今日时间xxxx-xx-xx
 };
 
 

@@ -169,8 +169,6 @@ message fuzzySearchRequest
 	required int32 offset = 4 ;
 }
 
-<<<<<<< HEAD
-=======
 message getTypedBookReq
 { // 获取指定类型书籍请求
 	required int32 bookType = 1;
@@ -178,18 +176,14 @@ message getTypedBookReq
 	optional int32 count = 3;
 }
 
->>>>>>> qiuhai
 service bookCityService 
 {
 	rpc addBookInfoFun(bookBaseInfo) returns(commonService.commonResp);			// 
 	rpc searchBookInfoFun(searchBookReq) returns(booksRespList);			    // 
-<<<<<<< HEAD
-	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);		    // 
+	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);	// 
 	rpc getAllBookInfoFun(offsetCountBooksReq) returns(booksRespList);			// 
-=======
 	rpc setBookInfoFun(updateBookBaseInfo) returns(commonService.commonResp);	// 
 	rpc getAllBookInfoFun(getAllBookInfoReq) returns(booksRespList);			// 
->>>>>>> qiuhai
 	rpc delBookInfoByIdFun(delBookReq) returns(commonService.commonResp);		// 
 	rpc getBookADSFun(adsReq) returns(adsRes); 									// 书城广告图片
 	rpc getRecommendBookFun(recommendBookReq) returns(recommendBookRes); 		// 个性化书籍
@@ -197,11 +191,8 @@ service bookCityService
 	rpc getMostlySearchFun(universalBlankReq) returns(mostlySearchRes); 		// 获取搜索最多的书籍
 	rpc getPopularSearchFun(universalBlankReq) returns(booksRespList); 			// 获取榜单书籍
 	rpc FuzzySearchBooksFun(fuzzySearchRequest) returns(booksRespList);			// 模糊匹配书籍
-<<<<<<< HEAD
-	rpc getPushBooksFun(offsetCountBooksReq) returns(booksRespList);			// 获取推送书籍							
-=======
+	rpc getPushBooksFun(offsetCountBooksReq) returns(booksRespList);			// 获取推送书籍	
 	rpc getTypedBooksFun(getTypedBookReq) returns(booksRespList);				// 获取指定类型书籍
->>>>>>> qiuhai
 }
 
 
