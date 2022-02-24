@@ -102,9 +102,8 @@ namespace Times
     string get_nowTime()
     {
         time_t timeValue = 0;
-        struct tm *p = NULL;
         time(&timeValue);
-        curTime = gmtime(&timeValue);
+        struct tm *curTime curTime = gmtime(&timeValue);
         int year = curTime->tm_year + 1900;
         int month = curTime->tm_mon + 1;
         int day = curTime->tm_mday;
