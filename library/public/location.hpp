@@ -37,7 +37,7 @@ DEFINE_string(sightAnalyseJson, FLAGS_dataPath + "sightAnalyseJson/", "数据分
 DEFINE_string(renameBooksPath, FLAGS_dataPath + "books/hashRenameBooks/", "数据分析json文件存放目录");
 
 
-DEFINE_string(service_ip, "192.168.91.128", "用于文件下载的ip外网地址");
+DEFINE_string(service_ip, "39.105.217.90", "用于文件下载的ip外网地址");
 DEFINE_string(filePort, FLAGS_service_ip + ":" + "8006", "下载服务服务ip:port");
 DEFINE_string(bookHeadUrlPre, "http://" + FLAGS_filePort + "/fileService/fileDownFun/books/bookCover/", "书籍封面下载url前缀");
 DEFINE_string(bookBodyUrlPre, "http://" + FLAGS_filePort + "/fileService/fileDownFun/books/hashRenameBooks/", "整本书籍下载url前缀");
