@@ -864,13 +864,6 @@ namespace bookCityService
 				offset = request->offset();
 			if (request->has_count())
 				count = request->count();
-			if(false == bookType::isPrimaryClass(request->booktype())){
-				response->set_count(0);
-				LOG(INFO) << endl
-						<< control->remote_side()
-						<< "搜索错误类型图书" << endl;
-				return;
-			}
 			string optionName = "bookType";
 			// int转自定义枚举类型
 			bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
