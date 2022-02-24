@@ -78,37 +78,6 @@ namespace bookCityService
 			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
 			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
 		}
-		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const BookBaseInfoTable & bookres )
-		{ // 填充回发消息
-			auto book = add_lists;
-			/**
-			 * 部分信息需要动态生成
-			 */
-			//返回数字类型
-			int ret_type = bookType::primary_string_to_int(bookres.bookType);
-			//下载信息
-			string bookHeadUrl = FLAGS_bookHeadUrlPre + bookres.bookId + ".jpg";
-			string bookBodyUrl = FLAGS_bookBodyUrlPre + bookres.bookId + ".pdf";
-			string filepath = FLAGS_renameBooksPath + bookres.bookId + ".pdf";
-			struct stat info;
-			stat(filepath.c_str(), &info);
-			int bookSize = info.st_size;
-			//返回填充
-			book->set_bookid(bookres.bookId);
-			book->mutable_baseinfo()->set_bookname(bookres.bookName);
-			book->mutable_baseinfo()->set_booktype(ret_type);
-			book->mutable_baseinfo()->set_authorname(bookres.authorName);
-			book->mutable_baseinfo()->set_publishtime(bookres.publishTime);
-			book->mutable_baseinfo()->set_publishhouse(bookres.publishHouse);
-			book->mutable_baseinfo()->set_bookintro(bookres.bookIntro);
-			book->mutable_baseinfo()->set_bookpage(bookres.bookPage );
-			book->mutable_baseinfo()->set_languagetype(bookres.languageType );
-			book->mutable_downinfo()->set_filesize(bookSize);
-			book->mutable_downinfo()->set_bookheadurl(bookHeadUrl);
-			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
-			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
-			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
-		}
 		void reduce_months(string  & monthTime)
 		{//减小月份xxxx-xx
 
@@ -902,13 +871,13 @@ namespace bookCityService
 						<< "搜索错误类型图书" << endl;
 				return;
 			}
-			optionName = "bookType";
+			string optionName = "bookType";
 			// int转自定义枚举类型
 			bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
 			// 枚举类型转字符串
-			optionValue = bookType::primary_enum_to_string(typeEnum) ;
+			string optionValue = bookType::primary_enum_to_string(typeEnum) ;
 			vector<CombineBook> bookres;
-			ret =  __bookCitySql.get_books_by_option(bookres, optionName, optionValue, offset, count);
+			SQL_STATUS ret =  __bookCitySql.get_books_by_option(bookres, optionName, optionValue, offset, count);
 			for (int i = 0; i < bookres.size(); ++i)
 			{
 				auto book = response->add_lists();
