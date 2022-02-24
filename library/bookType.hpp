@@ -6,27 +6,27 @@
 namespace bookType{
 
 
-    
+    // 自定义类型
     enum class primaryClass{
-        Computer = 0 ,  
-        Education= 1,
-        Finance_economics = 2, 
-        Science_fiction = 3,
-        Suspense_reasoning = 4,//悬疑推理
-        Romance = 5 ,//言情
-        Literature = 6,
-        History = 7,
-        Geographic = 8,
-        Political = 9,
-        Chemical = 10,
-        Biological = 11,
-        Physical = 12,
-        Mathematics = 13
+        Computer = 0 ,          // 
+        Education= 1,           // 
+        Finance_economics = 2,  // 
+        Science_fiction = 3,    // 
+        Suspense_reasoning = 4, // 悬疑推理
+        Romance = 5 ,           // 言情
+        Literature = 6,         // 
+        History = 7,            // 
+        Geographic = 8,         // 
+        Political = 9,          // 
+        Chemical = 10,          // 
+        Biological = 11,        // 
+        Physical = 12,          // 
+        Mathematics = 13        // 
     };
     
+    // 类型英文标签转中文
     std::string primary_enum_to_string(const primaryClass & type) 
     {
-
         switch(type){
             case primaryClass::Computer: 
                 return std::string("计算机与互联网");
@@ -61,6 +61,7 @@ namespace bookType{
         }
     }
 
+    // 类型中文标签转英文
     int primary_string_to_int(const std::string & type)
     {
         if(type == "计算机与互联网"){
@@ -94,7 +95,6 @@ namespace bookType{
         }else{
             true -1;
         }
-        
     }
 
     bool isPrimaryClass(int type)

@@ -1,5 +1,4 @@
 syntax = "proto2";
-// import "bookcity.proto";
 package fileService;
 option cc_generic_services = true;
 
@@ -8,16 +7,25 @@ message HttpRequest
 { // 无格式网络请求信息
 };
 
+
 message HttpResponse 
 { // 无格式网络请求回发信息
-}; 
+};
+
+message bookDownHttpRequest
+{ // 下载书籍请求
+  required string bookId = 1;
+  optional int32 userId = 2;
+  required string dayTime = 3;  //今日时间xxxx-xx-xx
+  required int32 count = 4;     //请求书本数目
+};
 
 
 
 service fileService 
 { // 文件传输服务
   rpc fileDownFun(HttpRequest) returns(HttpResponse);
-  //rpc bookDownFun(bookCityService.bookInfoItem) returns(HttpResponse);
+  rpc bookDownFun(bookDownHttpRequest) returns(HttpResponse);
 };
 
 
