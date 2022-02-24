@@ -103,7 +103,7 @@ namespace Times
     {
         time_t timeValue = 0;
         time(&timeValue);
-        struct tm *curTime curTime = gmtime(&timeValue);
+        struct tm *curTime = gmtime(&timeValue);
         int year = curTime->tm_year + 1900;
         int month = curTime->tm_mon + 1;
         int day = curTime->tm_mday;
