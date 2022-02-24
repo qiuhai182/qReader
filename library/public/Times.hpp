@@ -111,8 +111,8 @@ namespace Times
         int hour = curTime->tm_hour;
         int minute = curTime->tm_min;
         int second = curTime->tm_sec;
-        string preMonth = month > 9 ? " " : "0";
-        string preDay = day > 9 ? " " : "0";
+        string preMonth = month > 9 ? "" : "0";
+        string preDay = day > 9 ? "" : "0";
         return string("" + to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + to_string(day));
     }
 
@@ -132,11 +132,11 @@ namespace Times
         int hour = curTime->tm_hour;
         int minute = curTime->tm_min;
         int second = curTime->tm_sec;
-        string preMonth = month > 9 ? " " : "0";
-        string preDay = day > 9 ? " " : "0";
-        string preHour = hour > 9 ? " " : "0";
-        string preMinute = minute > 9 ? " " : "0";
-        string preSecond = second > 9 ? " " : "0";
+        string preMonth = month > 9 ? "" : "0";
+        string preDay = day > 9 ? "" : "0";
+        string preHour = hour > 9 ? "" : "0";
+        string preMinute = minute > 9 ? "" : "0";
+        string preSecond = second > 9 ? "" : "0";
         string timeString = to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + 
                             to_string(day) + " " + preHour + to_string(hour) + "-" + preMinute + 
                             to_string(minute) + "-" + preSecond + to_string(second);

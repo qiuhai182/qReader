@@ -118,7 +118,6 @@ namespace fileService
 				string bookId = filePath.substr(filePath.find_last_of('/'), (filePath.find_last_of('.') - filePath.find_last_of('/')));
 				BookDownloadCountTable downloadCount;
 				__bookSql.get_book_by_book_id(downloadCount, bookId);
-				// downloadCount.dayTime = dayTime;
 				downloadCount.dayTime = Times::get_nowTime();
 				++downloadCount.times;
 				__bookSql.set_newest_book_count(downloadCount);
