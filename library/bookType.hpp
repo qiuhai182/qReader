@@ -24,7 +24,7 @@ namespace bookType{
         Mathematics = 13        // 
     };
     
-    // 类型英文标签转中文
+    // 自定义类型标签转中文
     std::string primary_enum_to_string(const primaryClass & type) 
     {
         switch(type){
@@ -35,7 +35,7 @@ namespace bookType{
             case primaryClass::Finance_economics: 
                 return std::string("经管理财");
             case primaryClass::Science_fiction: 
-                return std::string("科幻玄幻");
+                return std::string("科幻玄幻奇幻");
             case primaryClass::Suspense_reasoning: 
                 return std::string("悬疑推理");
             case primaryClass::Romance: 
@@ -61,7 +61,7 @@ namespace bookType{
         }
     }
 
-    // 类型中文标签转英文
+    // 类型中文标签转自定义类型
     int primary_string_to_int(const std::string & type)
     {
         if(type == "计算机与互联网"){
@@ -70,7 +70,7 @@ namespace bookType{
             return static_cast<int>(primaryClass::Education);
         }else if(type == "经管理财"){
             return static_cast<int>(primaryClass::Finance_economics);
-        }else if(type == "科幻奇幻"){
+        }else if(type == "科幻玄幻奇幻"){
             return static_cast<int>(primaryClass::Science_fiction);
         }else if(type == "悬疑推理"){
             return static_cast<int>(primaryClass::Suspense_reasoning);
@@ -106,4 +106,5 @@ namespace bookType{
     }
 
 }
+
 #endif
