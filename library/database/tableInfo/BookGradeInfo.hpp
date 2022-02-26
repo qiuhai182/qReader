@@ -15,6 +15,9 @@
 #include "ormpp/entity.hpp"
 #include "sql_pool.hpp"
 
+#define SCORE_NUM  11  //即分数粒度 0.5为一个分段
+#define SCORE_INTERVAL 5 //数据库存储的为整数对应为5
+
 using namespace ormpp;
 using namespace std;
 typedef string option;
@@ -56,6 +59,7 @@ namespace ormpp
                     throw "create BookGradeInfoTable error ";
             }
         }
+        SQL_STATUS get_score_seg_stat(const int & score,const string &book_id, int & number);
         SQL_STATUS get_average_score(int & average,const int & auto_book_id);
         SQL_STATUS get_remark_count(int & count,const int & auto_book_id);
         SQL_STATUS get_grade_by_double_id(const int & auto_book_id,
@@ -150,6 +154,35 @@ SQL_STATUS BookGradeInfo::insert_score(const int & auto_book_id,
     score.remarkTime = remark_time;
     return insert_score(score);
 }
+
+SQL_STATUS BookGradeInfo::get_score_seg_stat(const int & score,const string &book_id, int & number)
+{//获取分段统计
+    auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ << " "
+			 << "conn is NULL"
+			 << " LINE  " << __LINE__ << endl;
+		return SQL_STATUS::Pool_err;
+	}
+	string state = "select count(bookScore) from BookGradeInfoTable "
+                    " group by bookScore ,bookId  having "
+                    " bookScore = " + to_string(score ) + 
+                    " and bookId = \'" + book_id + "\'";
+
+	auto res = conn->query<std::tuple<int>>(state);
+    if(res.size() == 0){
+        number = 0;
+    }
+    else
+    {
+        number = (int)std::get<0>(res[0]) ;
+    }
+    
+	return SQL_STATUS::EXE_sus;
+}
+
 SQL_STATUS BookGradeInfo::get_average_score(int & average,const int & auto_book_id)
 {//获取平均分
     auto conn = get_conn_from_pool();

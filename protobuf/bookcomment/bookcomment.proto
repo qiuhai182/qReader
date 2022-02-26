@@ -65,6 +65,25 @@ message addCommentReq
 	required string remarkTime = 6; // 评论时间
 }
 
+
+
+message bookScoreSegStatReq 
+{
+	required string bookId = 1 ; 
+}
+
+message scoreNumberInfo 
+{
+	required double score = 1 ; //评分
+	required int32 count = 2 ; //评分人数
+}
+
+message bookScoreSegStatRes
+{//书籍评分分段统计
+	repeated scoreNumberInfo lists = 1 ; 
+	required commonService.commonResp status  =2 ; 
+}
+
 service BookCommentService 
 {
 	rpc getBookCommentFun(bookCommentReq) returns(bookCommentResp);						// 
@@ -72,6 +91,7 @@ service BookCommentService
 	rpc CancalHitCommentFun(hitCommentReq) returns(commonService.commonResp);			// 
 	rpc addCommentFun(addCommentReq) returns(commonService.commonResp);					// 
 	rpc delCommentFun(deleteCommentReq) returns(commonService.commonResp);				// 
+	rpc getBookScoreSegStatFun(bookScoreSegStatReq) returns(bookScoreSegStatRes);
 }
 
 

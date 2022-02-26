@@ -7,6 +7,7 @@
 #include <thread>
 #include <map>
 #include <memory>
+#include <array>
 #include <typeinfo>
 #include "ormpp/mysql.hpp"
 #include "ormpp/dbng.hpp"
@@ -19,11 +20,13 @@
 #include "tableInfo/BookBaseInfo.hpp"
 #include "tableInfo/BookGradeInfo.hpp"
 
+
 using namespace ormpp;
 using namespace std;
 
 namespace ormpp
 {
+    
 
     /** 
      * 书籍评论信息操作
@@ -56,6 +59,9 @@ namespace ormpp
             delete __grade ;
         }
     
+        int is_existing_by_bookId(const string & book_id);
+        SQL_STATUS get_score_seg_stat(const string &book_id,array<int, SCORE_NUM> & res );//获取全部列表
+        SQL_STATUS get_score_seg_stat(const int & score,const string &book_id, int & number);//获取分段统计
         SQL_STATUS get_comment_by_score(const int & observer, const int & offset, 
                                         const int &count ,vector<commentRes> & res,const string &book_id, const bool &reverse = false);
         SQL_STATUS get_comment_by_time(const int & observer, const int & offset, 
@@ -80,11 +86,11 @@ namespace ormpp
         BookGradeInfo * __grade ;
     };
 
-
+}
 
 /****************************************************************************
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@书籍评论点赞信息@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
- ****************************************************************************/
+****************************************************************************/
 void BookCommentImpl::get_full_comment(const int & observer,const vector<sqlComHitRes> & in,vector<commentRes> & res)
 {//添加查看用户是否点赞，被点赞者点赞数
     //一个联合查询评论的结果结构 
@@ -421,9 +427,30 @@ SQL_STATUS BookCommentImpl::delete_comment(const string &book_id ,const int &use
     
 }
 
+int BookCommentImpl::is_existing_by_bookId(const string & book_id)
+{
+    return __book->is_existing_by_bookId(book_id);
+}
 
+SQL_STATUS BookCommentImpl::get_score_seg_stat(const int & score,const string &book_id, int & number)
+{//获取分段统计
+    return __grade->get_score_seg_stat(score,book_id,number);
+}
 
-
+SQL_STATUS BookCommentImpl::get_score_seg_stat(const string &book_id,array<int, SCORE_NUM> & res )
+{//获取全部列表 数组中存放了按照分段大小升序的统计个数
+    int max_score = SCORE_INTERVAL * (SCORE_NUM - 1);
+    SQL_STATUS ret ;
+    int number ;
+    for(int score = 0 , index = 0; score <= max_score ;  score += SCORE_INTERVAL,index++)
+    {
+        ret = this->get_score_seg_stat(score,book_id,number) ;
+        if(ret != SQL_STATUS::EXE_sus)
+            return ret ;
+        res[index] = number;
+        cout<<"score "<<score<<endl;
+    }
+    return SQL_STATUS::EXE_sus ;
 }
 
 
