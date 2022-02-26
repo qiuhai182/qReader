@@ -51,7 +51,7 @@ message hitCommentReq
 message deleteCommentReq
 {
 	required int32 commentId = 1 ;		// 被删除评论ID
-	required int32 type	 	 = 2 ; 		// 评论种类 0:父评论 1:子评论
+	optional int32 parentId = 3 ; 		// 删除子评论时添加
 } 
 
 message addCommentReq
@@ -73,7 +73,8 @@ service PageCommentService
 	rpc CancalHitCommentFun(hitCommentReq) returns(commonService.commonResp);			//
     rpc addTopCommentFun(addCommentReq) returns(commonService.commonResp);			    // 
     rpc addSubCommentFun(addCommentReq) returns(commonService.commonResp);				// 
-	rpc delCommentFun(deleteCommentReq) returns(commonService.commonResp);				// 
+	rpc delSubCommentFun(deleteCommentReq) returns(commonService.commonResp);			// 
+	rpc delSupperCommentFun(deleteCommentReq) returns(commonService.commonResp);			// 
 }
 
 
