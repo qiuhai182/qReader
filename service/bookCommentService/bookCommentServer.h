@@ -46,7 +46,7 @@ namespace BookCommentService
 		{//填充评论信息
 			comment->set_title(get<0>(commentSql));
 			comment->set_content(get<1>(commentSql));
-			comment->set_score(get<2>(commentSql)* 0.1);
+			comment->set_score(get<2>(commentSql));
 			string  userHeadUrl ;//头像
 			if(get<5>(commentSql) == 1)
 				userHeadUrl = FLAGS_headUrlPre +  to_string(get<3>(commentSql)) + "_head.png";
@@ -267,7 +267,7 @@ namespace BookCommentService
 			//书籍评论仅仅覆盖
 			__bookCommentSql.delete_comment(request->bookid(),request->userid());
 			SQL_STATUS ret = __bookCommentSql.add_comment(
-											request->bookid(),request->userid(),request->score() * 10,//整型保存
+											request->bookid(),request->userid(),request->score(),//整型保存
 											request->title(),request->content(),request->remarktime()
 										);
 			if(ret == SQL_STATUS::EXE_sus)
@@ -362,11 +362,11 @@ namespace BookCommentService
 			{
 
 				int number ;
-				int max_score = SCORE_INTERVAL * (SCORE_NUM - 1);
-				for(int score = 0 ,index = 0; score <= max_score ;  score += SCORE_INTERVAL,index++)
+				int max_score = SCORE_INTERVAL * SCORE_NUM ;
+				for(int score = 1 ,index = 0; score <= max_score ;  score += SCORE_INTERVAL,index++)
 				{
 					auto seg_stat = response->add_lists();
-					seg_stat->set_score(score * 0.1);
+					seg_stat->set_score(score );
 					seg_stat->set_count(scoreArr[index]);
 				}
 

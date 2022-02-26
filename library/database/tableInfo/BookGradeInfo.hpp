@@ -15,8 +15,8 @@
 #include "ormpp/entity.hpp"
 #include "sql_pool.hpp"
 
-#define SCORE_NUM  11  //即分数粒度 0.5为一个分段
-#define SCORE_INTERVAL 5 //数据库存储的为整数对应为5
+#define SCORE_NUM  5  //即分数粒度 1为一个分段
+#define SCORE_INTERVAL 1 //数据库存储的为整数对应为10
 
 using namespace ormpp;
 using namespace std;

@@ -439,10 +439,10 @@ SQL_STATUS BookCommentImpl::get_score_seg_stat(const int & score,const string &b
 
 SQL_STATUS BookCommentImpl::get_score_seg_stat(const string &book_id,array<int, SCORE_NUM> & res )
 {//获取全部列表 数组中存放了按照分段大小升序的统计个数
-    int max_score = SCORE_INTERVAL * (SCORE_NUM - 1);
+    int max_score = SCORE_INTERVAL * SCORE_NUM ;
     SQL_STATUS ret ;
     int number ;
-    for(int score = 0 , index = 0; score <= max_score ;  score += SCORE_INTERVAL,index++)
+    for(int score = 1 , index = 0; score <= max_score ;  score += SCORE_INTERVAL,index++)
     {
         ret = this->get_score_seg_stat(score,book_id,number) ;
         if(ret != SQL_STATUS::EXE_sus)
