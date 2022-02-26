@@ -80,7 +80,8 @@ namespace ormpp
         SQL_STATUS hit_comment(const PageCommentHitInfoTable & data);
         SQL_STATUS cancal_hit_comment_by_commentId_hitter(const int & comment_id,const int & hitter);       
         SQL_STATUS add_comment(const PageCommentInfoTable & data);
-        SQL_STATUS delete_comment(const int & comment_id ,const int & comment_type);
+        SQL_STATUS delete_sub_comment(const int comment_id,const int & parent_id);
+        SQL_STATUS delete_supper_comment(const int & comment_id);
         int is_exist_supper_comment(const int & comment_id);
         int is_existing(const int & comment_id);
         int is_hit_commented(const int & hitter,const int & comment_id);
@@ -88,7 +89,6 @@ namespace ormpp
     private:
         SQL_STATUS delete_some_sub_comment(const int &comment_id);
         SQL_STATUS delete_one_sub_comment(const int &comment_id);
-        SQL_STATUS delete_supper_comment(const int & comment_id);
 
         // SQL_STATUS add_supper_comment(const PageCommentInfo & data);
         // SQL_STATUS add_sub_comment(const PageCommentInfo & data);
@@ -107,15 +107,38 @@ namespace ormpp
  ****************************************************************************/
 
 /***********************************public***********************************/
-
-SQL_STATUS PageCommentImpl::delete_comment(const int & comment_id ,const int & comment_type)
+SQL_STATUS PageCommentImpl::delete_sub_comment(const int comment_id,const int & parent_id)
 {
-    if(comment_type < 0 || comment_type > 1)
-        return SQL_STATUS::Illegal_info;
-    if(comment_type == 0)
-        return delete_supper_comment(comment_id);
-    else    
-        return delete_one_sub_comment(comment_id);
+    auto ret =  __comment->decrease_comment_reply(parent_id);
+    if(ret != SQL_STATUS::EXE_sus)
+        return ret;
+    return this->delete_one_sub_comment(comment_id);
+}
+
+SQL_STATUS PageCommentImpl::delete_supper_comment(const int & comment_id)
+{//删除父评论
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ 
+            << " conn is NULL "
+            << " LINE  " << __LINE__ << endl;
+        return SQL_STATUS::Pool_err;
+    }
+    auto ret = delete_some_sub_comment(comment_id);
+    if(ret != SQL_STATUS::EXE_sus)
+        return ret;
+    
+    ret = __comHit->delete_hit_by_commentId(comment_id);
+    if(ret != SQL_STATUS::EXE_sus)
+        return ret;
+    ret =  __comment->delete_comment(comment_id);
+    if(ret != SQL_STATUS::EXE_sus)
+        return ret;
+    
+    //最后执行
+    return SQL_STATUS::EXE_sus;
 }
 
 SQL_STATUS PageCommentImpl::get_supper_comment_by_time(vector<pageCommentRes> & res ,const pageCommentParameter& para)
@@ -300,7 +323,6 @@ int PageCommentImpl::is_exist_supper_comment(const int & comment_id)
     string cond = "where commentId = " + to_string(comment_id);
 
     auto res = conn->query<PageCommentInfoTable>(cond) ;
-
     if (res.size() == 0)
         return 0;
     else if(res[0].parentId != 0)
@@ -393,32 +415,6 @@ SQL_STATUS PageCommentImpl::delete_some_sub_comment(const int &comment_id)
         __comHit->delete_hit_by_commentId(temp.commentId);
         __comment->delete_comment(temp.commentId);
     }
-    return SQL_STATUS::EXE_sus;
-}
-
-SQL_STATUS PageCommentImpl::delete_supper_comment(const int & comment_id)
-{//删除父评论
-    auto conn = get_conn_from_pool();
-    conn_guard guard(conn);
-    if (conn == NULL)
-    {
-        cout << "FILE: " << __FILE__ 
-            << " conn is NULL "
-            << " LINE  " << __LINE__ << endl;
-        return SQL_STATUS::Pool_err;
-    }
-    auto ret = delete_some_sub_comment(comment_id);
-    if(ret != SQL_STATUS::EXE_sus)
-        return ret;
-    
-    ret = __comHit->delete_hit_by_commentId(comment_id);
-    if(ret != SQL_STATUS::EXE_sus)
-        return ret;
-    ret =  __comment->delete_comment(comment_id);
-    if(ret != SQL_STATUS::EXE_sus)
-        return ret;
-    
-    //最后执行
     return SQL_STATUS::EXE_sus;
 }
 

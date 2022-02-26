@@ -515,11 +515,11 @@ namespace PageCommentService
 
 		}
 
-		void delCommentFun(google::protobuf::RpcController *control_base,
+		void delSubCommentFun(google::protobuf::RpcController *control_base,
 							const ::PageCommentService::deleteCommentReq* request,
 							::commonService::commonResp* response,
 							::google::protobuf::Closure* done)
-		{//删除评论
+		{//删除子评论
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
@@ -531,42 +531,89 @@ namespace PageCommentService
 					  << " (attached : " << control->request_attachment() << ")"
 					  <<endl;
 			//信息判断
-			if( request->type() < 0 || request->type() > 1 ||  //类型判断
-				(request->type() == 1 && __pageCommentSql.is_existing(request->commentid() ) == false ) || 			// 子评论存在判断
-				(request->type() == 0 && __pageCommentSql.is_exist_supper_comment(request->commentid() ) == false ) 	// 父评论存在判断
+			if( request->has_parentid() == false 	//字段被填充
+				|| request->parentid() <= 0	
+				|| __pageCommentSql.is_existing(request->commentid() ) != 1   // 子评论存在判断
+				||  __pageCommentSql.is_exist_supper_comment(request->parentid() ) != 1 	// 父评论存在判断
 			)
 			{
 				LOG(INFO) <<endl
-					  <<" 删除书页评论字段错误 commentId :"<<request->commentid()
-					  <<" type "<<request->type()
+					  <<" 删除书页子评论字段错误 commentId :"<<request->commentid()
+					  <<" parentId "<<request->parentid()
 					  <<endl;
 				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf) );
 				response->set_errorres("illegal information");
 				return;
 			}
 			
-			SQL_STATUS ret = __pageCommentSql.delete_comment(request->commentid(), request->type());
+			SQL_STATUS ret = __pageCommentSql.delete_sub_comment(request->commentid(), request->parentid());
 			if(ret != SQL_STATUS::EXE_sus)
 			{
 				LOG(INFO) <<endl
-					  <<" 删除书页评论失败 :"
+					  <<" 删除书页子评论失败 :"
 					  <<" commentId "<<request->commentid() 
-					  <<" type "<<request->type()
+					  <<" parentId "<<request->parentid()
 					  <<endl;
 				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err));
-				response->set_errorres("delete comment failed !");
+				response->set_errorres("delete sub comment failed !");
 			}	
 			else
 			{
 				LOG(INFO) <<endl
-					  <<" 删除书页评论成功 :"
+					  <<" 删除书页子评论成功 :"
 					  <<" commentId "<<request->commentid() 
-					  <<" type "<<request->type()
+					  <<" parentId "<<request->parentid()
 					  <<endl;
 				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Sus));
 			}		
 		}
-		
+	
+		void delSupperCommentFun(google::protobuf::RpcController *control_base,
+							const ::PageCommentService::deleteCommentReq* request,
+							::commonService::commonResp* response,
+							::google::protobuf::Closure* done)
+		{//删除父评论
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<endl;
+			//信息判断
+			if(  __pageCommentSql.is_existing(request->commentid() ) != 1 	// 父评论存在判断
+			)
+			{
+				LOG(INFO) <<endl
+					  <<" 删除书页父评论字段错误 commentId :"<<request->commentid()
+					  <<endl;
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf) );
+				response->set_errorres("illegal information");
+				return;
+			}
+			
+			SQL_STATUS ret = __pageCommentSql.delete_supper_comment(request->commentid());
+			if(ret != SQL_STATUS::EXE_sus)
+			{
+				LOG(INFO) <<endl
+					  <<" 删除书页父评论失败 :"
+					  <<" commentId "<<request->commentid()
+					  <<endl;
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err));
+				response->set_errorres("delete supper comment failed !");
+			}	
+			else
+			{
+				LOG(INFO) <<endl
+					  <<" 删除书页父评论成功 :"
+					  <<" commentId "<<request->commentid()
+					  <<endl;
+				response->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Sus));
+			}		
+		}
 	};
 
 }
