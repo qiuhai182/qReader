@@ -70,6 +70,7 @@ namespace ormpp
         bool isOption(const option & opt);
         SQL_STATUS get_book_baseInfo_by_offset(vector<BookBaseInfoTable> & books , 
                                                 const int & offset,const int & count);
+        int is_existing_by_bookId(const string & book_id);
     private:
         //是否删除  -1:不存在 0:未删除 1:删除
         SQL_STATUS repeat_add_book(const int & auto_book_id);
@@ -235,6 +236,29 @@ SQL_STATUS BookBaseInfo::get_autoBookId_by_bookId(const string & book_id,int & a
     }
     auto_book_id =res[0].autoBookId;
 	return SQL_STATUS::EXE_sus;
+
+
+}
+
+int BookBaseInfo::is_existing_by_bookId(const string & book_id)
+{//是否存在 -1-err  0-false  1-true
+    auto conn = get_conn_from_pool();
+    conn_guard guard(conn);
+    if (conn == NULL)
+    {
+        cout << "FILE: " << __FILE__ << " "
+            << "conn is NULL"
+            << " LINE  " << __LINE__ << endl;
+        return -1;
+    }
+    string cond = "where bookId = \'" + book_id + "\'";
+
+    auto res = conn->query<BookBaseInfoTable>(cond) ;
+
+    if (res.size() == 0 || res[0].isDelete != 0)
+        return 0;
+    else 
+        return 1;
 
 
 }

@@ -331,6 +331,65 @@ namespace BookCommentService
 				response->set_errorres("delete book comment fail");
 			}
 		}
+
+		virtual void getBookScoreSegStatFun(::google::protobuf::RpcController* control_base,
+                       const ::BookCommentService::bookScoreSegStatReq* request,
+                       ::BookCommentService::bookScoreSegStatRes* response,
+                       ::google::protobuf::Closure* done)
+		{//获取评分分段统计信息
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
+			LOG(INFO) <<endl
+					  << "\n收到请求[log_id=" << control->log_id()
+					  << "] 客户端ip+port: " << control->remote_side()
+					  << " 应答服务器ip+port: " << control->local_side()
+					  << " (attached : " << control->request_attachment() << ")"
+					  <<" 请求获取书籍评分统计服务 "<<endl;
+
+			//信息判断
+			if(request->bookid() == "" || __bookCommentSql.is_existing_by_bookId(request->bookid()) != 1 )
+			{
+				LOG(INFO) <<endl
+					  <<" 获取书籍分段评分统计字段错误 bookId :"
+					  <<request->bookid()<<endl;
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Illegal_inf));
+				response->mutable_status()->set_errorres("illegal information");
+				return;
+			}
+			array<int,SCORE_NUM> scoreArr ;
+			SQL_STATUS ret = __bookCommentSql.get_score_seg_stat(request->bookid(),scoreArr);
+			if(ret == SQL_STATUS::EXE_sus)
+			{
+
+				int number ;
+				int max_score = SCORE_INTERVAL * (SCORE_NUM - 1);
+				for(int score = 0 ,index = 0; score <= max_score ;  score += SCORE_INTERVAL,index++)
+				{
+					auto seg_stat = response->add_lists();
+					seg_stat->set_score(score * 0.1);
+					seg_stat->set_count(scoreArr[index]);
+				}
+
+				LOG(INFO) <<endl
+					  <<"获取书籍分段评分统计成功  "
+					  <<" bookId : "<<request->bookid()
+					  <<endl;
+				
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Sus));
+				response->mutable_status()->set_errorres("获取书籍分段评分统计成功");
+			}
+			else 
+			{
+				LOG(INFO) <<endl
+					  <<"获取书籍分段评分统计失败  "
+					  <<" bookId : "<<request->bookid()
+					  <<endl;
+				response->mutable_status()->set_code(static_cast<int>(SERVICE_RET_CODE::SERVICE_Err));
+				response->mutable_status()->set_errorres("获取书籍分段评分统计失败");
+			}
+			
+			
+		}
 		
 	};
 
