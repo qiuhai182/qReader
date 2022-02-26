@@ -36,7 +36,7 @@ namespace ormpp
 		string bookIntro ; 		// 简介
         int    bookPage;        // 页数
         int    languageType;    // 语言类型
-        int    isDelete;       // 是否删除
+        int    isDelete;        // 是否删除
     };
     REFLECTION(BookBaseInfoTable, autoBookId, bookId, bookName, authorName, bookType,
                 publishHouse,publishTime,bookIntro,bookPage,languageType,isDelete);
@@ -56,6 +56,8 @@ namespace ormpp
         SQL_STATUS get_all_book_baseInfo(vector<BookBaseInfoTable> &res);
         SQL_STATUS get_book_baseInfo_by_book_id(BookBaseInfoTable &book, const string &book_id);
         SQL_STATUS get_books_baseInfo_by_option(vector<BookBaseInfoTable> &books, 
+                                                const option & optionName,const string &optionValue,const int & offset,const int & count) ;
+        SQL_STATUS get_books_baseInfo_by_option_downloadCount(vector<BookBaseInfoTable> &books, 
                                                 const option & optionName,const string &optionValue,const int & offset,const int & count) ;
         SQL_STATUS insert_book_baseInfo(const BookBaseInfoTable &book);
         SQL_STATUS insert_book_baseInfo(const int & auto_book_id,const string &book_id, 
@@ -280,8 +282,7 @@ SQL_STATUS BookBaseInfo::get_all_book_baseInfo(vector<BookBaseInfoTable> &res)
 }
 
 SQL_STATUS BookBaseInfo::get_book_baseInfo_by_book_id(BookBaseInfoTable &book, const string &book_id)
-{// 通过书籍id获取书籍信息
-	
+{ // 通过书籍id获取书籍信息
     auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)
@@ -322,11 +323,8 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option(vector<BookBaseInfoTable> 
 	}
     if( !isOption(optionName))
         return SQL_STATUS::Illegal_info ;
-    
-	string cond = " where " + optionName + " LIKE \'\%" + 
-                        optionValue + 
-                        "\%\'  and isDelete = 0" + 
-                        " limit " + to_string(offset) + " , " +  to_string(count);
+	string cond = " where " + optionName + " LIKE \'\%" +  optionValue + 
+                    "\%\' and isDelete = 0 limit " + to_string(offset) + " , " +  to_string(count);
 	auto res = conn->query<BookBaseInfoTable>(cond);
 	if (res.size() == 0)
 		return SQL_STATUS::EXE_err;
@@ -335,6 +333,47 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option(vector<BookBaseInfoTable> 
 	// 	books.push_back(i);
 	// }
     books = std::move(res);
+	return SQL_STATUS::EXE_sus;
+}
+
+SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option_downloadCount(vector<BookBaseInfoTable> &books, 
+                                                const option & optionName,const string &optionValue,const int & offset,const int &count) 
+{
+    auto conn = get_conn_from_pool();
+	conn_guard guard(conn);
+	if (conn == NULL)
+	{
+		cout << "FILE: " << __FILE__ 
+			 << "  conn is NULL  "
+			 << " LINE  " << __LINE__ << endl;
+		return SQL_STATUS::Pool_err;
+	}
+    if(!isOption(optionName))
+        return SQL_STATUS::Illegal_info ;
+    // string cond = "SELECT base.* FROM BookBaseInfoTable base LEFT JOIN BookDownloadCountTable bdc ON base.autoBookId = bdc.autoBookId AND base." + 
+    //                 optionName + " LIKE \'\%" +  optionValue + "\%\' AND base.isDelete = 0 ORDER BY bdc.times DESC LIMIT " + 
+    //                 to_string(offset) + " , " +  to_string(count);
+    string cond = "SELECT base.* FROM BookBaseInfoTable base where base." + 
+                    optionName + " = '" +  optionValue + "' AND base.isDelete = 0 LIMIT " + 
+                    to_string(offset) + " , " +  to_string(count);
+    auto res = conn->query<std::tuple<int, string, string, string, string, string, string, string, int, int, int>>(cond);
+	if (res.size() == 0)
+		return SQL_STATUS::EXE_err;
+    for(auto &i : res) {
+        BookBaseInfoTable book;
+        book.autoBookId = get<0>(i);
+        book.bookId =  get<1>(i);
+        book.bookName = get<2>(i);
+        book.authorName = get<3>(i);
+        book.bookType = get<4>(i);
+        book.publishHouse = get<5>(i);
+        book.publishTime = get<6>(i);
+        book.bookIntro = get<7>(i);
+        book.bookPage = get<8>(i);
+        book.languageType = get<9>(i);
+        book.isDelete = get<10>(i);
+        books.push_back(book);
+    }
 	return SQL_STATUS::EXE_sus;
 }
 
@@ -406,15 +445,15 @@ SQL_STATUS BookBaseInfo::del_book_baseInfo(const string &book_id)
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-
-	string state = "update BookBaseInfoTable "
-                    "  set isDelete = 1 " 
-                    " where bookId = \'" +  book_id + "\' ";
-	auto res = conn->query<BookBaseInfoTable>(state);
+    string cond = "where bookId = \'" +  book_id + "\'";
+	auto res = conn->query<BookBaseInfoTable>(cond);
 	if ( 0 != isDelete(res[0].bookId))
 		return SQL_STATUS::EXE_err; //书籍不存在  已经删除
 	else
 	{
+        string state = "update BookBaseInfoTable "
+                        "  set isDelete = 1 " 
+                        " where bookId = \'" +  book_id + "\' ";
 		return execute_sql(conn,"delete book base ",state);
 	}
 
@@ -463,8 +502,8 @@ SQL_STATUS BookBaseInfo::up_book_baseInfo(std::map<option,sqlUpdateVal> up_data)
 }
 
 SQL_STATUS BookBaseInfo::get_book_baseInfo_by_offset(vector<BookBaseInfoTable> & books , 
-                                                const int & offset,const int & count)
-{//在表中读取区域的图书
+                                                const int & offset, const int & count)
+{ // 在表中查询指定偏移量、最大结果数量的书籍
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)

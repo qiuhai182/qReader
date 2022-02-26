@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
   GFLAGS_NS::ParseCommandLineFlags(&argc, &argv, true);
 
   brpc::Server server;
-  fileService::fileServiceImpl file_service_impl;                  // 文件传输服务
+  fileService::fileServiceImpl file_service_impl; // 文件传输服务
 
   if (server.AddService(&file_service_impl, brpc::SERVER_DOESNT_OWN_SERVICE) !=
       0)

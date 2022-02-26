@@ -87,7 +87,7 @@ SQL_STATUS UserInfo::get_max_account( int &  max_account)
         return SQL_STATUS::Pool_err;
     }
 
-    string state = "select *  from UserInfoTable  where userId = (select max(userId) from UserInfoTable) ";
+    string state = "where userId = (select max(userId) from UserInfoTable) ";
     auto res = conn->query<UserInfoTable>(state);
     if(res.size() ==0 ){
         cout << "FILE: " << __FILE__ << " "
@@ -174,8 +174,7 @@ int  UserInfo::get_all_user(vector<UserInfoTable> &res)
 }
 
 SQL_STATUS UserInfo::get_user_by_id(UserInfoTable &user, const int &user_id)
-{//获取数据库所有用户信息
-
+{ // 获取数据库所有用户信息
 	auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
 	if (conn == NULL)
@@ -185,7 +184,7 @@ SQL_STATUS UserInfo::get_user_by_id(UserInfoTable &user, const int &user_id)
 			 << " LINE  " << __LINE__ << endl;
 		return SQL_STATUS::Pool_err;
 	}
-	string state = "where userId = " + std::to_string(user_id) ;
+	string state = "where userId = \'" + std::to_string(user_id) + "\'";
 	auto res = conn->query<UserInfoTable>(state);
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;
@@ -283,9 +282,7 @@ SQL_STATUS UserInfo::insert_user(const int &usr_id, const string &user_nickname,
     user.userAge = user_age;
     user.userMale = user_male;
     user.isDelete =  is_Delete;
-
     return this->insert_user(user);
-
 }
 
 SQL_STATUS UserInfo::del_user(const int &user_id,const string & user_pwd)
@@ -299,18 +296,15 @@ SQL_STATUS UserInfo::del_user(const int &user_id,const string & user_pwd)
 			 << " LINE  " << __LINE__ << endl;
 		return  SQL_STATUS::Pool_err;
 	}
-	
     string state,cond;
     state += "update UserInfoTable set ";
     state += " isDelete = " + std::to_string(1);
-    state += " where  userId = " + std::to_string(user_id) 
-            + " and userPwd = \'" + user_pwd + "\'" ;
-
+    state += " where  userId = " + std::to_string(user_id) + " and userPwd = \'" + user_pwd + "\'";
     return execute_sql(conn,"delete",state);
 }
 
 SQL_STATUS UserInfo::up_user(std::map<option,sqlUpdateVal> up_data)
-{//更改用户信息
+{ // 更改用户信息
     auto conn = get_conn_from_pool();
     conn_guard guard(conn);
 	if (conn == NULL)
@@ -323,10 +317,8 @@ SQL_STATUS UserInfo::up_user(std::map<option,sqlUpdateVal> up_data)
         if(up_data.size() == 0)
             return SQL_STATUS::Illegal_info;
     }
-
     string state ,buffer,cond;
     state = "update UserInfoTable set ";
-
     for(auto up : up_data)
     {
         if(up.first == "userId"){
@@ -345,7 +337,6 @@ SQL_STATUS UserInfo::up_user(std::map<option,sqlUpdateVal> up_data)
     state.replace(state.rfind(","), 1, "");
     //添加条件
     state += " where userId = " + cond ;
-    
     return execute_sql(conn,"update userInfo ",state);
 }
 
@@ -360,12 +351,10 @@ SQL_STATUS UserInfo::update_password(const int &  user_id,const string &  user_p
 			 << " LINE  " << __LINE__ << endl;
 		return  SQL_STATUS::Pool_err;
 	}
-	
     string state,cond;
     state += "update UserInfoTable set ";
     state += " userPwd = \'" + user_pwd + "\' ";
     state += " where  userId = " + std::to_string(user_id);
-
     return execute_sql(conn,"delete",state);
 }
 

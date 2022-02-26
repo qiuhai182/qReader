@@ -168,3 +168,5 @@ add_executable(init init.cpp ${PROTO_HEADER} ${PROTO_SRC} ${SRC_DIRS})
 target_link_libraries(init ${BRPC_LIB} ${DYNAMIC_LIB} lib_iReader.a mysqlclient)
 #target_link_libraries(init  ${DYNAMIC_LIB} lib_iReader.a mysqlclient)
 add_definitions(-w) #忽略警告
+
+

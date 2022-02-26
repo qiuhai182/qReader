@@ -44,13 +44,11 @@ namespace bookCityService
 	{
 	private:
 		BookInfoImpl __bookCitySql;
-		MemBooks __memBookList ;				// 实例化书籍，配合模糊匹配
-		map<int, int> recommendTimes;		// 记录个性化推荐批次
+		MemBooks __memBookList;			// 实例化书籍，配合模糊匹配
+		map<int, int> recommendTimes;	// 记录个性化推荐批次
 		map<int, int> browseTimes;		// 记录书城浏览批次
-	private:
-		//填充回发消息
 		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const CombineBook & bookres )
-		{
+		{ // 填充回发消息
 			auto book = add_lists;
 			/**
 			 * 部分信息需要动态生成
@@ -64,7 +62,6 @@ namespace bookCityService
 			struct stat info;
 			stat(filepath.c_str(), &info);
 			int bookSize = info.st_size;
-
 			//返回填充
 			book->set_bookid(get<0>(bookres).bookId);
 			book->mutable_baseinfo()->set_bookname(get<0>(bookres).bookName);
@@ -80,7 +77,6 @@ namespace bookCityService
 			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
 			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
 			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
-
 		}
 		//附加类型填充  附加字段暂时只有bookTitle  后可将第三字段变为位运算值
 		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const CombineBook & bookres ,const int value )
@@ -190,10 +186,7 @@ namespace bookCityService
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ")"
-					  <<endl;
-
-			
-				
+					  << endl;
 			SQL_STATUS ret ; 
 			if (request->has_bookid())
 			{
@@ -205,13 +198,8 @@ namespace bookCityService
 					fillBook(book,bookres);
 					if(SQL_STATUS::EXE_sus != __bookCitySql.plus_search_times(
 							get<0>(bookres).autoBookId,	get<0>(bookres).bookId,
-							request->daytime(),get<0>(bookres).bookName
-						)
-					)
-					{
-						LOG(WARNING) << "更新搜索次数失败"
-						<<" bookId "<<get<0>(bookres).bookId <<endl ;
-					}
+							request->daytime(),get<0>(bookres).bookName))
+						LOG(WARNING) << "更新搜索次数失败" << " bookId "<< get<0>(bookres).bookId << endl;
 					response->set_count(1);
 				}
 				else
@@ -244,7 +232,6 @@ namespace bookCityService
 				optionName = "bookName";
 				optionValue = request->bookname();
 			}
-			
 			if (request->has_authorname())
 			{
 				optionName = "authorName";
@@ -255,7 +242,6 @@ namespace bookCityService
 				optionName = "publishHouse";
 				optionValue = request->publishhouse();
 			}
-
 			if (request->has_booktype())
 			{
 				if(  false == bookType::isPrimaryClass(request->booktype())){
@@ -270,7 +256,6 @@ namespace bookCityService
 				bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
 				optionValue = bookType::primary_enum_to_string(typeEnum) ;
 			}
-
 			LOG(INFO) << endl
 					<< control->remote_side()
 					<< " 搜索图书方式为 " << optionName
@@ -407,7 +392,6 @@ namespace bookCityService
 					return ;
 				}
 			}
-
 			if(request->has_publishtime() == true)
 			{
 				if(request->publishtime() != "")
@@ -480,7 +464,6 @@ namespace bookCityService
 					return ;
 				}
 			}
-			
 			//进行修改
 			SQL_STATUS ret =   __bookCitySql.up_book_Info(up_data);
 			if (ret != SQL_STATUS::EXE_sus)
@@ -500,7 +483,6 @@ namespace bookCityService
                 LOG(INFO) << endl
                         << control->remote_side() << "更新书籍信息成功" << endl;
             }
-			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
@@ -666,17 +648,17 @@ namespace bookCityService
 						<< "查询随机书城推荐成功，本次查到 " 
 						<< size << " 本书" << endl;
 			}
-			
 			if (FLAGS_echo_attachment)
 			{
 				control->response_attachment().append(control->request_attachment());
 			}
 		}
+
 		virtual void getMostlySearchFun(google::protobuf::RpcController *control_base,
                        const ::bookCityService::universalBlankReq* request,
                        ::bookCityService::mostlySearchRes* response,
                        ::google::protobuf::Closure* done)
-		{//搜索书籍推荐
+		{ // 搜索书籍推荐
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control = static_cast<brpc::Controller *>(control_base);
 			cout << endl;
@@ -687,7 +669,6 @@ namespace bookCityService
 					  << request->count() <<" 本 "
 					  <<control->request_attachment() << ")"
 					  <<endl;
-
 			if(!request->has_daytime()){
 				response->set_count(0);
 				LOG(INFO) << endl
@@ -699,12 +680,11 @@ namespace bookCityService
 			vector<SearchStatisticsTable> books ;
 			string month = request->daytime().substr(0,7);
 			int searchCount = request->count()  ;//请求回发书籍
-			//桶排序查找12月热搜去重  bookid-SearchStatisticsTable
+			// 桶排序查找12月热搜去重  bookid-SearchStatisticsTable
 			map<string,SearchStatisticsTable> resultBook ;
 			SearchStatisticsTable book;
-
-			for(int mon = 0;mon < 12 ; mon++){
-				if(  resultBook.size() == 10 ) break ;//查找足够提前退出
+			for(int mon = 0; mon < 12 ; mon++){
+				if(resultBook.size() == 10 ) break; //查找足够提前退出
 				SQL_STATUS ret = __bookCitySql.get_mostly_search_by_month_count(month,books,searchCount) ;
 				int size = books.size();
 				if(SQL_STATUS::EXE_sus != ret)
@@ -721,15 +701,13 @@ namespace bookCityService
 							book.bookName = books[start].bookName ;
 							resultBook.insert(pair<string,SearchStatisticsTable>(book.bookId,book));
 						}
-					}	
-					
+					}
 				}
-				//月份前移
+				// 月份前移
 				reduce_months(month);
 			}
-			
 			if(resultBook.size() == searchCount){
-				//--结果发送  
+				// --结果发送  
 				for (auto & bookres:resultBook){
 					auto book = response->add_lists();
 					book->set_bookid(bookres.second.bookId);
@@ -742,7 +720,7 @@ namespace bookCityService
 					<<"月查询热搜书籍推荐成功,共"
 					<<resultBook.size()<<"本"<< endl;
 			}
-			else//查询不足在书城发送查找发送 包含书籍不足searchCount
+			else // 查询不足在书城发送查找发送 包含书籍不足searchCount
 			{
 				vector<CombineBook>  books;
 				SQL_STATUS ret = __bookCitySql.get_book_offset(books,2,searchCount);
@@ -760,8 +738,8 @@ namespace bookCityService
 					<<month <<"月查询热搜书籍推荐不足，书城发送共"
 					<<size<<"本"<< endl;
 			}
-			
 		}
+
 		virtual void getPopularSearchFun(google::protobuf::RpcController *control_base,
 							const ::bookCityService::universalBlankReq* request,
 							::bookCityService::booksRespList* response,
@@ -820,14 +798,12 @@ namespace bookCityService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-
 			LOG(INFO) <<endl
 					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ") "
 					  <<" 请求模糊匹配书籍 "<<endl;
-
 			//非法信息处理
 			if(request->daytime() == "" || request->words() == "" ||
 					request->count() <= 0 || request->offset() < 0){
@@ -837,14 +813,12 @@ namespace bookCityService
 				response->set_count(0);
 				return ;
 			}
-
 			vector<int> autoBookIds;
 			//从实例读出书籍
 			__memBookList.fuzzySearch(autoBookIds,request->words(),request->offset(),request->count()) ;
 			CombineBook bookbuffer ;
 			int beginSize = autoBookIds.size(),count =0;
 			SQL_STATUS ret ;
-
 			for(int index = 0; index < beginSize; index++)
 			{
 				ret =__bookCitySql.get_book_by_autoBookId(bookbuffer,autoBookIds[index]);
@@ -860,7 +834,6 @@ namespace bookCityService
 				auto book = response->add_lists();
 				fillBook(book,bookbuffer);
 			}
-			
 			cout<<endl <<" 初始值  "<<beginSize<<" 终值  "<<count<<endl ;
 			if (count == 0)
 			{
@@ -879,6 +852,7 @@ namespace bookCityService
 
 		}
 		
+
 		virtual void getPushBooksFun(::google::protobuf::RpcController* control_base,
                        const ::bookCityService::offsetCountBooksReq* request,
                        ::bookCityService::booksRespList* response,
@@ -887,14 +861,12 @@ namespace bookCityService
 			brpc::ClosureGuard done_guard(done);
 			brpc::Controller *control =
 				static_cast<brpc::Controller *>(control_base);
-
 			LOG(INFO) <<endl
 					  << "\n收到请求[log_id=" << control->log_id()
 					  << "] 客户端ip+port: " << control->remote_side()
 					  << " 应答服务器ip+port: " << control->local_side()
 					  << " (attached : " << control->request_attachment() << ") "
 					  <<" 请求获取推送书籍 "<<endl;
-
 			//非法信息处理
 			if(request->size() <= 0 || request->offset() < 0)
 			{
@@ -906,7 +878,6 @@ namespace bookCityService
 			}
 			vector<CombineBook> books ;
 			SQL_STATUS ret =  __bookCitySql.get_book_offset(books,0,request->size());
-
 			if( ret != SQL_STATUS::EXE_sus)
 			{
 				response->set_count(0);
@@ -927,8 +898,50 @@ namespace bookCityService
 					  << " 获取推送成功,共" 
 					  << books.size()<<"本"<<endl;
 			}
-
 		}
-	}; 
+
+		
+		virtual void getTypedBooksFun(::google::protobuf::RpcController* control_base,
+										const ::bookCityService::getTypedBookReq* request,
+										::bookCityService::booksRespList* response,
+										::google::protobuf::Closure* done)
+		{ // 根据书籍类型获取指定类别、指定批次书籍
+			brpc::ClosureGuard done_guard(done);
+			brpc::Controller *control =
+				static_cast<brpc::Controller *>(control_base);
+			LOG(INFO) << endl
+						<< "\n收到请求[log_id=" << control->log_id()
+						<< "] 客户端ip+port: " << control->remote_side()
+						<< " 应答服务器ip+port: " << control->local_side()
+						<< " (attached : " << control->request_attachment() << ") " << endl;
+			int offset = 0;
+			int count = 10;
+			if (request->has_offset())
+				offset = request->offset();
+			if (request->has_count())
+				count = request->count();
+			string optionName = "bookType";
+			// int转自定义枚举类型
+			bookType::primaryClass typeEnum = static_cast<bookType::primaryClass>(request->booktype());
+			// 枚举类型转字符串
+			string optionValue = bookType::primary_enum_to_string(typeEnum) ;
+			vector<CombineBook> bookres;
+			SQL_STATUS ret =  __bookCitySql.get_books_by_option(bookres, optionName, optionValue, offset, count);
+			for (int i = 0; i < bookres.size(); ++i)
+			{
+				auto book = response->add_lists();
+				fillBook(book, bookres[i]);
+			}
+			response->set_count(bookres.size());
+			LOG(INFO) << endl
+						<< control->remote_side()
+						<< "浏览书籍类型:" << optionValue << ",偏移值:" << offset << "," << bookres.size() << " 本" << endl;
+		}
+
+
+	};
+
 
 }
+
+

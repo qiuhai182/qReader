@@ -94,6 +94,54 @@ namespace Times
         strftime(res, sizeof(res), "%Y-%m-%d %H:%M:%S", (struct tm *)&timeInfo);
         return res;
     }
+    
+    /*
+     * 得到此刻时间：xxxx-xx-xx
+     * 
+     */
+    string get_nowTime()
+    {
+        time_t timeValue = 0;
+        time(&timeValue);
+        struct tm *curTime = gmtime(&timeValue);
+        int year = curTime->tm_year + 1900;
+        int month = curTime->tm_mon + 1;
+        int day = curTime->tm_mday;
+        int weekenday = curTime->tm_wday;
+        int hour = curTime->tm_hour;
+        int minute = curTime->tm_min;
+        int second = curTime->tm_sec;
+        string preMonth = month > 9 ? "" : "0";
+        string preDay = day > 9 ? "" : "0";
+        return string("" + to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + to_string(day));
+    }
+
+    /*
+     * 得到此刻时间戳
+     * 
+     */
+    int get_nowTimeStamp()
+    {
+        time_t timeValue = 0;
+        time(&timeValue);
+        struct tm *curTime = gmtime(&timeValue);
+        int year = curTime->tm_year + 1900;
+        int month = curTime->tm_mon + 1;
+        int day = curTime->tm_mday;
+        int weekenday = curTime->tm_wday;
+        int hour = curTime->tm_hour;
+        int minute = curTime->tm_min;
+        int second = curTime->tm_sec;
+        string preMonth = month > 9 ? "" : "0";
+        string preDay = day > 9 ? "" : "0";
+        string preHour = hour > 9 ? "" : "0";
+        string preMinute = minute > 9 ? "" : "0";
+        string preSecond = second > 9 ? "" : "0";
+        string timeString = to_string(year) + "-" + preMonth + to_string(month) + "-" + preDay + 
+                            to_string(day) + " " + preHour + to_string(hour) + "-" + preMinute + 
+                            to_string(minute) + "-" + preSecond + to_string(second);
+        return get_timeStamp(timeString);
+    }
 
 
 }
