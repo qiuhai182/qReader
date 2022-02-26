@@ -24,6 +24,7 @@
 #include "database/tableInfo/BookCommentHitCountInfo.hpp"
 #include "database/tableInfo/PageCommentInfo.hpp"
 #include "database/tableInfo/PageCommentHitInfo.hpp"
+#include "database/tableInfo/BookDownloadCount.hpp"
 
 using namespace std;
 using namespace ormpp;
@@ -34,6 +35,7 @@ namespace Init
 
   void createSql()
   {
+
     // try{
     //     BookBaseInfo baseBook(false);
     //     usleep(1000);
@@ -104,13 +106,21 @@ namespace Init
     //     cout<<"Error: "<<error<<endl;
     // }
 
-    try{
-        PageCommentHitInfo pagecommentHitInfo(false);
-        usleep(1000);
-    }catch(const char *error){
-        cout<<"Error: "<<error<<endl;
-    }
+    // try{
+    //     PageCommentHitInfo pagecommentHitInfo(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
+
+    // try{
+    //     BookDownloadCount bookDownloadCount(false);
+    //     usleep(1000);
+    // }catch(const char *error){
+    //     cout<<"Error: "<<error<<endl;
+    // }
 
   }
+  
 }
 
