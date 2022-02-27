@@ -140,14 +140,13 @@ namespace Analyze
     */
     int SightAnalyze::deal_read_interval(vector<string> &all_time, float *res)
     {
-        // cout << "处理12时段-01->" << all_time[0] << " size:" << all_time.size() << endl;
-        cout << "size:" << all_time.size() << endl;
+        cout << "查询到阅读记录数量:" << all_time.size() << endl;
         for (auto dayTime : all_time)
         {
             char *time = dayTime.data();
             int hour = atoi(time + 11); // 小时数
             int timeId = hour / 2;
-            cout << "time:" << *(time+11) << " hour:" << hour << " timeId" << timeId << endl;
+            // cout << "time:" << *(time+11) << " hour:" << hour << " timeId" << timeId << endl;
             if (timeId > 11)
                 timeId = 0;
             res[timeId] += 1;
