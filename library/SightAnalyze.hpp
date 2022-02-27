@@ -165,11 +165,11 @@ namespace Analyze
     * 查询时间区间阅读时长
     * 
     */
-    int SightAnalyze::get_interval_count(const int & user_id, string day_time,  float *res)
+    int SightAnalyze::get_interval_count(const int &user_id, string day_time,  float *res)
     {
-        vector<string>day_all_time ;
+        vector<string> day_all_time;
 
-        SQL_STATUS ret = __sight.get_a_day_data(user_id, day_time,day_all_time);
+        SQL_STATUS ret = __sight.get_a_day_data(user_id, day_time, day_all_time);
         if(ret != SQL_STATUS::EXE_sus && day_all_time.size() == 0)
             return -1 ;
         return deal_read_interval(day_all_time, res); // 计算出统计阅读时长
