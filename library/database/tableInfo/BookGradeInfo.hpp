@@ -45,7 +45,7 @@ namespace ormpp
      */
     struct BookScoreStat
     {
-        int avgScore;       // 综合评分
+        double avgScore;       // 综合评分
         int count;          // 评分人数
     };
 
@@ -60,7 +60,7 @@ namespace ormpp
             }
         }
         SQL_STATUS get_score_seg_stat(const int & score,const string &book_id, int & number);
-        SQL_STATUS get_average_score(int & average,const int & auto_book_id);
+        SQL_STATUS get_average_score(double & average,const int & auto_book_id);
         SQL_STATUS get_remark_count(int & count,const int & auto_book_id);
         SQL_STATUS get_grade_by_double_id(const int & auto_book_id,
                                         const int& user_id,BookGradeInfoTable & grade);
@@ -183,7 +183,7 @@ SQL_STATUS BookGradeInfo::get_score_seg_stat(const int & score,const string &boo
 	return SQL_STATUS::EXE_sus;
 }
 
-SQL_STATUS BookGradeInfo::get_average_score(int & average,const int & auto_book_id)
+SQL_STATUS BookGradeInfo::get_average_score(double & average,const int & auto_book_id)
 {//获取平均分
     auto conn = get_conn_from_pool();
 	conn_guard guard(conn);
@@ -201,7 +201,7 @@ SQL_STATUS BookGradeInfo::get_average_score(int & average,const int & auto_book_
     if(res.size() == 0){
         return SQL_STATUS::EXE_err;
     }
-    average = (int)std::get<0>(res[0]) ;
+    average = std::get<0>(res[0]) ;
 	return SQL_STATUS::EXE_sus;
 }
 
