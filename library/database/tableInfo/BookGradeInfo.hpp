@@ -197,8 +197,9 @@ SQL_STATUS BookGradeInfo::get_average_score(double & average,const int & auto_bo
 	string state = "select avg(bookScore) from BookGradeInfoTable "
                     " group by autoBookId  having "
                     " autoBookId = " + to_string(auto_book_id ) ;
-	auto res = conn->query<std::tuple<int>>(state);
+	auto res = conn->query<std::tuple<double>>(state);
     if(res.size() == 0){
+        average = 0;
         return SQL_STATUS::EXE_err;
     }
     average = std::get<0>(res[0]) ;

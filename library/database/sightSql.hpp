@@ -46,7 +46,7 @@ namespace ormpp
         SQL_STATUS insert_internal_info(const ReadIntervalTable &read_interval);
 
         SQL_STATUS get_a_day_data(const int &  use_id,const  string &  day_time,
-                        vector<string> all_times);
+                        vector<string> &all_times);
 
     private:
         SightInfo * __sight;
@@ -72,7 +72,7 @@ SQL_STATUS SightInfoImpl::insert_internal_info(const ReadIntervalTable &read_int
 }
 
 SQL_STATUS SightInfoImpl::get_a_day_data(const int &  use_id,const  string &  day_time,
-                        vector<string> all_times)
+                        vector<string>& all_times)
 {
     return __sight->get_a_day_data(use_id,day_time,all_times);
 }
