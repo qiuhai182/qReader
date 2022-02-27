@@ -151,7 +151,7 @@ namespace Analyze
         }
         for (int i = 0; i < 12; ++i)
         {
-            //cout << "数量：" << res[i] << endl;
+            cout << i << " 分钟数：" << res[i] << endl;
             res[i] /= 600;
         }
         cout << "统计区间阅读时长成功" << endl;
