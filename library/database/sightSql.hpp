@@ -70,7 +70,7 @@ SQL_STATUS SightInfoImpl::insert_internal_info(const ReadIntervalTable &read_int
     return __interval->insert_internal_info(read_interval);
 }
 
-SQL_STATUS SightInfoImpl::get_a_day_data(const int & use_id,const string & day_time, vector<string> &all_times)
+SQL_STATUS SightInfoImpl::get_a_day_data(const int &use_id,const string &day_time, vector<string> &all_times)
 {
     return __sight->get_a_day_data(use_id, day_time, all_times);
 }
