@@ -140,7 +140,7 @@ namespace Analyze
     */
     int SightAnalyze::deal_read_interval(vector<string> &all_time, float *res)
     {
-        cout << "查询到阅读记录数量:" << all_time.size() << endl;
+        // cout << "查询到阅读记录数量:" << all_time.size() << endl;
         for (auto dayTime : all_time)
         {
             char *time = dayTime.data();
@@ -154,7 +154,7 @@ namespace Analyze
         for (int i = 0; i < 12; ++i)
         {
             res[i] /= 600;
-            cout << i << " 分钟数：" << res[i] << endl;
+            // cout << i << " 分钟数：" << res[i] << endl;
         }
         cout << "统计区间阅读时长成功" << endl;
         return 1;
