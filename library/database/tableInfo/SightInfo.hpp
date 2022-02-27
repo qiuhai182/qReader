@@ -184,9 +184,9 @@ SQL_STATUS SightInfo::get_a_day_data(const int &  user_id,const  string &  day_t
     auto result = conn->query<SightTable>(state);
     for (auto &oneres : result)
     {
+        cout << "查询结果: " << oneres.timeStamp << endl;
         all_times.push_back(oneres.timeStamp);
     }
-        
     return SQL_STATUS::EXE_sus ;
 }
 
