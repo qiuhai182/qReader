@@ -154,7 +154,7 @@ namespace Times
         int ms ;
         int s ;
         int min ;
-    }
+    };
 
     struct EventData
     {
@@ -162,7 +162,7 @@ namespace Times
         std::function<void(void *)> cb_fun ;
         TimePos timePos ;
         int time_id ;
-    }
+    };
 
 
 }
