@@ -145,7 +145,7 @@ namespace Analyze
             char *time = dayTime.data();
             int hour = atoi(time + 11); // 小时数
             int timeId = hour / 2;
-            cout << dayTime << " " << hour << " " << timeId << endl;
+            cout << "time:" << *(time+11) << " hour:" << hour << " timeId" << timeId << endl;
             if (timeId > 11)
                 timeId = 0;
             res[timeId] += 1;
