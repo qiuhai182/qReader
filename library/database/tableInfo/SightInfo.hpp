@@ -58,8 +58,7 @@ namespace ormpp
         SQL_STATUS get_sight_by_timeStamp(vector<SightTable>& result,
                         const string &time_stamp,const int & user_id);
 
-        SQL_STATUS get_a_day_data(const int &  user_id,const  string &  day_time,
-                        vector<string> all_times); 
+        SQL_STATUS get_a_day_data(const int &user_id,const string &day_time, vector<string> &all_times); 
 
         // SQL_STATUS up_book();
         // SQL_STATUS up_book();
@@ -167,8 +166,7 @@ SQL_STATUS SightInfo::get_sight_by_timeStamp(vector<SightTable>& result,
 	
 }
 
-SQL_STATUS SightInfo::get_a_day_data(const int &  user_id,const  string &  day_time,
-                        vector<string> all_times)
+SQL_STATUS SightInfo::get_a_day_data(const int &  user_id,const  string &  day_time, vector<string> &all_times)
 {
     auto conn = get_conn_from_pool();
     conn_guard guard(conn);
@@ -184,9 +182,9 @@ SQL_STATUS SightInfo::get_a_day_data(const int &  user_id,const  string &  day_t
     auto result = conn->query<SightTable>(state);
     for (auto &oneres : result)
     {
+        // cout << "查询结果: " << oneres.timeStamp << endl;
         all_times.push_back(oneres.timeStamp);
     }
-        
     return SQL_STATUS::EXE_sus ;
 }
 

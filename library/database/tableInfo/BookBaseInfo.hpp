@@ -349,7 +349,7 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option_downloadCount(vector<BookB
 		return SQL_STATUS::Pool_err;
 	}
     if(!isOption(optionName))
-        return SQL_STATUS::Illegal_info ;
+        return SQL_STATUS::Illegal_info;
     // string cond = "SELECT base.* FROM BookBaseInfoTable base LEFT JOIN BookDownloadCountTable bdc ON base.autoBookId = bdc.autoBookId AND base." + 
     //                 optionName + " LIKE \'\%" +  optionValue + "\%\' AND base.isDelete = 0 ORDER BY bdc.times DESC LIMIT " + 
     //                 to_string(offset) + " , " +  to_string(count);
