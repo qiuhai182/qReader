@@ -146,9 +146,9 @@ namespace collectdataService
 			__sightAnalyze.storage_analyse_json(request->userid());
 			// 结果从json获取
 			readAnalyzeRes res;
-			// 12时段数据
 			int userId = request->userid();
 			string dayTime = request->daytime();
+			// 12时段数据
 			float intervals[12];
 			for (int i = 0; i < size(intervals); ++i)
 			{
