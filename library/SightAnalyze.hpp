@@ -140,6 +140,7 @@ namespace Analyze
     */
     int SightAnalyze::deal_read_interval(vector<string> &all_time, float *res)
     {
+        cout << "处理12时段-01->" << all_time[0] << " size:" << all_Time.size() << endl;
         for (auto dayTime : all_time)
         {
             char *time = dayTime.data();
