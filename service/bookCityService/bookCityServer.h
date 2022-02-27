@@ -76,7 +76,7 @@ namespace bookCityService
 			book->mutable_downinfo()->set_bookheadurl(bookHeadUrl);
 			book->mutable_downinfo()->set_bookdownurl(bookBodyUrl);
 			book->mutable_gradeinfo()->set_remarkcount(get<1>(bookres).count );
-			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore * 0.1);//浮点回发
+			book->mutable_gradeinfo()->set_averagescore(get<1>(bookres).avgScore );//浮点回发
 		}
 		//附加类型填充  附加字段暂时只有bookTitle  后可将第三字段变为位运算值
 		inline void fillBook(::bookCityService::boocomCombinekInfo*  add_lists,const CombineBook & bookres ,const int value )

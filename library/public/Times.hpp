@@ -8,6 +8,10 @@
 #include <sys/stat.h>
 #include <ctime>
 #include <cstring>
+#include <list>
+#include <functional>
+#include <thread>
+#include <mutex>
 
 const int maxLength = 1024; // 某些数据的最大长度
 
@@ -141,6 +145,23 @@ namespace Times
                             to_string(day) + " " + preHour + to_string(hour) + "-" + preMinute + 
                             to_string(minute) + "-" + preSecond + to_string(second);
         return get_timeStamp(timeString);
+    }
+
+    
+    //时间点
+    struct TimePos
+    {
+        int ms ;
+        int s ;
+        int min ;
+    }
+
+    struct EventData
+    {
+        int expectation;
+        std::function<void(void *)> cb_fun ;
+        TimePos timePos ;
+        int time_id ;
     }
 
 

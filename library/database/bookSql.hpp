@@ -111,7 +111,7 @@ SQL_STATUS BookInfoImpl::get_book_by_autoBookId(CombineBook &book,
     //暂无评分
     if (stat_info.count == 0)
     {
-        stat_info.avgScore = -1;
+        stat_info.avgScore = 0;
     }
     else
     {
@@ -145,7 +145,7 @@ SQL_STATUS BookInfoImpl::get_all_book_info(vector<CombineBook> &books)
         //暂无评分
         if (stat_info.count == 0)
         {
-            stat_info.avgScore = -1;
+            stat_info.avgScore = 0;
         }
         else
         {
@@ -173,7 +173,7 @@ SQL_STATUS BookInfoImpl::get_book_by_book_id(CombineBook &book, const string &bo
     //暂无评分
     if (stat_info.count == 0)
     {
-        stat_info.avgScore = -1;
+        stat_info.avgScore = 0;
     }
     else
     {
@@ -227,7 +227,7 @@ SQL_STATUS BookInfoImpl::get_books_by_option(vector<CombineBook> &books, const o
         // 暂无评分
         if (stat_info.count == 0)
         {
-            stat_info.avgScore = -1;
+            stat_info.avgScore = 0;
         }
         else
         {
@@ -339,7 +339,7 @@ SQL_STATUS BookInfoImpl::get_recommend_book(vector<CombineBook> &books,
         //暂无评分
         if (stat_info.count == 0)
         {
-            stat_info.avgScore = -1;
+            stat_info.avgScore = 0;
         }
         else
         {
@@ -395,7 +395,7 @@ SQL_STATUS BookInfoImpl::get_books_by_fuzzy(vector<CombineBook> &books,
         //暂无评分
         if (stat_info.count == 0)
         {
-            stat_info.avgScore = -1;
+            stat_info.avgScore = 0;
         }
         else
         {
@@ -437,7 +437,7 @@ SQL_STATUS BookInfoImpl::get_book_offset(vector<CombineBook> &books,
         //暂无评分
         if (stat_info.count == 0)
         {
-            stat_info.avgScore = -1;
+            stat_info.avgScore = 0;
         }
         else
         {
