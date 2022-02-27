@@ -358,7 +358,7 @@ SQL_STATUS BookBaseInfo::get_books_baseInfo_by_option_downloadCount(vector<BookB
     // select res.* from ((select * from  BookBaseInfoTable subBase where isDelete = 0 and bookType = '计算机与互联网' ) as res LEFT join BookDownloadCountTable bdc on bdc.autoBookId = res.autoBookId ) order by bdc.times desc limit 0,10;
 
     string cond = "select base.* from ((select * from BookBaseInfoTable where isDelete = 0 and " + 
-                    optionName + "=" + optionValue + ") as base LEFT join BookDownloadCountTable bdc " + 
+                    optionName + "=\'" + optionValue + "\') as base LEFT join BookDownloadCountTable bdc " + 
                     "on bdc.autoBookId = base.autoBookId ) order by bdc.times desc limit "  + 
                     to_string(offset) + " , " +  to_string(count);
 
