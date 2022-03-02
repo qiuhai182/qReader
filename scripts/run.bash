@@ -36,16 +36,16 @@ function run(){
 if [ ! $# = 1 ] ; then
     echo -e "\033[31m USAGE: $0 Need more parameters \033[0m"
     echo -e "\033[31m e.g. : $0 -ac \033[0m"
-    echo -e "\033[31m Parameters :-ec -bc -bs -cd -cm  -fi -ac  -all  \033[0m"
+    echo -e "\033[31m Parameters :-ec -bc -bs -cd -cm  -fi -ac -pc -all  \033[0m"
     exit 1;
 fi
 #将服务和端口对应
 serverArr=("echoService" "bookCityService" "bookShelfService" "collectDataService"
-             "bookCommentService" "fileUpDownService" "accountService")
-portArr=(8001 8002 8003 8004 8005 8006 8007)
+             "bookCommentService" "fileUpDownService" "accountService" "pageCommentService")
+portArr=(8001 8002 8003 8004 8005 8006 8007 8008)
 
 
-#参数对应 -ec -bc -bs -cd -cm  -fi -ac  -all(全部运行)
+#参数对应 -ec -bc -bs -cd -cm  -fi -ac -pc -all(全部运行)
 case "$1" in
 		"-ec" )
             run  ${serverArr[0]}  ${portArr[0]}
@@ -68,9 +68,12 @@ case "$1" in
         "-ac" )
             run  ${serverArr[6]}  ${portArr[6]}
 			;;
+        "-pc" )
+            run  ${serverArr[7]}  ${portArr[7]}
+			;;
         "-all" )
             #全部终止
-            for ((i=0;i<=6;i++))
+            for ((i=0;i<=7;i++))
             do
                 run  ${serverArr[i]}  ${portArr[i]}
             done

@@ -54,15 +54,15 @@ link_lib
 if [$# != 1 ] ; then
     echo -e "\033[31m USAGE: $0 Need more parameters \033[0m"
     echo -e "\033[31m e.g. : $0 -ac \033[0m"
-    echo -e "\033[31m Parameters :-ec -bc -bs -cd -cm  -fi -ac  -all  \033[0m"
+    echo -e "\033[31m Parameters :-ec -bc -bs -cd -cm  -fi -ac -pc -all  \033[0m"
     exit 1;
 fi
 #将服务和端口对应
 serverArr=("echoService" "bookCityService" "bookShelfService" "collectDataService"
-             "bookCommentService" "fileUpDownService" "accountService")
+             "bookCommentService" "fileUpDownService" "accountService" "pageCommentService")
 #portArr=(8001 8002 8003 8004 8005 8006 8007)
-#echo bookCity bookShelf collectData common fileUpDown account
-#参数对应 -ec -bc -bs -cd -cm  -fi -ac  -all(全部编译)
+#echo bookCity bookShelf collectData common fileUpDown account pageComment
+#参数对应 -ec -bc -bs -cd -cm  -fi -ac -pc -all(全部编译)
 case "$1" in
 		"-ec" )
             com_service  ${serverArr[0]}
@@ -85,9 +85,12 @@ case "$1" in
         "-ac" )
             com_service  ${serverArr[6]}
 			;;
+        "-pc" )
+            com_service  ${serverArr[7]}
+			;;
         "-all" )
             #全部编译
-            for ((i=0;i<=6;i++))
+            for ((i=0;i<=7;i++))
             do
                 com_service  ${serverArr[i]}
             done
