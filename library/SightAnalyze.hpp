@@ -140,19 +140,21 @@ namespace Analyze
     */
     int SightAnalyze::deal_read_interval(vector<string> &all_time, float *res)
     {
+        // cout << "查询到阅读记录数量:" << all_time.size() << endl;
         for (auto dayTime : all_time)
         {
             char *time = dayTime.data();
             int hour = atoi(time + 11); // 小时数
             int timeId = hour / 2;
+            // cout << "time:" << *(time+11) << " hour:" << hour << " timeId" << timeId << endl;
             if (timeId > 11)
-            timeId = 0;
+                timeId = 0;
             res[timeId] += 1;
         }
         for (int i = 0; i < 12; ++i)
         {
-            //cout << "数量：" << res[i] << endl;
             res[i] /= 600;
+            // cout << i << " 分钟数：" << res[i] << endl;
         }
         cout << "统计区间阅读时长成功" << endl;
         return 1;
@@ -163,11 +165,11 @@ namespace Analyze
     * 查询时间区间阅读时长
     * 
     */
-    int SightAnalyze::get_interval_count(const int & user_id, string day_time,  float *res)
+    int SightAnalyze::get_interval_count(const int &user_id, string day_time,  float *res)
     {
-        vector<string>day_all_time ;
+        vector<string> day_all_time;
 
-        SQL_STATUS ret = __sight.get_a_day_data(user_id, day_time,day_all_time);
+        SQL_STATUS ret = __sight.get_a_day_data(user_id, day_time, day_all_time);
         if(ret != SQL_STATUS::EXE_sus && day_all_time.size() == 0)
             return -1 ;
         return deal_read_interval(day_all_time, res); // 计算出统计阅读时长
