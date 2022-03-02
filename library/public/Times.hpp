@@ -1,3 +1,4 @@
+
 #pragma once
 
 #ifndef _TIMES_H
@@ -42,301 +43,266 @@ namespace Times
     //     std::set<T> __set;
     // }
 
-     //时间点
     struct TimePos
     {
-        int ms ;
-        int s ;
-        int min ;
-        void  show()
-        {
-            cout<<"ms is "<<ms
-                <<" s is "<<s
-                <<" min is "<<min<<endl;
-            
-        }
+        //毫秒，秒，分钟
+        int ms;
+        int s;
+        int min;
+
     };
 
     struct EventData
     {
-        //超时时间
-        int interval ;
-        //回调函数参数
-        void * arg;
-        std::function<void(void *)> cb_fun ;
-        Times::TimePos timePos ;
+        //超时时间(为初始化的倍数)
+        int interval;
+        //回调函数
+        std::function<void(void*)>  cb_func;
+        //时间
+        TimePos timePos;
         //定时器ID
-        int time_id ;
+        int timerId;
+        //参数 
+        void * arg;
 
     };
+
     class TimeWheel
     {
     public:
-        //step为最小间隔 ,max_min为轮转最大分钟数
-        //删除默认构造，禁止出现非法容器
-        TimeWheel()= delete;
-        TimeWheel(const int & step, const int & max_min);
-        ~TimeWheel(){}
-        
-        int AddTimer(EventData  event);
-        int DeleteTimer(const int & timerId);
-        void ShowTimerCount();
+        TimeWheel() = delete;
+        /*step为心跳检测的步长，max_min为分钟时间轮槽数*/
+        TimeWheel(const int &step, const int& max_min);
+        ~TimeWheel();
+    public:
+        int AddTimer( EventData  event);
+        int DeleteTimer(const int &timerId);
     private:
-        bool Tick();
+        int Tick();
         int GenerateTimerID();
-        void InsertTimer(const int & pos,EventData &event);
-        void GetNextTrigerPos(const int & interval,TimePos &pos);
-        int GetMs(const TimePos &  pos);
-        void DealEvent(std::list<EventData> & events);
+        void InsertTimer(const int &diff_ms,EventData &event);
+        void GetNextTrigerPos(const int &interval,TimePos &timePos);
+        int GetMS(const TimePos & timePos);
+        void DealEvent( std::list<EventData> events);
     private:
-        //此处不是链表，是链表数组的头指针，时间轮数组
-        std::list<EventData> *__time_slots_header;
+        //为对应的槽
+        std::list<EventData> *__time_slots_header{nullptr};
         std::mutex			  __mutex;
-        //时间
+        //维护的内部时间，不同步获取
         TimePos               __time_pos;
-        //计数刻度
-        int __ms_slots;
-        int __s_slots;
-        int __min_slots;
+        
+        //对应的槽数
+        int __ms_slots{0};
+        int __s_slots{0};
+        int __min_slots{0};
         //步长
-        int __step;
-        //定时器数量
-        int __timer_count;
-        //std::set<int> __id_set ;
+        int __step{0};
+        //时间轮中定时器数量
+        int __timer_count{0};
     };
+
+   
     /**************************************************************************/
     /*******************************public*************************************/
     /**************************************************************************/
 
-    void TimeWheel::ShowTimerCount()
+    TimeWheel::TimeWheel(const int & step,const  int& max_min)
     {
-        int s_slots_count = 0;
-        int ms_slots_count = 0;
-        int min_slots_count = 0;
-        int slots_count = __s_slots + __ms_slots + __min_slots ;
-        for(int index = 0 ;index < slots_count ;index++)
-        {   
-            std::list<EventData> & events = __time_slots_header[index] ; 
-            if(index < __ms_slots)
-            {
-                ms_slots_count+= events.size(); 
-            }
-            else if( __ms_slots <= index < __s_slots + __ms_slots)
-            {
-                s_slots_count+= events.size(); 
-            }
-            else if(__s_slots + __ms_slots <= index < __s_slots + __s_slots + __ms_slots)
-            {
-                min_slots_count+= events.size(); 
-            }
-            cout << " ms_slots times is "<<ms_slots_count
-                 << " s_slots times is "<<ms_slots_count
-                 << " min_slots times is "<<ms_slots_count<<endl;
-            
-        }
-    }
-
-    TimeWheel::TimeWheel(const int & step, const int & max_min)
-    :__timer_count{0}
-    {
-        if(1000%step  != 0)
+        memset(&__time_pos, 0, sizeof(__time_pos));
+        if (1000 % step != 0)
         {//异常 终止构造
-            throw  out_of_range("The parameter step is not divisible");
+                throw  out_of_range("The parameter step is not divisible");
         }
-        memset(&__time_pos, 0,sizeof(__time_pos));
-        //ms  s  min  三个时间轮上的槽数
-        __ms_slots = 1000/step; //step;
-        __s_slots = 60 ;   //默认一分钟
-        __min_slots = max_min; //不创建小时slot
 
-        __time_slots_header = new std::list<Times::EventData>[__ms_slots +  __s_slots +  __min_slots] ;
-        __step = step; //默认单位
-
-        std::thread tick([&]
-        {
+        //步长
+        __ms_slots = 1000 / step;;
+        __s_slots = 60;
+        __min_slots = max_min;
+        //事件
+        //初始化链表的数组，数组里的元素为链表,时间轮数组
+        __time_slots_header = new std::list<EventData>[__ms_slots + __s_slots + __min_slots];
+        __step = step;
+        std::thread th([&]{
             this->Tick();
         });
 
-        //分离
-        tick.detach();
+        th.detach(); 
+    }
+
+
+    TimeWheel::~TimeWheel()
+    {
     }
 
     int TimeWheel::AddTimer(EventData  event)
-    {//成功返回ID 外部添加超时时间和回调函数以及参数
-        if(event.interval <  __step 
+    {//向容器添加定时，超时时间必须为步长的整数倍
+    //函数成功返回生成的定时器ID
+        if (event.interval < __step 
         || event.interval % __step != 0 
-        || event.interval >= __step * __ms_slots * __s_slots * __min_slots )
+        || event.interval >= __step * __ms_slots * __s_slots * __min_slots)
         {
-            cout<<"  add failed"<<endl;
-            return -1 ;
+            return -1;
         }
-        //cout<<"into add timer function "<<endl ;
+
         std::unique_lock<std::mutex> lock(__mutex);
-
-        //定时器时间
         event.timePos = __time_pos ;
-        //ID
-        event.time_id = this->GenerateTimerID();
 
-        this->InsertTimer(event.interval, event);    
-        __timer_count++;
-        cout<<"add sus "<<endl ;
-        return event.time_id;
-    }
-    //删除定时器 
-    int TimeWheel::DeleteTimer(const int & timerId)
-    {
-        std::unique_lock<std::mutex>lock(__mutex);
+        event.timerId = GenerateTimerID();
+
         
-        int slots_count = __s_slots + __ms_slots + __min_slots ;
-        int index =  0;
-        for( ;index < slots_count;index++)
+        InsertTimer(event.interval, event);
+        __timer_count++;
+
+        return event.timerId;
+
+    }
+
+    
+    int TimeWheel::DeleteTimer(const int &timerId)
+    {//将容器从定时器中删除
+        std::unique_lock<std::mutex> lock(__mutex);
+        int index = 0;
+        //最大事件个数
+        int slots_count = __ms_slots + __s_slots + __min_slots;
+        for (index = 0; index < slots_count; index++)
         {
-            std::list<EventData> & events = __time_slots_header[index] ; 
-            for(auto item = events.begin(); item != events.end();item++)
+            std::list<EventData>& events = __time_slots_header[index];
+            for (auto item = events.begin(); item != events.end(); item++)
             {
-                if(item->time_id == timerId)
+                if (item->timerId == timerId)
                 {
                     item = events.erase(item);
-                    return 0 ;
+                    return 0;
                 }
             }
         }
-        if(index == slots_count)
+        if (index == slots_count)
         {
-            return -1 ;//没有该定时器
+            //std::cout << "timer not found" << std::endl;
+            return -1;
         }
+        return 0;
     }
-
 
     /**************************************************************************/
     /*******************************private************************************/
     /**************************************************************************/
 
-    bool TimeWheel::Tick() 
-    {//按照步长心搏检测
-        while(true)
+
+    int TimeWheel::Tick()
+    {//步长心搏检测
+        while (true)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(__step));
             std::unique_lock<std::mutex> lock(__mutex);
-
-            Times::TimePos pos; 
+            TimePos pos;
             memset(&pos, 0, sizeof(pos));
-            Times::TimePos last_pos = __time_pos;
-            GetNextTrigerPos(__step,pos);
-            __time_pos = pos ;   
-            cout<<" tick "<<endl;
-            pos.show();
-            last_pos.show();
-            if(pos.min != last_pos.min )
+
+            TimePos last_pos = __time_pos;
+            GetNextTrigerPos(__step, pos);
+            __time_pos = pos;
+
+            if (pos.min != last_pos.min)
             {
-                std::list<Times::EventData> & events = 
-                    __time_slots_header[__time_pos.min + __s_slots + __ms_slots];
-                this->DealEvent(events);
+                std::list<EventData>& events = __time_slots_header[__time_pos.min + __s_slots + __ms_slots];
+                DealEvent(events);
+                __timer_count -= events.size();
                 events.clear();
             }
-            else if(pos.s != last_pos.s)
+            else if (pos.s != last_pos.s)
             {
-                std::list<Times::EventData> & events = 
-                    __time_slots_header[__time_pos.s + __ms_slots];
-                this->DealEvent(events);
+                std::list<EventData>& events = __time_slots_header[__time_pos.s + __ms_slots];
+                DealEvent(events);
+                __timer_count -= events.size();
                 events.clear();
             }
-            else if(pos.ms != last_pos.ms)
+            else if (pos.ms != last_pos.ms)
             {
-                std::list<Times::EventData> & events = 
-                    __time_slots_header[__time_pos.ms];
-                this->DealEvent(events);
+                std::list<EventData>& events = __time_slots_header[__time_pos.ms];
+                DealEvent(events);
+                __timer_count -= events.size();
                 events.clear();
             }
             else
             {
-                cout<<" thread loop eroerred"<<endl;
-                return false ;
+                return -1;
             }
-            
+            //cout<<"tick  count "<<__timer_count<< endl;
             lock.unlock();
         }
-        return true;
+        return 0;
     }
 
-    int TimeWheel::GetMs(const Times::TimePos & pos)
-    {//将时间转化为毫秒数
-        return __step*__time_pos.ms + __time_pos.s * 1000 + __time_pos.min * 1000*60 ;
-    }
-
-    void TimeWheel::DealEvent(std::list<EventData>&  events)
-    {//处理定时事件
-        cout<<"into deal fun "<<endl;
-        for(auto item = events.begin(); item != events.end(); ++item)
-        {
-            int cur_ms = this->GetMs(__time_pos);
-            int last_ms = this->GetMs(item->timePos);
-            int res_ms = (cur_ms - last_ms + (__min_slots + 1) *60*1000 )%((__min_slots + 1) *60*1000 );
-            cout<<"cur  last"<<cur_ms<<" "<<res_ms<<endl;
-            cout<< " res  interval "<<res_ms <<"  "<< item->interval<<endl; 
-            if(res_ms == item->interval)
-            {
-                item->cb_fun(item->arg);
-                item->timePos = __time_pos ;
-                InsertTimer(item->interval,*item);
-                //item = events.erase(item);//处理完成后删除
-                cout<<"deal the event"<<endl;
-            }
-            else 
-            {//未到预期时间
-                // EventData tmp = *item;
-                // item = events.erase(item);//处理完成后删除
-                // this->InsertTimer(tmp.interval - res_ms,tmp);
-                InsertTimer(item->interval - res_ms,*item);
-            }
-        }
-        ShowTimerCount();
-    }
-
-    void TimeWheel::GetNextTrigerPos(const int&interval,Times::TimePos &pos)
-    {
-        int cur_ms = this->GetMs(__time_pos);
-        int future_ms = cur_ms + interval ;
-
-        pos.min = (future_ms/1000/60)%__min_slots ;
-        pos.s = (future_ms/(1000*60)) / 1000 ;
-        pos.ms = (future_ms/1000)/__step ;
-    }
-
+    
     int TimeWheel::GenerateTimerID()
     {//生成ID
-        // int res ;
-        // srand((int)time(0));
-        // do{
-        //     int x = rand() % 0xffffffff;
-        //     int cur_time = static_cast<int>(time(nullptr));
-        //     res = x | cur_time | __timer_count;
-        // }while(id_set.count(res) == 1);
-
         srand((int)time(0));
-        int res ;
         int x = rand() % 0xffffffff;
         int cur_time = static_cast<int>(time(nullptr));
-        res = x | cur_time | __timer_count;
-        return res ;
+        return x | cur_time | __timer_count;
     }
 
-    void TimeWheel::InsertTimer(const int & pos,EventData &event)
-    {
-        Times::TimePos timePos ;
-        memset(&timePos, 0, sizeof(timePos));
-         cout<<" insert timer   get  triggered"<<endl;
-        this->GetNextTrigerPos(pos,timePos);
-        timePos.show();
-        __time_pos.show();
-        if(timePos.min != __time_pos.min)
+    
+    void TimeWheel::InsertTimer(const int &diff_ms, EventData &event)
+    {//插入定时器
+        TimePos timePos = { 0 };
+
+        GetNextTrigerPos(diff_ms, timePos);
+
+        //数组的每一个元素都是一个list链表
+        if (timePos.min != __time_pos.min)
             __time_slots_header[__ms_slots + __s_slots + timePos.min].push_back(event);
-        else if(timePos.s != __time_pos.s)
+        else if (timePos.s != __time_pos.s)
             __time_slots_header[__ms_slots + timePos.s].push_back(event);
-        else if(timePos.ms != __time_pos.ms)
+        else if (timePos.ms != __time_pos.ms)
             __time_slots_header[timePos.ms].push_back(event);
+
     }
+
+
+    
+    void TimeWheel::GetNextTrigerPos(const int & interval, TimePos &timePos)
+    {//获得下一个触发超时时间。
+        
+        int cur_ms = GetMS(__time_pos);
+        int future_ms = cur_ms + interval;
+
+        timePos.min = (future_ms / 1000 / 60) % __min_slots;
+        timePos.s = (future_ms % (1000 * 60)) / 1000;
+        timePos.ms = (future_ms % 1000) / __step;
+    }
+
+
+    
+    int TimeWheel::GetMS(const TimePos & timePos)
+    {//将时刻转为毫秒
+        return __step * timePos.ms + timePos.s * 1000 + timePos.min * 60 * 1000;
+    }
+
+
+    
+    void TimeWheel::DealEvent(std::list<EventData>  events)
+    {//超时事件
+        for (auto item = events.begin(); item != events.end(); item++)
+        {
+            int cur_ms = GetMS(__time_pos);
+            int last_ms = GetMS(item->timePos);
+            int diff_ms = (cur_ms - last_ms + (__min_slots + 1) * 60 * 1000) % ((__min_slots + 1) * 60 * 1000);
+            if (diff_ms == item->interval)
+            {
+                item->cb_func(item->arg);
+                item->timePos = __time_pos;
+                //InsertTimer(item->interval, *item);
+            }
+            else
+            {
+                InsertTimer(item->interval - diff_ms, *item);
+            }
+            //cout<<" size "<<__timer_count<<endl;
+        }
+
+    }
+
 
 
 
